@@ -23,7 +23,7 @@ Use in a brm() call as:
 
     <a class="navbar-brand me-2" href="../index.html">pairedcountbrms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -89,8 +89,7 @@ which is otherwise unchanged.</p>
 (link = "log"); it now samples on sigma instead, for a common
 (mean, SD-scale) convention shared with skellam2(), dlaplace1(), and
 dlaplace2(). Since sigma = sqrt(2 * mu_skellam), a prior previously
-stated on log(mu_skellam) — e.g. normal(1, 1.5), used in
-05-04-candidate-family-validation.qmd — translates as:
+stated on log(mu_skellam) — e.g. normal(1, 1.5) — translates as:
   log(sigma) = 0.5 * log(2) + 0.5 * log(mu_skellam)
 so an intercept of 1 on the old log(mu_skellam) scale corresponds to
 an intercept of 0.5*log(2) + 0.5*1 ≈ 0.847 on the new log(sigma) scale,

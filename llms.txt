@@ -1,62 +1,372 @@
 # pairedcountbrms
 
-Custom [brms](https://paul-buerkner.github.io/brms/) families for
-modelling a **pair of counts** from two sources that are meant to
-measure the same thing — two observers, two instruments, two reporting
-channels — where the question is how much, and how systematically, they
-disagree.
+Custom [brms](https://paul-buerkner.github.io/brms/) families (Bürkner
+2017) for modelling a **pair of counts** from two sources that are meant
+to measure the same thing — two observers, two instruments, two
+reporting channels — where the question is how much, and how
+systematically, they disagree. Code is also provided for modelling
+**differences in pairs of counts** directly.
 
-The package offers two complementary ways to pose that question, and it
-is worth deciding which you want before reading further:
+Pairs of counts are modelled using **[joint bivariate-count
+families](#joint-bivariate-count-families)** —
+[`bipois()`](https://anhsmith.github.io/pairedcountbrms/reference/bipois.md),
+[`binegbin()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md)
+and
+[`binegbin_joint()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_joint.md).
+These model the pair $`(y_1, y_2)`$ itself, built by **trivariate
+reduction** (Holgate 1964): the two counts share an unobserved latent
+component, which is what makes them correlated, plus a private component
+each, whose difference is the disagreement. One model can then answer:
 
-- **Difference families** model the single integer $`d = y_1 - y_2 \in
-  \mathbb{Z}`$ directly (Skellam, discrete Laplace, discrete normal).
-  Reach for these when *only the disagreement matters* and you want
-  truncation support.
-- **Joint bivariate-count families** model the pair $`(y_1, y_2)`$
-  itself (bivariate Poisson and bivariate negative-binomial). Reach for
-  these when the pair’s **overall level, correlation, or marginal
-  overdispersion** matters, or when you need to **simulate one count
-  given the other**.
+- **how much was there?** — the pair’s overall level, not just its
+  difference;
+- **how much did the two sources agree?** — their congruence, how much
+  of the total each saw in common;
+- **was there bias toward one source?**, and by how much;
+- **how overdispersed are the counts?** — excess dispersion in a
+  negative binomial relative to a Poisson;
+- **what would the other source have recorded?** — often one source is
+  complete and the other is sometimes not observed; the model allows
+  conditional simulation of $`y_1`$ given an observed $`y_2`$, including
+  for rows where $`y_1`$ was never observed at all
+  ([`binegbin_joint()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_joint.md)).
 
-The two suites answer different questions and are documented in their
-own sections below. The [Overview](#overview) contrasts them; if you
-already know which you need, skip to [Difference
-families](#difference-families) or [Joint bivariate-count
-families](#joint-bivariate-count-families).
+The three rates the likelihood takes can be reparameterised as overall
+level $`M`$, congruence $`f`$, and source bias $`\delta`$, which
+separates the first three questions above. Predictors and random effects
+can be placed on each independently, and $`\delta = 0`$ and
+$`\kappa = 0`$ are finite nulls. See [The $`(M, f, \delta)`$
+coordinates](#joint-bivariate-count-families) below, and the article
+[*The anatomy of a paired
+count*](https://anhsmith.github.io/pairedcountbrms/articles/paired-count-anatomy.html)
+for a worked fit.
+
+Alternatively, instead of modelling paired counts, the differences
+$`d = y_1 - y_2 \in \mathbb{Z}`$ can be modelled directly using one of
+the [difference families](#difference-families). Truncation is supported
+via
+[`resp_trunc()`](https://paulbuerkner.com/brms/reference/addition-terms.html).
 
 ## Overview
 
-Many count-comparison problems produce a response that is an integer but
-can be negative — the difference between two observers’ counts of the
-same event, the goal difference between two teams, the gap between a
-camera’s and a logbook’s tally of the same fishing set. Standard `brms`
-count families (Poisson, negative binomial, …) model a non-negative
-response and cannot take a $`\mathbb{Z}`$-valued one, nor a
-jointly-modelled pair. This package fills both gaps.
+Two counts of the same quantity are correlated, and no bivariate count
+distribution parameterises that correlation directly, as the bivariate
+normal does. Dependence must therefore be constructed. Under trivariate
+reduction it follows from the counting process itself: the two sources
+record overlapping sets of events, and the dependence is the count they
+share. This admits only positive correlation. Copulas are an
+alternative, imposing a dependence structure on transformed margins
+rather than generating one from the count parameters (Genest and
+Nešlehová 2007).
 
-|  | **Difference families** | **Joint families** |
+The shared component cancels in the difference, so $`d`$ alone
+identifies neither the overall level nor the correlation. Modelling each
+count separately assumes the dependence is zero. Regressing the
+difference on one of the two counts places that count on both sides of
+the equation, inducing a spurious dependence: the fitted slope is biased
+towards $`-1`$ by shared sampling error alone (Bland and Altman 1986).
+
+Standard `brms` count families (Poisson, negative binomial, …) model a
+non-negative response, and can take neither a $`\mathbb{Z}`$-valued one
+nor a jointly-modelled pair. This package supplies both.
+
+|  | **Joint families** | **Difference families** |
 |----|----|----|
-| Response | $`d = y_1 - y_2`$ (one value per pair) | $`(y_1, y_2)`$ (the pair; $`y_2`$ via `vint()`) |
-| Families | `skellam1/2`, `dlaplace1/2`, `dnorm1/2` | `bipois`, `binegbin`, `binegbin_joint` |
-| Captures | location and spread of the disagreement | level, correlation, marginal overdispersion, **and** the disagreement |
-| Discards | the pair’s level and correlation | nothing — but needs both counts observed (except `binegbin_joint`) |
-| Truncation ([`resp_trunc()`](https://paulbuerkner.com/brms/reference/addition-terms.html)) | **yes** | no |
-| Conditional simulation $`y_1 \mid y_2`$ | n/a | **yes** |
-| Overdispersed margins | n/a (models $`d`$, not the margins) | `binegbin` / `binegbin_joint` only |
+| Families | `bipois`, `binegbin`, `binegbin_joint` | `skellam1/2`, `dlaplace1/2`, `dnorm1/2` |
+| Response | $`(y_1, y_2)`$ (the pair; $`y_2`$ via `vint()`) | $`d = y_1 - y_2`$ (one value per pair) |
+| Captures | level, correlation, marginal overdispersion, **and** the disagreement | location and spread of the disagreement |
+| Discards | nothing — but needs both counts observed (except `binegbin_joint`) | the pair’s level and correlation |
+| Overdispersed margins | `binegbin` / `binegbin_joint` | n/a (models $`d`$, not the margins) |
+| Conditional simulation $`y_1 \mid y_2`$ | **yes** | n/a |
+| Partially-observed pairs | `binegbin_joint` | n/a |
+| Truncation ([`resp_trunc()`](https://paulbuerkner.com/brms/reference/addition-terms.html)) | no | **yes** |
 
-**Choosing.** If your data are a set of differences and you care only
-about whether and by how much the two sources disagree — with, say, a
-lower truncation bound because $`d`$ could not physically have fallen
-below some value — use a **difference** family. If you have the two
-counts side by side and their correlation or absolute level is itself of
-interest, or the margins are overdispersed, or you want to impute one
-count from the other, use a **joint** family. The two views are
-connected: for the bivariate Poisson, the difference $`y_1 - y_2`$ is
-*exactly* Skellam-distributed (see below), so `bipois` contains
-`skellam2` as its induced difference model.
+**Choosing.** A joint family retains the pair’s level, its correlation,
+and its difference, so nothing a difference family models is lost. Two
+requirements favour a difference family: truncation via
+[`resp_trunc()`](https://paulbuerkner.com/brms/reference/addition-terms.html),
+which the joint families do not support, and rows on which only one
+count is observed, which only
+[`binegbin_joint()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_joint.md)
+admits.
+
+The two parameterisations are related. For the bivariate Poisson the
+difference $`y_1 - y_2`$ is exactly Skellam-distributed (Skellam 1946),
+so `bipois` contains `skellam2` as its induced difference model.
+
+## Joint bivariate-count families
+
+A joint family models the pair $`(y_1, y_2)`$ directly, retaining the
+pair’s level and correlation. All three are built by the same
+**trivariate reduction** (Holgate 1964; Karlis and Ntzoufras 2003):
+three independent latent counts
+
+``` math
+N_{\text{shared}} \sim \mathcal{D}(\mu), \quad
+N_1 \sim \mathcal{D}(\lambda_1), \quad
+N_2 \sim \mathcal{D}(\lambda_2),
+```
+
+combined as
+
+``` math
+y_1 = N_{\text{shared}} + N_1, \qquad
+y_2 = N_{\text{shared}} + N_2.
+```
+
+The shared count $`N_{\text{shared}}`$ appears in both, inducing
+positive correlation; the two private counts $`N_1, N_2`$ drive the
+difference. Source 1 is the modelled response; source 2 is supplied via
+`vint()`. $`\mu`$ is the shared *rate*, **not** the mean of either
+response. The likelihood marginalises the unobserved
+$`N_{\text{shared}}`$ analytically:
+
+``` math
+P(y_1=x,\, y_2=y)
+  = \sum_{k=0}^{\min(x,y)}
+    f_{\text{s}}(k)\, f_1(x-k)\, f_2(y-k),
+```
+
+where $`f_{\text{s}}, f_1, f_2`$ are the pmfs of the three latent
+counts. Two consequences follow directly:
+
+- **The margins.** $`\mathrm{E}[y_1] = \mu + \lambda_1`$ and likewise
+  for $`y_2`$;
+  $`\mathrm{Cov}(y_1, y_2) = \mathrm{Var}(N_{\text{shared}})`$, so the
+  correlation is
+  $`\mathrm{Var}(N_{\text{shared}}) / \sqrt{\mathrm{Var}(y_1)\mathrm{Var}(y_2)}`$.
+- **The difference.** $`d = y_1 - y_2 = N_1 - N_2`$ — the shared count
+  *cancels*. So the difference depends only on the two private
+  components, exactly the quantity a difference family models. For the
+  Poisson case this difference is precisely
+  $`\mathrm{Skellam}(\lambda_1, \lambda_2)`$, tying the two suites
+  together.
+
+### The $`(M, f, \delta)`$ coordinates
+
+The three rates enter the likelihood directly, but none of them is
+separately interpretable: raising the overall level of counting moves
+all three together. Three coordinates separate the quantities of
+interest:
+
+|  |  |  |
+|----|----|----|
+| $`M`$ | overall level | $`\mu + (\lambda_1 + \lambda_2)/2`$ |
+| $`f`$ | congruence — the share of $`M`$ both sources saw | $`\mu / M`$ |
+| $`\delta`$ | source bias, on a log-ratio scale | $`\tfrac12\log(\lambda_1/\lambda_2)`$ |
+
+with dispersions on an SD scale, $`\kappa = 1/\sqrt{\phi}`$, so that
+$`\kappa = 0`$ is the Poisson limit.
+[`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_mfd_to_dpars.html)
+and
+[`binegbin_dpars_to_mfd()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_mfd_to_dpars.html)
+convert both ways; the map is a bijection.
+
+These coordinates separate effects that the rates confound. A
+group-level effect on $`\mu`$ changes both the level and the congruence;
+an effect on $`M`$ or on $`f`$ changes one at a time. They also supply
+finite nulls — $`\delta = 0`$ is no bias, $`\kappa = 0`$ is Poisson —
+and so admit **penalised-complexity priors** (Simpson et al. 2017),
+which shrink to the simpler model unless the data support otherwise. The
+rate parameterisation has no such nulls: its Poisson limit is
+$`\phi \to \infty`$.
+
+No separate family is required; the coordinates are supplied through
+[`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html).
+The article [*The anatomy of a paired
+count*](https://anhsmith.github.io/pairedcountbrms/articles/paired-count-anatomy.html)
+simulates from known $`(M, f, \delta)`$, fits, recovers the coordinates,
+and converts back, alongside an interactive widget linking the two
+parameterisations.
+
+### `bipois` vs `binegbin`: overdispersion
+
+| Family | Latent law | Dispersion | Var of each latent | Use when |
+|----|----|----|----|----|
+| [`bipois()`](https://anhsmith.github.io/pairedcountbrms/reference/bipois.md) | Poisson | none | $`\mathrm{Var}=\text{mean}`$ | margins are **not** overdispersed |
+| [`binegbin()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md) | negative-binomial | scalar `shapes` (shared), `shapex` (private) | $`m + m^2/\phi`$ | margins **are** overdispersed (the usual case) |
+
+With Poisson latents, each component has $`\mathrm{Var}=\text{mean}`$,
+so `bipois` cannot represent overdispersed margins and underfits the
+marginal (and difference) variance of real count data. `binegbin`
+replaces each latent with a negative-binomial,
+$`N \sim \text{NB2}(m, \phi)`$ — Stan’s `neg_binomial_2`, R’s
+`dnbinom(size = φ, mu = m)` — with mean $`m`$ and variance
+$`m + m^2/\phi`$. It carries the extra spread in two **scalar**
+dispersion dpars: `shapes` $`=\phi_{\text{s}}`$ for the shared count,
+`shapex` $`=\phi_{\text{x}}`$ shared across both private counts. The
+moments become
+
+``` math
+\mathrm{Var}(y_1) = \Big(\mu+\tfrac{\mu^2}{\phi_{\text{s}}}\Big)
+  + \Big(\lambda_1+\tfrac{\lambda_1^2}{\phi_{\text{x}}}\Big),
+\qquad
+\mathrm{Cov}(y_1,y_2) = \mu+\tfrac{\mu^2}{\phi_{\text{s}}},
+```
+
+and, with $`\lambda_1=\lambda_2=\lambda`$,
+$`\mathrm{Var}(d) = 2\big(\lambda + \lambda^2/\phi_{\text{x}}\big)`$. As
+$`\phi_{\text{s}},\phi_{\text{x}}\to\infty`$ the negative-binomials
+collapse to Poissons and `binegbin` $`\to`$`bipois`.
+
+**Why scalar dispersion, not a random effect.** An observation-level
+random effect on the private components fails synthetic recovery: with
+one observed pair but three latent deviates per unit, the excess
+deviates absorb residual variation and fresh draws do not regenerate the
+observed spread. A conditional posterior-predictive check does not
+reveal this; a marginal one does. Scalar `shapes`/`shapex` are instead
+identified from the aggregate mean–variance relationship across units.
+The `binegbin.R` file header gives the detail.
+
+### `binegbin_joint`: partially-observed pairs (censoring)
+
+`binegbin_joint` is `binegbin` extended to rows where $`y_1`$ was **not
+observed** — that margin is censored, not matched. Each row carries a
+second `vint()` integer, a `y1_obs` $`\in\{0,1\}`$ flag:
+
+- **`y1_obs == 1` (matched):** the full `binegbin` joint lpmf on
+  $`(y_1, y_2)`$ — identical, term for term.
+- **`y1_obs == 0` ($`y_2`$-only):** the $`y_1`$-**integrated marginal**
+  of that *same* joint,
+
+``` math
+P(y_2=y) = \sum_{k=0}^{y} f_{\text{s}}(k)\, f_2(y-k),
+```
+
+i.e. the joint with $`N_1`$ summed out (the inner sum over $`y_1`$
+telescopes to $`1`$). This is a convolution of the shared and source-2
+excess negative-binomials — **not** a separate single-dispersion
+`neg_binomial_2` on $`y_2`$, which would be a different, incoherent
+model.
+
+One [`brm()`](https://paulbuerkner.com/brms/reference/brm.html) call
+thus pools matched and censored rows under one likelihood. $`\lambda_1`$
+and the between-source bias are identified **only** by the matched rows;
+the censored rows sharpen $`\mu`$, `shapes`, $`\lambda_2`$, and any
+shared random-effect structure. See [Limitations](#limitations) for the
+identifiability caveat this implies.
+
+### Usage
+
+``` r
+
+library(brms)
+library(pairedcountbrms)
+
+# bipois(): joint bivariate Poisson (non-overdispersed margins)
+fit_bp <- brm(
+  bf(y1 | vint(y2) ~ 1,
+     mu ~ 1 + (1 | vessel), lambdaone ~ 1, lambdatwo ~ 1),
+  data = dat, family = bipois(), stanvars = bipois_stanvars(), chains = 4
+)
+
+# binegbin(): joint bivariate negative-binomial (overdispersed margins)
+fit_nb <- brm(
+  bf(y1 | vint(y2) ~ 1,
+     mu ~ 1 + (1 | vessel),
+     nlf(lambdaone ~ lamx), nlf(lambdatwo ~ lamx), lamx ~ 1,
+     shapes ~ 1, shapex ~ 1, nl = TRUE),
+  data = dat, family = binegbin(), stanvars = binegbin_stanvars(), chains = 4
+)
+
+# binegbin_joint(): same model, but y1 is unobserved where y1_obs == 0
+fit_cj <- brm(
+  bf(y1 | vint(y2, y1_obs) ~ 1,
+     mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
+     nlf(lambdaone ~ lamx + methd),
+     nlf(lambdatwo ~ lamx - methd),
+     lamx ~ 1, methd ~ 1, shapes ~ 1, shapex ~ 1, nl = TRUE),
+  data = dat, family = binegbin_joint(), stanvars = binegbin_joint_stanvars(),
+  chains = 4
+)
+```
+
+The `nlf(lambdaone ~ lamx)` / `nlf(lambdatwo ~ lamx)` idiom ties the two
+private rates to one value — a “no systematic bias” assumption,
+$`\mathrm{E}[y_1]=\mathrm{E}[y_2]`$. Splitting them as `lamx + methd` /
+`lamx - methd` introduces a directional bias parameter `methd` (half the
+log ratio of the two excess rates); giving the two rates separate
+predictors (`nlf(lambdaone ~ l1)`, `nlf(lambdatwo ~ l2)`, `l1 ~ 1`,
+`l2 ~ 1`) is the fully unconstrained version.
+
+The second count (and, for `binegbin_joint`, the flag) travel via
+`vint()` because
+[`custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
+declares a single response column — `vint(y2, y1_obs)` binds
+`vint1 = y2`, `vint2 = y1_obs` in listed order.
+
+### Set priors on the dispersions
+
+`brms` assigns a custom family’s **`mu` dpar** a default `student_t`
+prior but leaves the remaining dpars **flat and improper**;
+[`get_prior()`](https://paulbuerkner.com/brms/reference/default_prior.html)
+returns an empty `prior` column for `lamx`, `shapes` and `shapex`. These
+are the weakly-identified parameters, and unregularised the chains
+explore the flat tail. In this package’s recovery test, omitting the
+priors produced a divergent transition and $`\hat R = 1.0101`$, although
+all parameters still recovered. Weakly informative priors are
+sufficient:
+
+``` r
+
+prior = c(
+  prior(normal(2, 1), class = "Intercept"),                      # log shared rate
+  prior(normal(2, 1), class = "b",         nlpar = "lamx"),      # log excess rate
+  prior(normal(2, 1), class = "Intercept", dpar  = "shapes"),
+  prior(normal(2, 1), class = "Intercept", dpar  = "shapex")
+)
+```
+
+These suit rates and dispersions of roughly 1 to 50. To adapt them,
+shift the **mean** to the scale of the counts rather than increasing the
+SD. All five dpars are log-linked, so a normal prior is lognormal on the
+natural scale, and increasing its SD moves mass to implausible values
+rather than making the prior neutral (Smith et al. 2020, supplement 3 —
+see [References](#references)).
+
+The `class`/`dpar`/`nlpar` slots differ between a rate supplied through
+[`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html)
+(`class = "b"`, `nlpar`) and the dispersions (`class = "Intercept"`,
+`dpar`).
+[`get_prior()`](https://paulbuerkner.com/brms/reference/default_prior.html)
+returns the required combination.
+
+Under the $`(M, f, \delta)`$ parameterisation the dispersions admit
+stronger justification. On the SD scale $`\kappa = 1/\sqrt{\phi}`$ the
+Poisson limit is a finite $`\kappa = 0`$, so
+[`exponential()`](https://paulbuerkner.com/brms/reference/brmsfamily.html)
+is a penalised-complexity prior that shrinks to Poisson unless the data
+support overdispersion, and `double_exponential()` on $`\delta`$ shrinks
+to no between-source bias. [*The anatomy of a paired
+count*](https://anhsmith.github.io/pairedcountbrms/articles/paired-count-anatomy.html)
+demonstrates both.
+
+### Prediction
+
+[`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
+simulates $`y_1`$**conditional on the observed $`y_2`$** (which is fixed
+data, not itself re-simulated):
+
+- **`bipois`:** the conditional split is closed-form,
+  $`N_{\text{shared}}\mid y_2 \sim \text{Binomial}\big(y_2,\,
+  \mu/(\mu+\lambda_2)\big)`$, then a fresh $`N_1`$.
+- **`binegbin` / `binegbin_joint`:** a negative-binomial sum has no
+  Binomial conditional, so the discrete law
+  $`P(N_{\text{shared}}=k\mid y_2)
+  \propto f_{\text{s}}(k)\,f_2(y_2-k)`$ is sampled directly, then a
+  fresh $`N_1`$ added.
+- For `binegbin_joint`, `y1_obs` is **ignored** at prediction time:
+  every row (matched and censored alike) gets a conditional $`y_1`$
+  draw, so you can impute the unobserved margin fleet-wide.
 
 ## Difference families
+
+*These families model the difference directly, discarding the pair’s
+level and correlation by construction. They are appropriate where only
+the disagreement is of interest, or where truncation via
+[`resp_trunc()`](https://paulbuerkner.com/brms/reference/addition-terms.html)
+is required. For the Bayesian treatment of count differences generally,
+see Karlis and Ntzoufras (2006).*
 
 A difference family models $`d = y_1 - y_2`$ with a distribution on
 $`\mathbb{Z}`$. All three underlying distributions are parameterised on
@@ -79,7 +389,7 @@ free mean (how large is the systematic bias?):
 
 If $`Y_1 \sim \text{Poisson}(\theta_1)`$ and
 $`Y_2 \sim \text{Poisson}(\theta_2)`$ independently, then
-$`D = Y_1 - Y_2`$ has the **Skellam** distribution
+$`D = Y_1 - Y_2`$ has the **Skellam** distribution (Skellam 1946)
 
 ``` math
 P(D = k) = e^{-(\theta_1+\theta_2)}\left(\frac{\theta_1}{\theta_2}\right)^{k/2}
@@ -211,196 +521,6 @@ and discrete normal families have closed-form log-CCDFs (via
 their `_lccdf_stanvars()` take no threshold — there is no large-argument
 mode to guard.
 
-## Joint bivariate-count families
-
-A joint family models the pair $`(y_1, y_2)`$ directly, keeping the
-information a difference family throws away — the pair’s level and its
-correlation. All three are built by the same **trivariate reduction**:
-three independent latent counts
-
-``` math
-N_{\text{shared}} \sim \mathcal{D}(\text{mu}), \quad
-N_{10} \sim \mathcal{D}(\lambda_{\text{em}}), \quad
-N_{01} \sim \mathcal{D}(\lambda_{\text{lb}}),
-```
-
-combined as
-
-``` math
-y_1 = y_{\text{em}} = N_{\text{shared}} + N_{10}, \qquad
-y_2 = y_{\text{lb}} = N_{\text{shared}} + N_{01}.
-```
-
-The shared count $`N_{\text{shared}}`$ appears in both, inducing
-positive correlation; the two private counts $`N_{10}, N_{01}`$ drive
-the difference. (The `em`/`lb` labels — electronic-monitoring vs logbook
-— are historical; read them as “count 1, the modelled response” and
-“count 2, supplied via `vint()`”. `mu` is the shared *rate*, **not** the
-mean of either response.) The likelihood marginalises the unobserved
-$`N_{\text{shared}}`$ analytically:
-
-``` math
-P(y_{\text{em}}=x,\, y_{\text{lb}}=y)
-  = \sum_{k=0}^{\min(x,y)}
-    f_{\text{s}}(k)\, f_{10}(x-k)\, f_{01}(y-k),
-```
-
-where $`f_{\text{s}}, f_{10}, f_{01}`$ are the pmfs of the three latent
-counts. Two consequences follow directly and are worth internalising:
-
-- **The margins.** $`\mathrm{E}[y_{\text{em}}] = \text{mu} +
-  \lambda_{\text{em}}`$ and likewise for $`y_{\text{lb}}`$;
-  $`\mathrm{Cov}(y_{\text{em}}, y_{\text{lb}}) =
-  \mathrm{Var}(N_{\text{shared}})`$, so the correlation is
-  $`\mathrm{Var}(N_{\text{shared}}) / \sqrt{\mathrm{Var}(y_{\text{em}})\mathrm{Var}(y_{\text{lb}})}`$.
-- **The difference.**
-  $`d = y_{\text{em}} - y_{\text{lb}} = N_{10} - N_{01}`$ — the shared
-  count *cancels*. So the difference depends only on the two private
-  components, exactly the quantity a difference family models. For the
-  Poisson case this difference is precisely
-  $`\mathrm{Skellam}(\lambda_{\text{em}}, \lambda_{\text{lb}})`$, tying
-  the two suites together.
-
-### `bipois` vs `binegbin`: overdispersion
-
-| Family | Latent law | Dispersion | Var of each latent | Use when |
-|----|----|----|----|----|
-| [`bipois()`](https://anhsmith.github.io/pairedcountbrms/reference/bipois.md) | Poisson | none | $`\mathrm{Var}=\text{mean}`$ | margins are **not** overdispersed |
-| [`binegbin()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md) | negative-binomial | scalar `shapes` (shared), `shapex` (private) | $`m + m^2/\phi`$ | margins **are** overdispersed (the usual case) |
-
-With Poisson latents, each component has $`\mathrm{Var}=\text{mean}`$,
-so `bipois` cannot represent overdispersed margins and underfits the
-marginal (and difference) variance of real count data. `binegbin`
-replaces each latent with a negative-binomial,
-$`N \sim \text{NB2}(m, \phi)`$ — Stan’s `neg_binomial_2`, R’s
-`dnbinom(size = φ, mu = m)` — with mean $`m`$ and variance
-$`m + m^2/\phi`$. It carries the extra spread in two **scalar**
-dispersion dpars: `shapes` $`=\phi_{\text{s}}`$ for the shared count,
-`shapex` $`=\phi_{\text{x}}`$ shared across both private counts. The
-moments become
-
-``` math
-\mathrm{Var}(y_{\text{em}}) = \Big(\text{mu}+\tfrac{\text{mu}^2}{\phi_{\text{s}}}\Big)
-  + \Big(\lambda_{\text{em}}+\tfrac{\lambda_{\text{em}}^2}{\phi_{\text{x}}}\Big),
-\qquad
-\mathrm{Cov}(y_{\text{em}},y_{\text{lb}}) = \text{mu}+\tfrac{\text{mu}^2}{\phi_{\text{s}}},
-```
-
-and, with $`\lambda_{\text{em}}=\lambda_{\text{lb}}=\lambda`$,
-$`\mathrm{Var}(d) = 2\big(\lambda + \lambda^2/\phi_{\text{x}}\big)`$. As
-$`\phi_{\text{s}},\phi_{\text{x}}\to\infty`$ the negative-binomials
-collapse to Poissons and `binegbin` $`\to`$`bipois`.
-
-**Why scalar dispersion, not a random effect.** The obvious alternative
-— a per-observation random effect (OLRE) on the private components — was
-tried and rejected. With one pair per unit but three latent deviates per
-unit, the excess deviates act as residual absorbers: their population SD
-collapses toward the prior, and drawing fresh deviates fails to
-regenerate the observed spread (recovered excess SD $`0.37`$ vs true
-$`0.85`$; fresh-draw $`\mathrm{Var}(d)`$$`2.9`$ vs true $`19.2`$ in the
-motivating case). A *conditional* posterior-predictive check hides this
-entirely; only a **marginal** (fresh-draw) check exposes it. Scalar
-`shapes`/`shapex` are identified from the aggregate mean–variance
-mismatch across units instead, with no per-unit overfitting.
-
-### `binegbin_joint`: partially-observed pairs (censoring)
-
-`binegbin_joint` is `binegbin` extended to rows where $`y_{\text{em}}`$
-was **not observed** — the second margin is censored, not matched. Each
-row carries a second `vint()` integer, an `em_obs` $`\in\{0,1\}`$ flag:
-
-- **`em_obs == 1` (matched):** the full `binegbin` joint lpmf on
-  $`(y_{\text{em}}, y_{\text{lb}})`$ — identical, term for term.
-- **`em_obs == 0` (LB-only):** the $`y_{\text{em}}`$-**integrated
-  marginal** of that *same* joint,
-
-``` math
-P(y_{\text{lb}}=y) = \sum_{k=0}^{y} f_{\text{s}}(k)\, f_{01}(y-k),
-```
-
-i.e. the joint with $`N_{10}`$ summed out (the inner sum over
-$`y_{\text{em}}`$ telescopes to $`1`$). This is a convolution of the
-shared and LB-excess negative-binomials — **not** a separate
-single-dispersion `neg_binomial_2` on $`y_{\text{lb}}`$, which would be
-a different, incoherent model.
-
-One [`brm()`](https://paulbuerkner.com/brms/reference/brm.html) call
-thus pools matched and censored rows under one likelihood.
-$`\lambda_{\text{em}}`$ and the EM/LB bias are identified **only** by
-the matched rows; the censored rows sharpen `mu`, `shapes`,
-$`\lambda_{\text{lb}}`$, and any shared random-effect structure. See
-[Limitations](#limitations) for the identifiability caveat this implies.
-
-### Usage
-
-``` r
-
-library(brms)
-library(pairedcountbrms)
-
-# bipois(): joint bivariate Poisson (non-overdispersed margins)
-fit_bp <- brm(
-  bf(y_em | vint(y_lb) ~ 1,
-     mu ~ 1 + (1 | vessel), lambdaem ~ 1, lambdalb ~ 1),
-  data = dat, family = bipois(), stanvars = bipois_stanvars(), chains = 4
-)
-
-# binegbin(): joint bivariate negative-binomial (overdispersed margins)
-fit_nb <- brm(
-  bf(y_em | vint(y_lb) ~ 1,
-     mu ~ 1 + (1 | vessel),
-     nlf(lambdaem ~ lamx), nlf(lambdalb ~ lamx), lamx ~ 1,
-     shapes ~ 1, shapex ~ 1, nl = TRUE),
-  data = dat, family = binegbin(), stanvars = binegbin_stanvars(), chains = 4
-)
-
-# binegbin_joint(): same model, but y_em is unobserved where em_obs == 0
-fit_cj <- brm(
-  bf(y_em | vint(y_lb, em_obs) ~ 1,
-     mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
-     nlf(lambdaem ~ lamx + methd),
-     nlf(lambdalb ~ lamx - methd),
-     lamx ~ 1, methd ~ 1, shapes ~ 1, shapex ~ 1, nl = TRUE),
-  data = dat, family = binegbin_joint(), stanvars = binegbin_joint_stanvars(),
-  chains = 4
-)
-```
-
-The `nlf(lambdaem ~ lamx)` / `nlf(lambdalb ~ lamx)` idiom ties the two
-private rates to one value — a “no systematic bias” assumption,
-$`\mathrm{E}[y_{\text{em}}]=\mathrm{E}[y_{\text{lb}}]`$. Splitting them
-as `lamx + methd` / `lamx - methd` introduces a directional bias
-parameter `methd` (half the log ratio of the two excess rates); giving
-the two rates separate predictors (`nlf(lambdaem ~ lem)`,
-`nlf(lambdalb ~ llb)`, `lem ~ 1`, `llb ~ 1`) is the fully unconstrained
-version.
-
-The second count (and, for `binegbin_joint`, the flag) travel via
-`vint()` because
-[`custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
-declares a single response column — `vint(y_lb, em_obs)` binds
-`vint1 = y_lb`, `vint2 = em_obs` in listed order.
-
-### Prediction
-
-[`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
-simulates $`y_{\text{em}}`$**conditional on the observed
-$`y_{\text{lb}}`$** (which is fixed data, not itself re-simulated):
-
-- **`bipois`:** the conditional split is closed-form,
-  $`N_{\text{shared}}\mid y_{\text{lb}} \sim \text{Binomial}\big(y_{\text{lb}},\,
-  \text{mu}/(\text{mu}+\lambda_{\text{lb}})\big)`$, then a fresh
-  $`N_{10}`$.
-- **`binegbin` / `binegbin_joint`:** a negative-binomial sum has no
-  Binomial conditional, so the discrete law
-  $`P(N_{\text{shared}}=k\mid y_{\text{lb}})
-  \propto f_{\text{s}}(k)\,f_{01}(y_{\text{lb}}-k)`$ is sampled
-  directly, then a fresh $`N_{10}`$ added.
-- For `binegbin_joint`, `em_obs` is **ignored** at prediction time:
-  every row (matched and censored alike) gets a conditional
-  $`y_{\text{em}}`$ draw, so you can impute the unobserved margin
-  fleet-wide.
-
 ## Parameterisation and naming notes
 
 **The forced `"mu"` dpar.**
@@ -426,6 +546,58 @@ the mean.
 disallows dots and underscores in dpar names, so
 [`skellam2()`](https://anhsmith.github.io/pairedcountbrms/reference/skellam2.md)’s
 excess-spread parameter is spelled `sigmaexcess`.
+
+**`lambdaone`, not `lambda1`.**
+[`custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
+also rejects any dpar name ending in a digit
+(`"'dpars' should not end with a number."`). The joint families’ two
+source-specific rates are therefore spelled `lambdaone` and `lambdatwo`
+in code, while the documentation writes them $`\lambda_1`$ and
+$`\lambda_2`$. Nothing else distinguishes the two spellings — they are
+the same parameter.
+
+**Under `nl = TRUE`, give `mu` its own formula.** The joint families’
+examples use `nl = TRUE` so that
+[`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html)
+can tie the two excess rates together. In a non-linear `brms` formula
+the main formula’s right-hand side is a *non-linear expression* for
+`mu`, **not** a request for an intercept. So this:
+
+``` r
+
+bf(y1 | vint(y2) ~ 1,                      # <- no `mu ~ 1` term
+   nlf(lambdaone ~ lamx), nlf(lambdatwo ~ lamx),
+   lamx ~ 1, shapes ~ 1, shapex ~ 1, nl = TRUE)
+```
+
+generates `mu[n] = exp(1);` — the shared rate is **pinned at
+$`e \approx 2.72`$ and never estimated**. It does not error. `brms`
+simply fits a different model, and because the pair’s level then has to
+be absorbed by the excess rates, sampling becomes very slow. Add
+`mu ~ 1` (or `mu ~ 1 + (1 | group)`, as in the examples above) and the
+generated code becomes `mu += Intercept; mu = exp(mu);` as intended.
+Checking
+[`make_stancode()`](https://paulbuerkner.com/brms/reference/stancode.html)
+for a `b_Intercept` is the quickest way to confirm.
+
+### Notation
+
+| Code | Math | Meaning |
+|----|----|----|
+| `y1` (the response) | $`y_1`$ | count from source 1 |
+| `y2` (via `vint()`) | $`y_2`$ | count from source 2 |
+| — | $`N_{\text{shared}}`$ | latent count both sources saw |
+| — | $`N_1`$, $`N_2`$ | latent counts only one source saw |
+| `mu` | $`\mu`$ | rate of the shared component (**not** a response mean) |
+| `lambdaone`, `lambdatwo` | $`\lambda_1`$, $`\lambda_2`$ | rates of the two private components |
+| `shapes` | $`\phi_{\text{s}}`$ | NB2 dispersion of the shared component |
+| `shapex` | $`\phi_{\text{x}}`$ | NB2 dispersion shared by both private components |
+| `y1_obs` (via `vint()`) | — | `binegbin_joint` flag: was $`y_1`$ observed? |
+
+The difference families use the same $`y_1, y_2`$ for the two sources,
+so $`d = y_1 - y_2`$ means the same thing throughout. Source 1 is
+whichever count you put on the left-hand side of the formula; the
+labelling carries no further meaning.
 
 ## Installation
 
@@ -488,17 +660,16 @@ does not apply to `bipois`/`binegbin`/`binegbin_joint`; no
 `_lccdf_stanvars()` is provided for them.
 
 **`posterior_epred` for the joint families.** `bipois` returns the exact
-$`\mathrm{E}[y_{\text{em}}\mid y_{\text{lb}}]`$; `binegbin`’s is a point
-*approximation* (no closed-form conditional mean for a negative-binomial
-sum — use
+$`\mathrm{E}[y_1\mid y_2]`$; `binegbin`’s is a point *approximation* (no
+closed-form conditional mean for a negative-binomial sum — use
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
 for exact conditional simulation); `binegbin_joint` defines **no**
 `posterior_epred` at all, so use
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
 for it.
 
-**`binegbin_joint` identifiability.** Because $`\lambda_{\text{em}}`$
-and the EM/LB bias are informed only by the matched (`em_obs == 1`)
+**`binegbin_joint` identifiability.** Because $`\lambda_1`$ and the
+between-source bias are informed only by the matched (`y1_obs == 1`)
 rows, a fit with few matched rows will learn the bias weakly even if the
 total sample is large; the censored rows add power for the shared/level
 parameters, not the bias. Fits that lean on the bias should be judged
@@ -546,13 +717,66 @@ rate/shape grid and at edge cases; normalisation to $`1`$; the analytic
 moment identities (mean, marginal variance, difference variance,
 covariance); the Poisson-limit reduction `binegbin` $`\to`$`bipois`; and
 end-to-end recovery with divergence/Rhat checks. For `binegbin_joint` it
-additionally pins the **marginal identity** ($`\sum_{y_{\text{em}}}`$ of
-the matched branch equals the LB-only branch), the **equivalence** to
-`binegbin` on `em_obs == 1` rows (R and Stan), and the
+additionally pins the **marginal identity** ($`\sum_{y_1}`$ of the
+matched branch equals the $`y_2`$-only branch), the **equivalence** to
+`binegbin` on `y1_obs == 1` rows (R and Stan), and the
 **conditional-prediction identity** (`posterior_predict` draws match
 joint/marginal), plus a censored end-to-end fit verifying
 [`loo()`](https://mc-stan.org/loo/reference/loo.html)/[`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
 dispatch.
+
+### Running the tests
+
+Everything that needs a Stan toolchain is behind `skip_on_cran()`, so a
+plain `R CMD check` runs the analytic and Stan-function tests but
+**skips every model fit**. To include them:
+
+``` bash
+NOT_CRAN=true R CMD check --no-manual pairedcountbrms_0.7.0.tar.gz
+```
+
+The recovery tests distinguish two questions.
+
+- **Smoke gates** run with the other fitting tests. Each fits once and
+  checks convergence (zero divergences, $`\hat R < 1.01`$) and that the
+  true value lies within a wide (99%) posterior interval, detecting
+  gross mis-specification. This is not a calibration statement: for a
+  correct model with a calibrated posterior, asserting that a truth
+  falls within a 90% interval from a single fit fails 10% of the time by
+  construction, and across ~18 such assertions spurious failures were
+  the norm.
+- **Calibration** is assessed separately, as the proportion of repeated
+  simulate-and-refit replicates whose nominal interval contains the
+  truth. This costs minutes, and is opt-in:
+
+``` bash
+PAIREDCOUNTBRMS_COVERAGE=true NOT_CRAN=true Rscript -e 'testthat::test_local()'
+```
+
+The pass threshold is derived from the $`\mathrm{Binomial}(R, 0.9)`$
+null rather than chosen by eye, so the false-failure rate is a stated
+quantity: 0.16% at $`R = 10`$. Run it before a release, or after
+changing a likelihood, link, or parameterisation. See
+`tests/testthat/helper-coverage.R`.
+
+**What runs automatically.** `.github/workflows/R-CMD-check.yaml`
+defines two jobs on different cadences, since the checks differ by an
+order of magnitude in cost:
+
+| job | when | what |
+|----|----|----|
+| `check` | every push and pull request | builds, docs, examples, and the tests that need no Stan backend (~5 min) |
+| `check-stan` | weekly, and on demand | sets `NOT_CRAN=true` and installs both backends, so every model fit actually runs (~1 h) |
+
+The fitting tests are both the most likely to detect a regression and
+too slow for every push. Leaving them behind `skip_on_cran()` with
+nothing scheduled to lift it means they do not run at all: two
+assertions in this package remained broken undetected for that reason.
+
+Trigger `check-stan` by hand from the repository’s Actions tab whenever
+you want it. GitHub disables scheduled workflows after 60 days without a
+commit, so if this package goes quiet the weekly run stops; the manual
+trigger is the fallback.
 
 ## Function reference
 
@@ -589,6 +813,15 @@ directly (except for the truncated-`posterior_epred` workaround above).
 
 ## References
 
+Bland JM, Altman DG (1986) Statistical methods for assessing agreement
+between two methods of clinical measurement. *The Lancet* 327:307–310.
+
+Bürkner P-C (2017) brms: an R package for Bayesian multilevel models
+using Stan. *Journal of Statistical Software* 80:1–28.
+
+Genest C, Nešlehová J (2007) A primer on copulas for count data. *ASTIN
+Bulletin* 37:475–515.
+
 Skellam JG (1946) The Frequency Distribution of the Difference Between
 Two Poisson Variates Belonging to Different Populations. *Journal of the
 Royal Statistical Society* 109:296.
@@ -608,6 +841,16 @@ Karlis D, Michels R, Ötting M (2026) Modelling Handball Outcomes Using
 Univariate and Bivariate Approaches. *Statistical Methods &
 Applications* 35:263–284.
 
+Smith ANH, Acuña-Marrero D, Salinas-de-León P, Harvey ES, Pawley MDM,
+Anderson MJ (2020) Instantaneous versus non-instantaneous diver-operated
+stereo-video (DOV) surveys of highly mobile sharks in the Galápagos
+Marine Reserve. *Marine Ecology Progress Series* 649:111–123.
+(Supplement 3 gives the lognormal prior grid referred to above.)
+
+Simpson D, Rue H, Riebler A, Martins TG, Sørbye SH (2017) Penalising
+model component complexity: a principled, practical approach to
+constructing priors. *Statistical Science* 32:1–28.
+
 # Package index
 
 ## Joint bivariate-count families
@@ -621,24 +864,23 @@ than the difference alone.
   [`log_lik_bipois()`](https://anhsmith.github.io/pairedcountbrms/reference/bipois.md)
   [`posterior_predict_bipois()`](https://anhsmith.github.io/pairedcountbrms/reference/bipois.md)
   [`posterior_epred_bipois()`](https://anhsmith.github.io/pairedcountbrms/reference/bipois.md)
-  : Joint EM/logbook bivariate-Poisson custom family for brms
+  : Joint bivariate-Poisson custom family for brms
 - [`binegbin()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md)
   [`binegbin_stanvars()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md)
   [`log_lik_binegbin()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md)
   [`posterior_predict_binegbin()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md)
   [`posterior_epred_binegbin()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md)
-  : Joint EM/logbook bivariate-Negative-Binomial custom family for brms
+  : Joint bivariate-Negative-Binomial custom family for brms
 - [`binegbin_joint()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_joint.md)
   [`binegbin_joint_stanvars()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_joint.md)
   [`log_lik_binegbin_joint()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_joint.md)
   [`posterior_predict_binegbin_joint()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_joint.md)
-  : Censoring-aware joint EM/logbook bivariate-Negative-Binomial family
-  for brms
+  : Censoring-aware joint bivariate-Negative-Binomial family for brms
 
 ## Difference families
 
-Model the difference `d = y_em - y_lb` directly. The `1` variants fix
-the location at zero (do the two sources agree on average?); the `2`
+Model the difference `d = y1 - y2` directly. The `1` variants fix the
+location at zero (do the two sources agree on average?); the `2`
 variants estimate it (by how much do they disagree?).
 
 - [`skellam1()`](https://anhsmith.github.io/pairedcountbrms/reference/skellam1.md)

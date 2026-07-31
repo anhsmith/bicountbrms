@@ -11,24 +11,23 @@ than the difference alone.
   [`log_lik_bipois()`](https://anhsmith.github.io/pairedcountbrms/reference/bipois.md)
   [`posterior_predict_bipois()`](https://anhsmith.github.io/pairedcountbrms/reference/bipois.md)
   [`posterior_epred_bipois()`](https://anhsmith.github.io/pairedcountbrms/reference/bipois.md)
-  : Joint EM/logbook bivariate-Poisson custom family for brms
+  : Joint bivariate-Poisson custom family for brms
 - [`binegbin()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md)
   [`binegbin_stanvars()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md)
   [`log_lik_binegbin()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md)
   [`posterior_predict_binegbin()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md)
   [`posterior_epred_binegbin()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md)
-  : Joint EM/logbook bivariate-Negative-Binomial custom family for brms
+  : Joint bivariate-Negative-Binomial custom family for brms
 - [`binegbin_joint()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_joint.md)
   [`binegbin_joint_stanvars()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_joint.md)
   [`log_lik_binegbin_joint()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_joint.md)
   [`posterior_predict_binegbin_joint()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_joint.md)
-  : Censoring-aware joint EM/logbook bivariate-Negative-Binomial family
-  for brms
+  : Censoring-aware joint bivariate-Negative-Binomial family for brms
 
 ## Difference families
 
-Model the difference `d = y_em - y_lb` directly. The `1` variants fix
-the location at zero (do the two sources agree on average?); the `2`
+Model the difference `d = y1 - y2` directly. The `1` variants fix the
+location at zero (do the two sources agree on average?); the `2`
 variants estimate it (by how much do they disagree?).
 
 - [`skellam1()`](https://anhsmith.github.io/pairedcountbrms/reference/skellam1.md)

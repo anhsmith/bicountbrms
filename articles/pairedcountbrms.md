@@ -27,17 +27,18 @@ syntax used further down is documented in Bürkner
 ## The generative model
 
 [`binegbin()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md)
-builds a bivariate count pair by **trivariate reduction** ([Karlis and
-Ntzoufras 2003](#ref-karlis2003)). Three independent Negative-Binomial
-counts are drawn, and the two observed counts share one of them:
+builds a bivariate count pair by **trivariate reduction** ([Holgate
+1964](#ref-holgate1964); [Karlis and Ntzoufras 2003](#ref-karlis2003)).
+Three independent Negative-Binomial counts are drawn, and the two
+observed counts share one of them:
 
 ``` math
 \begin{aligned}
 N_{\text{shared}} &\sim \mathrm{NB2}(\mu,\ \phi_s) \\
-N_{10} &\sim \mathrm{NB2}(\lambda_{\text{em}},\ \phi_x) \qquad
-N_{01} \sim \mathrm{NB2}(\lambda_{\text{lb}},\ \phi_x) \\[4pt]
-y_{\text{em}} &= N_{\text{shared}} + N_{10} \qquad
-y_{\text{lb}} = N_{\text{shared}} + N_{01}
+N_1 &\sim \mathrm{NB2}(\lambda_1,\ \phi_x) \qquad
+N_2 \sim \mathrm{NB2}(\lambda_2,\ \phi_x) \\[4pt]
+y_1 &= N_{\text{shared}} + N_1 \qquad
+y_2 = N_{\text{shared}} + N_2
 \end{aligned}
 ```
 
@@ -52,17 +53,23 @@ the correlation between the pair.
 
 Five dpars, all with a log link:
 
-| dpar       | role                                           |
-|------------|------------------------------------------------|
-| `mu`       | rate of the shared component                   |
-| `lambdaem` | rate of the first source’s excess              |
-| `lambdalb` | rate of the second source’s excess             |
-| `shapes`   | dispersion $`\phi_s`$ of the shared component  |
-| `shapex`   | dispersion $`\phi_x`$, shared by both excesses |
+| dpar        | role                                              |
+|-------------|---------------------------------------------------|
+| `mu`        | rate of the shared component, $`\mu`$             |
+| `lambdaone` | rate of the first source’s excess, $`\lambda_1`$  |
+| `lambdatwo` | rate of the second source’s excess, $`\lambda_2`$ |
+| `shapes`    | dispersion $`\phi_s`$ of the shared component     |
+| `shapex`    | dispersion $`\phi_x`$, shared by both excesses    |
 
 `mu` is brms’s mandatory first-dpar name. Here it is bound to the shared
 component’s *rate* — it is not the mean of either response, and not the
-mean of their difference. `E[y_em] = mu + lambdaem`.
+mean of their difference. `E[y1] = mu + lambdaone`.
+
+The two rates are spelled `lambdaone`/`lambdatwo` rather than
+`lambda1`/`lambda2` because
+[`custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
+rejects dpar names ending in a digit. The maths below writes them
+$`\lambda_1`$ and $`\lambda_2`$.
 
 All five use a log link, the conventional log-linear rate
 parameterisation for this construction ([Karlis and Ntzoufras
@@ -76,27 +83,27 @@ set.seed(20260724)
 
 n <- 400
 truth <- list(
-  mu       = 8,
-  lambdaem = 3,
-  lambdalb = 2,
-  shapes   = 4,
-  shapex   = 6
+  mu        = 8,
+  lambdaone = 3,
+  lambdatwo = 2,
+  shapes    = 4,
+  shapex    = 6
 )
 
 n_shared <- rnbinom(n, size = truth$shapes, mu = truth$mu)
-n10      <- rnbinom(n, size = truth$shapex, mu = truth$lambdaem)
-n01      <- rnbinom(n, size = truth$shapex, mu = truth$lambdalb)
+n1       <- rnbinom(n, size = truth$shapex, mu = truth$lambdaone)
+n2       <- rnbinom(n, size = truth$shapex, mu = truth$lambdatwo)
 
 dat <- data.frame(
-  y_em = n_shared + n10,
-  y_lb = n_shared + n01
+  y1 = n_shared + n1,
+  y2 = n_shared + n2
 )
 
 str(dat)
 #> 'data.frame':    400 obs. of  2 variables:
-#>  $ y_em: num  11 8 7 15 5 13 9 15 13 8 ...
-#>  $ y_lb: num  11 7 6 16 6 11 9 15 9 7 ...
-cor(dat$y_em, dat$y_lb)
+#>  $ y1: num  11 8 7 15 5 13 9 15 13 8 ...
+#>  $ y2: num  11 7 6 16 6 11 9 15 9 7 ...
+cor(dat$y1, dat$y2)
 #> [1] 0.8911927
 ```
 
@@ -110,9 +117,9 @@ Two things are specific to this package and easy to miss.
 
 **The second count travels via `vint()`.**
 [`brms::custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
-declares a single response column, so only `y_em` can be the response.
-`y_lb` is passed alongside as supplementary integer data, and the
-family’s Stan signature reads it from there.
+declares a single response column, so only `y1` can be the response.
+`y2` is passed alongside as supplementary integer data, and the family’s
+Stan signature reads it from there.
 
 **`stanvars` is not optional.**
 [`binegbin_stanvars()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md)
@@ -123,21 +130,21 @@ block. Without it the generated model will not compile.
 
 fit <- brm(
   bf(
-    y_em | vint(y_lb) ~ 1,
-    lambdaem          ~ 1,
-    lambdalb          ~ 1,
-    shapes            ~ 1,
-    shapex            ~ 1
+    y1 | vint(y2) ~ 1,
+    lambdaone     ~ 1,
+    lambdatwo     ~ 1,
+    shapes        ~ 1,
+    shapex        ~ 1
   ),
   family   = binegbin(),
   stanvars = binegbin_stanvars(),
   data     = dat,
   prior    = c(
-    prior(normal(0, 3), class = "Intercept"),
-    prior(normal(0, 3), class = "Intercept", dpar = "lambdaem"),
-    prior(normal(0, 3), class = "Intercept", dpar = "lambdalb"),
-    prior(normal(1, 2), class = "Intercept", dpar = "shapes"),
-    prior(normal(1, 2), class = "Intercept", dpar = "shapex")
+    prior(normal(2, 1), class = "Intercept"),
+    prior(normal(2, 1), class = "Intercept", dpar = "lambdaone"),
+    prior(normal(2, 1), class = "Intercept", dpar = "lambdatwo"),
+    prior(normal(2, 1), class = "Intercept", dpar = "shapes"),
+    prior(normal(2, 1), class = "Intercept", dpar = "shapex")
   ),
   chains  = 2,
   iter    = 1500,
@@ -147,9 +154,25 @@ fit <- brm(
 )
 ```
 
-The priors are deliberately weak and not centred on the truth —
-`normal(0, 3)` on a log rate spans roughly `[0.003, 400]`. With 400
-observations the data does the work.
+One weakly-informative prior serves all five, since every dpar here is a
+log-linked positive quantity of similar magnitude. On the natural scale
+`normal(2, 1)` is lognormal with 95% of its mass in roughly `[1, 52]`.
+
+The five truths span `0.69` to `2.08` on the log scale, so no single
+prior sits away from all of them: the shared rate’s truth falls near the
+prior mean, the second excess rate’s 1.3 prior SDs below it. Recovery
+here is therefore not on its own evidence that the prior is
+uninfluential. The article [*The anatomy of a paired
+count*](https://anhsmith.github.io/pairedcountbrms/articles/paired-count-anatomy.html)
+tests that directly, shifting a prior median sevenfold and moving the
+corresponding posterior median by 0.005.
+
+To adapt these priors, shift the **mean** to the scale of the counts
+rather than increasing the SD. All five dpars are log-linked, so a
+normal prior is lognormal on the natural scale, and increasing its SD
+moves mass to implausible values rather than making the prior neutral
+([Smith et al. 2020](#ref-smithInstantaneousVsNoninstantaneous2020),
+supplement 3).
 
 ## Did it recover the truth?
 
@@ -161,11 +184,11 @@ back onto the natural scale.
 draws <- as_draws_df(fit)
 
 pars <- c(
-  mu       = "b_Intercept",
-  lambdaem = "b_lambdaem_Intercept",
-  lambdalb = "b_lambdalb_Intercept",
-  shapes   = "b_shapes_Intercept",
-  shapex   = "b_shapex_Intercept"
+  mu        = "b_Intercept",
+  lambdaone = "b_lambdaone_Intercept",
+  lambdatwo = "b_lambdatwo_Intercept",
+  shapes    = "b_shapes_Intercept",
+  shapex    = "b_shapex_Intercept"
 )
 
 recovery <- do.call(rbind, lapply(names(pars), function(p) {
@@ -183,13 +206,13 @@ recovery$covered <- with(recovery, truth >= lower & truth <= upper)
 knitr::kable(recovery, digits = 2)
 ```
 
-| dpar     | truth |  est | lower | upper | covered |
-|:---------|------:|-----:|------:|------:|:--------|
-| mu       |     8 | 8.48 |  7.73 |  9.21 | TRUE    |
-| lambdaem |     3 | 2.78 |  2.29 |  3.41 | TRUE    |
-| lambdalb |     2 | 1.84 |  1.38 |  2.45 | TRUE    |
-| shapes   |     4 | 3.89 |  2.94 |  5.07 | TRUE    |
-| shapex   |     6 | 5.82 |  2.56 | 29.93 | TRUE    |
+| dpar      | truth |  est | lower | upper | covered |
+|:----------|------:|-----:|------:|------:|:--------|
+| mu        |     8 | 8.36 |  7.65 |  9.04 | TRUE    |
+| lambdaone |     3 | 2.87 |  2.39 |  3.41 | TRUE    |
+| lambdatwo |     2 | 1.95 |  1.47 |  2.49 | TRUE    |
+| shapes    |     4 | 3.82 |  2.97 |  4.95 | TRUE    |
+| shapex    |     6 | 7.10 |  3.10 | 23.27 | TRUE    |
 
 The three rates should land tightly on their true values. The two
 dispersions are estimated from an aggregate mean–variance mismatch
@@ -201,10 +224,10 @@ but covering is the expected result here, not a warning sign.
 ## Predict and score
 
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
-draws new `y_em` **conditional on each row’s observed `y_lb`**. It
-samples the discrete conditional distribution of $`N_{\text{shared}}`$
-given `y_lb`, then adds a fresh excess draw — the exact conditional, not
-an approximation.
+draws new `y1` **conditional on each row’s observed `y2`**. It samples
+the discrete conditional distribution of $`N_{\text{shared}}`$ given
+`y2`, then adds a fresh excess draw — the exact conditional, not an
+approximation.
 
 ``` r
 
@@ -214,7 +237,7 @@ dim(yrep)
 
 data.frame(
   quantity = c("mean", "sd", "max"),
-  observed = c(mean(dat$y_em), sd(dat$y_em), max(dat$y_em)),
+  observed = c(mean(dat$y1), sd(dat$y1), max(dat$y1)),
   predicted = c(mean(yrep), mean(apply(yrep, 1, sd)), mean(apply(yrep, 1, max)))
 ) |>
   knitr::kable(digits = 2)
@@ -222,9 +245,9 @@ data.frame(
 
 | quantity | observed | predicted |
 |:---------|---------:|----------:|
-| mean     |    11.25 |     11.27 |
-| sd       |     5.59 |      5.53 |
-| max      |    37.00 |     34.13 |
+| mean     |    11.25 |     11.24 |
+| sd       |     5.59 |      5.49 |
+| max      |    37.00 |     34.12 |
 
 [`log_lik()`](https://mc-stan.org/rstantools/reference/log_lik.html)
 gives the pointwise log-likelihood of the *joint* pair, evaluated by an
@@ -247,12 +270,12 @@ loo(fit)
 #> Computed from 1500 by 400 log-likelihood matrix.
 #> 
 #>          Estimate   SE
-#> elpd_loo  -2146.4 22.7
-#> p_loo         4.9  0.5
-#> looic      4292.8 45.4
+#> elpd_loo  -2146.3 22.7
+#> p_loo         4.8  0.5
+#> looic      4292.7 45.4
 #> ------
 #> MCSE of elpd_loo is 0.1.
-#> MCSE and ESS estimates assume MCMC draws (r_eff in [0.4, 1.4]).
+#> MCSE and ESS estimates assume MCMC draws (r_eff in [0.4, 1.3]).
 #> 
 #> All Pareto k estimates are good (k < 0.69).
 #> See help('pareto-k-diagnostic') for details.
@@ -291,6 +314,21 @@ are unaffected and work correctly with truncation.
   — censoring-aware, for data where one of the two counts is missing on
   some rows. It admits those rows via the integrated-out marginal
   instead of dropping them.
+- The $`(M, f, \delta)`$**reparameterisation** — overall level $`M`$,
+  congruence $`f`$, and source bias $`\delta`$, with the dispersions on
+  an SD scale $`\kappa = 1/\sqrt{\phi}`$ where $`\kappa = 0`$ is the
+  Poisson limit. It is fitted through
+  [`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html)
+  rather than a separate family, and
+  [`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_mfd_to_dpars.md)
+  converts between the two. Because $`\delta = 0`$ and $`\kappa = 0`$
+  are finite, interpretable nulls, these coordinates admit
+  penalised-complexity priors ([Simpson et al.
+  2017](#ref-simpsonPenalisingModelComponent2017)), which shrink to the
+  simpler model unless the data support otherwise; the rate
+  parameterisation has no such nulls. Worked end to end in the article
+  [*The anatomy of a paired
+  count*](https://anhsmith.github.io/pairedcountbrms/articles/paired-count-anatomy.html).
 - [`skellam1()`](https://anhsmith.github.io/pairedcountbrms/reference/skellam1.md)
   /
   [`skellam2()`](https://anhsmith.github.io/pairedcountbrms/reference/skellam2.md),
@@ -300,10 +338,10 @@ are unaffected and work correctly with truncation.
   [`dlaplace1()`](https://anhsmith.github.io/pairedcountbrms/reference/dlaplace1.md)
   /
   [`dlaplace2()`](https://anhsmith.github.io/pairedcountbrms/reference/dlaplace2.md)
-  — the difference families, which model `d = y_em - y_lb` directly. The
-  `1` variants fix the location at zero (does the pair agree on
-  average?); the `2` variants estimate it (by how much do they
-  disagree?). All support truncation through
+  — the difference families, which model `d = y1 - y2` directly. The `1`
+  variants fix the location at zero (does the pair agree on average?);
+  the `2` variants estimate it (by how much do they disagree?). All
+  support truncation through
   [`resp_trunc()`](https://paulbuerkner.com/brms/reference/addition-terms.html).
   The difference of two independent Poisson counts is
   Skellam-distributed ([Skellam 1946](#ref-skellam1946)); for the
@@ -320,6 +358,9 @@ Bürkner, Paul-Christian. 2018. “Advanced Bayesian Multilevel Modeling
 with the R Package brms.” *The R Journal* 10 (1): 395–411.
 <https://doi.org/10.32614/RJ-2018-017>.
 
+Holgate, P. 1964. “Estimation for the Bivariate Poisson Distribution.”
+*Biometrika* 51 (1–2): 241–45. <https://doi.org/10.2307/2334210>.
+
 Karlis, Dimitris, and Ioannis Ntzoufras. 2003. “Analysis of Sports Data
 by Using Bivariate Poisson Models.” *Journal of the Royal Statistical
 Society: Series D (The Statistician)* 52 (3): 381–93.
@@ -329,10 +370,21 @@ Karlis, Dimitris, and Ioannis Ntzoufras. 2006. “Bayesian Analysis of the
 Differences of Count Data.” *Statistics in Medicine* 25 (11): 1885–905.
 <https://doi.org/10.1002/sim.2382>.
 
+Simpson, Daniel, Håvard Rue, Andrea Riebler, Thiago G. Martins, and
+Sigrunn H. Sørbye. 2017. “Penalising Model Component Complexity: A
+Principled, Practical Approach to Constructing Priors.” *Statistical
+Science* 32 (1): 1–28. <https://doi.org/10.1214/16-STS576>.
+
 Skellam, J. G. 1946. “The Frequency Distribution of the Difference
 Between Two Poisson Variates Belonging to Different Populations.”
 *Journal of the Royal Statistical Society* 109 (3): 296.
 <https://doi.org/10.1111/j.2397-2335.1946.tb04670.x>.
+
+Smith, A. N. H., D. Acuña-Marrero, P. Salinas-de-León, E. S. Harvey, M.
+D. M. Pawley, and M. J. Anderson. 2020. “Instantaneous Vs.
+Non-Instantaneous Diver-Operated Stereo-Video (DOV) Surveys of Highly
+Mobile Sharks in the Galápagos Marine Reserve.” *Marine Ecology Progress
+Series* 649: 111–23. <https://doi.org/10.3354/meps13447>.
 
 Vehtari, Aki, Andrew Gelman, and Jonah Gabry. 2017. “Practical Bayesian
 Model Evaluation Using Leave-One-Out Cross-Validation and WAIC.”

@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   articles/paired-count-anatomy: paired-count-anatomy.html
   pairedcountbrms: pairedcountbrms.html
-last_built: 2026-07-24T04:35Z
+last_built: 2026-07-31T05:05Z
 urls:
   reference: https://anhsmith.github.io/pairedcountbrms/reference
   article: https://anhsmith.github.io/pairedcountbrms/articles

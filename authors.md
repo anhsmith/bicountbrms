@@ -7,16 +7,16 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/anhsmith/pairedcountbrms/blob/master/DESCRIPTION)
+[`inst/CITATION`](https://github.com/anhsmith/pairedcountbrms/blob/master/inst/CITATION)
 
-Smith A (2026). *pairedcountbrms: Skellam, Discrete-Difference, and
-Joint Bivariate-Count brms Custom Families*. R package version 0.6.0,
-<https://github.com/anhsmith/pairedcountbrms>.
+Smith, A. N. H. (2026). pairedcountbrms: Skellam, Discrete-Difference,
+and Joint Bivariate-Count brms Custom Families. R package version 0.7.0.
+https://github.com/anhsmith/pairedcountbrms
 
     @Manual{,
-      title = {pairedcountbrms: Skellam, Discrete-Difference, and Joint Bivariate-Count brms Custom Families},
+      title = {{pairedcountbrms}: Skellam, Discrete-Difference, and Joint Bivariate-Count {brms} Custom Families},
       author = {Adam N. H. Smith},
       year = {2026},
-      note = {R package version 0.6.0},
+      note = {R package version 0.7.0},
       url = {https://github.com/anhsmith/pairedcountbrms},
     }

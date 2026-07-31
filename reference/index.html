@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">pairedcountbrms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,25 +51,25 @@
           <code><a href="bipois.html">bipois()</a></code> <code><a href="bipois.html">bipois_stanvars()</a></code> <code><a href="bipois.html">log_lik_bipois()</a></code> <code><a href="bipois.html">posterior_predict_bipois()</a></code> <code><a href="bipois.html">posterior_epred_bipois()</a></code>
 
         </dt>
-        <dd>Joint EM/logbook bivariate-Poisson custom family for brms</dd>
+        <dd>Joint bivariate-Poisson custom family for brms</dd>
 
         <dt>
 
           <code><a href="binegbin.html">binegbin()</a></code> <code><a href="binegbin.html">binegbin_stanvars()</a></code> <code><a href="binegbin.html">log_lik_binegbin()</a></code> <code><a href="binegbin.html">posterior_predict_binegbin()</a></code> <code><a href="binegbin.html">posterior_epred_binegbin()</a></code>
 
         </dt>
-        <dd>Joint EM/logbook bivariate-Negative-Binomial custom family for brms</dd>
+        <dd>Joint bivariate-Negative-Binomial custom family for brms</dd>
 
         <dt>
 
           <code><a href="binegbin_joint.html">binegbin_joint()</a></code> <code><a href="binegbin_joint.html">binegbin_joint_stanvars()</a></code> <code><a href="binegbin_joint.html">log_lik_binegbin_joint()</a></code> <code><a href="binegbin_joint.html">posterior_predict_binegbin_joint()</a></code>
 
         </dt>
-        <dd>Censoring-aware joint EM/logbook bivariate-Negative-Binomial family for brms</dd>
+        <dd>Censoring-aware joint bivariate-Negative-Binomial family for brms</dd>
       </dl></div><div class="section level2">
       <h2 id="difference-families">Difference families<a class="anchor" aria-label="anchor" href="#difference-families"></a></h2>
 
-      <div class="section-desc"><p>Model the difference <code>d = y_em - y_lb</code> directly. The <code>1</code> variants fix the location at zero (do the two sources agree on average?); the <code>2</code> variants estimate it (by how much do they disagree?).</p></div>
+      <div class="section-desc"><p>Model the difference <code>d = y1 - y2</code> directly. The <code>1</code> variants fix the location at zero (do the two sources agree on average?); the <code>2</code> variants estimate it (by how much do they disagree?).</p></div>
 
       <dl></dl></div><div class="section level2">
 
