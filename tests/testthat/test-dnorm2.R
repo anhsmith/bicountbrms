@@ -220,7 +220,7 @@ test_that("make_stancode() shows no constraint coupling mu and sigma", {
 fit_and_check_dnorm2 <- function(mu_true, sigma_true, seed) {
   set.seed(seed)
   n    <- 60
-  y_lb <- sample(0:10, n, replace = TRUE)
+  y2 <- sample(0:10, n, replace = TRUE)
 
   draw_trunc <- function(y) {
     repeat {
@@ -228,8 +228,8 @@ fit_and_check_dnorm2 <- function(mu_true, sigma_true, seed) {
       if (d >= -y) return(d)
     }
   }
-  delta <- vapply(y_lb, draw_trunc, numeric(1))
-  dat   <- data.frame(delta = delta, neg_bound = -y_lb)
+  delta <- vapply(y2, draw_trunc, numeric(1))
+  dat   <- data.frame(delta = delta, neg_bound = -y2)
 
   sane_prior <- brms::prior(normal(0, 10), class = "Intercept") +
     brms::prior(normal(1, 1.5), class = "Intercept", dpar = "sigma")

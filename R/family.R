@@ -17,8 +17,7 @@
 #' (link = "log"); it now samples on sigma instead, for a common
 #' (mean, SD-scale) convention shared with skellam2(), dlaplace1(), and
 #' dlaplace2(). Since sigma = sqrt(2 * mu_skellam), a prior previously
-#' stated on log(mu_skellam) — e.g. normal(1, 1.5), used in
-#' 05-04-candidate-family-validation.qmd — translates as:
+#' stated on log(mu_skellam) — e.g. normal(1, 1.5) — translates as:
 #'   log(sigma) = 0.5 * log(2) + 0.5 * log(mu_skellam)
 #' so an intercept of 1 on the old log(mu_skellam) scale corresponds to
 #' an intercept of 0.5*log(2) + 0.5*1 ≈ 0.847 on the new log(sigma) scale,
@@ -431,9 +430,8 @@ posterior_epred_skellam2 <- function(prep) {
 #' match this family's CDF-differenced PMF (e.g. at `b=3`,
 #' `p=exp(-1/3)`: `P(0) = 0.1535` here vs `0.1651` there). This package's
 #' tests validate against a hand-derived CDF-difference R reference
-#' instead (the documented fallback for when a package reference isn't
-#' applicable), matching the CDF-differencing already used in
-#' `05-04-candidate-family-validation.qmd`'s exploratory plots.
+#' instead — the documented fallback for when a package reference isn't
+#' applicable.
 #'
 #' @return A brms custom_family object.
 #' @export

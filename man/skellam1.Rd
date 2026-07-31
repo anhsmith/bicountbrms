@@ -38,8 +38,7 @@ This family was originally parameterised directly on mu_skellam
 (link = "log"); it now samples on sigma instead, for a common
 (mean, SD-scale) convention shared with skellam2(), dlaplace1(), and
 dlaplace2(). Since sigma = sqrt(2 * mu_skellam), a prior previously
-stated on log(mu_skellam) — e.g. normal(1, 1.5), used in
-05-04-candidate-family-validation.qmd — translates as:
+stated on log(mu_skellam) — e.g. normal(1, 1.5) — translates as:
   log(sigma) = 0.5 * log(2) + 0.5 * log(mu_skellam)
 so an intercept of 1 on the old log(mu_skellam) scale corresponds to
 an intercept of 0.5*log(2) + 0.5*1 ≈ 0.847 on the new log(sigma) scale,

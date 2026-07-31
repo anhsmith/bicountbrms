@@ -4,12 +4,12 @@
 \alias{binegbin_dpars_to_mfd}
 \title{Convert native binegbin/bipois dpars to (M, f, delta) coordinates}
 \usage{
-binegbin_dpars_to_mfd(mu, lambdaem, lambdalb, shapes = NULL, shapex = NULL)
+binegbin_dpars_to_mfd(mu, lambdaone, lambdatwo, shapes = NULL, shapex = NULL)
 }
 \arguments{
 \item{mu}{Shared-component rate.}
 
-\item{lambdaem, lambdalb}{The two excess rates.}
+\item{lambdaone, lambdatwo}{The two excess rates.}
 
 \item{shapes, shapex}{Optional NB2 dispersions. If supplied, the returned list
 gains `kappas`/`kappax` (`= 1/sqrt(shape)`, so `shape = Inf` gives `0`).}
@@ -20,8 +20,8 @@ A named list of `M`, `f`, `delta`, plus `beta` (the bounded bias
 }
 \description{
 Exact inverse of [binegbin_mfd_to_dpars()]. Reads the rate dpars `mu`,
-`lambdaem`, `lambdalb` back into the interpretable overall level `M`,
-congruence `f`, and method bias `delta`, optionally converting
+`lambdaone`, `lambdatwo` back into the interpretable overall level `M`,
+congruence `f`, and source bias `delta`, optionally converting
 `shapes`/`shapex` back to SD-scale `kappas`/`kappax`.
 }
 \details{
@@ -30,9 +30,9 @@ draws -- e.g. to convert a whole posterior into interpretable coordinates.
 
 **Boundary behaviour**, which the forward direction does not have:
 
-* `lambdaem == lambdalb == 0` (perfect congruence, `f = 1`): the bias is
+* `lambdaone == lambdatwo == 0` (perfect congruence, `f = 1`): the bias is
   genuinely unidentified -- there is no excess to be biased -- and `delta` is
-  returned as `NA`, not `0`. Zero would assert an unbiased method, which the
+  returned as `NA`, not `0`. Zero would assert an unbiased source, which the
   data at that point cannot support.
 * `M == 0` (nothing anywhere): `f` is undefined and returned as `NA`.
 * Exactly one excess rate `0`: `delta` is `+/-Inf`, the well-defined limit
@@ -43,14 +43,14 @@ Because of the first case, round-tripping is exact everywhere except at
 source of truth rather than repeatedly converting back and forth.
 }
 \examples{
-binegbin_dpars_to_mfd(mu = 8.04, lambdaem = 4.75, lambdalb = 3.17)
+binegbin_dpars_to_mfd(mu = 8.04, lambdaone = 4.75, lambdatwo = 3.17)
 
 # Round trip
 d <- binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = 0.2)
-binegbin_dpars_to_mfd(d$mu, d$lambdaem, d$lambdalb)[c("M", "f", "delta")]
+binegbin_dpars_to_mfd(d$mu, d$lambdaone, d$lambdatwo)[c("M", "f", "delta")]
 
 # Perfect congruence: bias is unidentified, reported as NA
-binegbin_dpars_to_mfd(mu = 12, lambdaem = 0, lambdalb = 0)$delta
+binegbin_dpars_to_mfd(mu = 12, lambdaone = 0, lambdatwo = 0)$delta
 
 }
 \seealso{

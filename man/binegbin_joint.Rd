@@ -5,7 +5,7 @@
 \alias{binegbin_joint_stanvars}
 \alias{log_lik_binegbin_joint}
 \alias{posterior_predict_binegbin_joint}
-\title{Censoring-aware joint EM/logbook bivariate-Negative-Binomial family for brms}
+\title{Censoring-aware joint bivariate-Negative-Binomial family for brms}
 \usage{
 binegbin_joint()
 
@@ -20,40 +20,40 @@ A brms custom_family object.
 }
 \description{
 Censoring-aware extension of [binegbin()]. Models the same trivariate-
-reduction bivariate Negative-Binomial pair `(y_em, y_lb)` -- `y_em =
-N_shared + N10`, `y_lb = N_shared + N01`, with `N_shared ~ NB2(mu,
-shapes)`, `N10 ~ NB2(lambdaem, shapex)`, `N01 ~ NB2(lambdalb, shapex)`
-mutually independent given their rates -- but allows the EM margin (`y_em`)
+reduction bivariate Negative-Binomial pair `(y1, y2)` -- `y1 =
+N_shared + N1`, `y2 = N_shared + N2`, with `N_shared ~ NB2(mu,
+shapes)`, `N1 ~ NB2(lambdaone, shapex)`, `N2 ~ NB2(lambdatwo, shapex)`
+mutually independent given their rates -- but allows the first margin (`y1`)
 to be UNOBSERVED on some rows. Each row carries two supplementary integers
-via `vint()`: `y_lb` (the always-observed logbook count) and `em_obs` (a
-0/1 flag marking whether `y_em` was observed for that row).
+via `vint()`: `y2` (the always-observed second count) and `y1_obs` (a
+0/1 flag marking whether `y1` was observed for that row).
 
-On `em_obs == 1` (matched) rows the likelihood is the full joint
-[binegbin()] lpmf on `(y_em, y_lb)`. On `em_obs == 0` (LB-only) rows it is
-the `y_em`-integrated marginal of that same joint,
-`P(y_lb) = sum_k NB2(k | mu, shapes) NB2(y_lb - k | lambdalb, shapex)` --
-NOT a separate single-dispersion `neg_binomial_2` on `y_lb`, which would be
+On `y1_obs == 1` (matched) rows the likelihood is the full joint
+[binegbin()] lpmf on `(y1, y2)`. On `y1_obs == 0` (`y2`-only) rows it is
+the `y1`-integrated marginal of that same joint,
+`P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapex)` --
+NOT a separate single-dispersion `neg_binomial_2` on `y2`, which would be
 a different model inconsistent with the matched decomposition. This lets
-one `brm()` call pool matched and LB-only rows under one coherent
-likelihood: `lambdaem` and the EM/LB bias are identified only by the
-matched rows, while the LB-only rows sharpen `mu`, `shapes`, `lambdalb`,
-and the shared vessel/trip random-effect structure.
+one `brm()` call pool matched and `y2`-only rows under one coherent
+likelihood: `lambdaone` and the between-source bias are identified only by
+the matched rows, while the `y2`-only rows sharpen `mu`, `shapes`,
+`lambdatwo`, and the shared vessel/trip random-effect structure.
 
 Five dpars, identical to [binegbin()]: the three rates (`mu` = shared rate,
-`lambdaem`/`lambdalb` = EM-/LB-only rates) plus two dispersions -- `shapes`
-for the shared component and `shapex` shared across the two excess
-components. All five use `link = "log"` (see [binegbin()]). To share the
-excess level across the two rates and split them by a directional bias,
-supply them through non-linear formulas *without* an explicit `exp()` --
-the log link applies it, so `nlf(lambdaem ~ lamx + methd)` gives
-`lambdaem = exp(lamx + methd)`.
+`lambdaone`/`lambdatwo` = the two source-specific rates) plus two
+dispersions -- `shapes` for the shared component and `shapex` shared across
+the two excess components. All five use `link = "log"` (see [binegbin()]).
+To share the excess level across the two rates and split them by a
+directional bias, supply them through non-linear formulas *without* an
+explicit `exp()` -- the log link applies it, so
+`nlf(lambdaone ~ lamx + methd)` gives `lambdaone = exp(lamx + methd)`.
 
 Use in a brm() call as:
   brm(
-    bf(y_em | vint(y_lb, em_obs) ~ 1,
+    bf(y1 | vint(y2, y1_obs) ~ 1,
        mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
-       nlf(lambdaem ~ lamx + methd),
-       nlf(lambdalb ~ lamx - methd),
+       nlf(lambdaone ~ lamx + methd),
+       nlf(lambdatwo ~ lamx - methd),
        lamx ~ 1, methd ~ 1,
        shapes ~ 1, shapex ~ 1, nl = TRUE),
     family   = binegbin_joint(),
@@ -65,9 +65,9 @@ Use in a brm() call as:
 **Two `vint()` arguments, in declared order.** brms appends `vint()`
 integers to the generated lpmf call in the order they are listed in the
 formula's `vint()` term, matching the `vars` declared here
-(`c("vint1[n]", "vint2[n]")`): so `vint(y_lb, em_obs)` binds `vint1 = y_lb`
-and `vint2 = em_obs`. brms generates `target += binegbin_joint_lpmf(Y[n] |
-mu[n], lambdaem[n], lambdalb[n], shapes[n], shapex[n], vint1[n], vint2[n])`
+(`c("vint1[n]", "vint2[n]")`): so `vint(y2, y1_obs)` binds `vint1 = y2`
+and `vint2 = y1_obs`. brms generates `target += binegbin_joint_lpmf(Y[n] |
+mu[n], lambdaone[n], lambdatwo[n], shapes[n], shapex[n], vint1[n], vint2[n])`
 -- dpars in the order declared here, then the two vint args.
 `binegbin_joint_stan_funs` declares `binegbin_joint_lpmf` with exactly this
 signature; reordering the dpars or the two `vint()` terms without matching
@@ -77,13 +77,15 @@ which integer is the branch flag.
 **Forced `mu` naming, and the second count via `vint()`.** Identical
 conventions to [binegbin()]/[bipois()] -- `mu` is brms's mandatory dpar
 name, here bound to the shared component's rate, not a mean of either
-response; `y_lb` (and `em_obs`) travel as supplementary integer data
+response; `y2` (and `y1_obs`) travel as supplementary integer data
 through `vint()` because `custom_family()` declares a single response
-column. See [bipois()] for the full explanation.
+column. See [bipois()] for the full explanation, including why the rates are
+spelled `lambdaone`/`lambdatwo` in code but written
+\eqn{\lambda_1}{lambda_1}/\eqn{\lambda_2}{lambda_2} in the documentation.
 
-**Relationship to [binegbin()].** On `em_obs == 1` rows this family's lpmf
+**Relationship to [binegbin()].** On `y1_obs == 1` rows this family's lpmf
 equals the [binegbin()] lpmf exactly (same marginalisation sum). The
-`em_obs == 0` branch is the `y_em`-integrated marginal of that same
+`y1_obs == 0` branch is the `y1`-integrated marginal of that same
 bivariate model. The package tests pin both identities (marginal identity;
 binegbin equivalence).
 }

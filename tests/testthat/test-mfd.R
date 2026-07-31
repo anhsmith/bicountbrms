@@ -8,12 +8,12 @@ test_that("forward map satisfies its defining identities", {
   M <- 12; f <- 0.67; delta <- 0.2
   d <- binegbin_mfd_to_dpars(M, f, delta)
 
-  # M is the midpoint: mu + (lambdaem + lambdalb)/2 == M, for any delta
-  expect_equal(d$mu + (d$lambdaem + d$lambdalb) / 2, M)
+  # M is the midpoint: mu + (lambdaone + lambdatwo)/2 == M, for any delta
+  expect_equal(d$mu + (d$lambdaone + d$lambdatwo) / 2, M)
   # f is the shared share
   expect_equal(d$mu / M, f)
   # delta is the half log ratio of the excesses
-  expect_equal(0.5 * log(d$lambdaem / d$lambdalb), delta)
+  expect_equal(0.5 * log(d$lambdaone / d$lambdatwo), delta)
 })
 
 test_that("M stays pinned to the midpoint regardless of bias", {
@@ -21,7 +21,7 @@ test_that("M stays pinned to the midpoint regardless of bias", {
   # never moves M.
   for (delta in c(-2, -0.5, 0, 0.5, 2)) {
     d <- binegbin_mfd_to_dpars(M = 10, f = 0.5, delta = delta)
-    expect_equal(d$mu + (d$lambdaem + d$lambdalb) / 2, 10)
+    expect_equal(d$mu + (d$lambdaone + d$lambdatwo) / 2, 10)
   }
 })
 
@@ -32,7 +32,7 @@ test_that("round trip is exact on the interior", {
     delta = c(-1.5, -0.2, 0, 0.2, 1.5)
   )
   d <- binegbin_mfd_to_dpars(grid$M, grid$f, grid$delta)
-  back <- binegbin_dpars_to_mfd(d$mu, d$lambdaem, d$lambdalb)
+  back <- binegbin_dpars_to_mfd(d$mu, d$lambdaone, d$lambdatwo)
 
   expect_equal(back$M, grid$M)
   expect_equal(back$f, grid$f)
@@ -40,30 +40,30 @@ test_that("round trip is exact on the interior", {
 })
 
 test_that("reverse round trip is exact", {
-  mu <- c(8.04, 1, 20); lem <- c(4.75, 0.5, 3); llb <- c(3.17, 2, 3)
-  m <- binegbin_dpars_to_mfd(mu, lem, llb)
+  mu <- c(8.04, 1, 20); lone <- c(4.75, 0.5, 3); ltwo <- c(3.17, 2, 3)
+  m <- binegbin_dpars_to_mfd(mu, lone, ltwo)
   d <- binegbin_mfd_to_dpars(m$M, m$f, m$delta)
 
   expect_equal(d$mu, mu)
-  expect_equal(d$lambdaem, lem)
-  expect_equal(d$lambdalb, llb)
+  expect_equal(d$lambdaone, lone)
+  expect_equal(d$lambdatwo, ltwo)
 })
 
 test_that("beta is the fractional imbalance and equals tanh(delta)", {
-  m <- binegbin_dpars_to_mfd(mu = 5, lambdaem = 6, lambdalb = 2)
+  m <- binegbin_dpars_to_mfd(mu = 5, lambdaone = 6, lambdatwo = 2)
   expect_equal(m$beta, (6 - 2) / (6 + 2))
   expect_equal(m$beta, tanh(m$delta))
 })
 
 test_that("f = 1 gives zero excesses and an unidentified bias", {
   d <- binegbin_mfd_to_dpars(M = 12, f = 1, delta = 0.5)
-  expect_equal(d$lambdaem, 0)
-  expect_equal(d$lambdalb, 0)
+  expect_equal(d$lambdaone, 0)
+  expect_equal(d$lambdatwo, 0)
   expect_equal(d$mu, 12)
 
   # Reverse: the bias genuinely cannot be recovered. NA, not 0 -- 0 would
   # assert an unbiased method the data cannot support.
-  back <- binegbin_dpars_to_mfd(d$mu, d$lambdaem, d$lambdalb)
+  back <- binegbin_dpars_to_mfd(d$mu, d$lambdaone, d$lambdatwo)
   expect_equal(back$M, 12)
   expect_equal(back$f, 1)
   expect_true(is.na(back$delta))
@@ -73,12 +73,12 @@ test_that("f = 1 gives zero excesses and an unidentified bias", {
 test_that("f = 0 removes the shared component", {
   d <- binegbin_mfd_to_dpars(M = 10, f = 0, delta = 0)
   expect_equal(d$mu, 0)
-  expect_equal(d$lambdaem, 10)
-  expect_equal(d$lambdalb, 10)
+  expect_equal(d$lambdaone, 10)
+  expect_equal(d$lambdatwo, 10)
 })
 
 test_that("M = 0 leaves f undefined", {
-  back <- binegbin_dpars_to_mfd(mu = 0, lambdaem = 0, lambdalb = 0)
+  back <- binegbin_dpars_to_mfd(mu = 0, lambdaone = 0, lambdatwo = 0)
   expect_equal(back$M, 0)
   expect_true(is.na(back$f))
   expect_true(is.na(back$delta))
@@ -92,8 +92,8 @@ test_that("one excess at zero is the finite +/-Inf bias limit", {
 
   # ...and the forward map reproduces it from infinite delta
   d <- binegbin_mfd_to_dpars(M = 10, f = 0.5, delta = Inf)
-  expect_equal(d$lambdalb, 0)
-  expect_equal(d$lambdaem, 10)
+  expect_equal(d$lambdatwo, 0)
+  expect_equal(d$lambdaone, 10)
 })
 
 test_that("dispersion conversion inverts, with the direction reversed", {
@@ -101,7 +101,7 @@ test_that("dispersion conversion inverts, with the direction reversed", {
   expect_equal(d$shapes, 1 / 0.5^2)
   expect_equal(d$shapex, 1 / 2^2)
 
-  back <- binegbin_dpars_to_mfd(d$mu, d$lambdaem, d$lambdalb,
+  back <- binegbin_dpars_to_mfd(d$mu, d$lambdaone, d$lambdatwo,
                                 shapes = d$shapes, shapex = d$shapex)
   expect_equal(back$kappas, 0.5)
   expect_equal(back$kappax, 2)
@@ -125,17 +125,17 @@ test_that("arguments recycle, so the map vectorises over draws", {
 test_that("out-of-range inputs are rejected", {
   expect_error(binegbin_mfd_to_dpars(M = -1, f = 0.5), "non-negative")
   expect_error(binegbin_mfd_to_dpars(M = 1, f = 1.5), "\\[0, 1\\]")
-  expect_error(binegbin_dpars_to_mfd(mu = -1, lambdaem = 1, lambdalb = 1),
+  expect_error(binegbin_dpars_to_mfd(mu = -1, lambdaone = 1, lambdatwo = 1),
                "non-negative")
 })
 
 test_that("the map agrees with the trivariate-reduction moment identities", {
-  # E[y_em] = mu + lambdaem and E[y_lb] = mu + lambdalb, so the mean of the two
+  # E[y1] = mu + lambdaone and E[y2] = mu + lambdatwo, so the mean of the two
   # expectations is M and their difference is driven entirely by the bias.
   d <- binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = 0.3)
-  e_em <- d$mu + d$lambdaem
-  e_lb <- d$mu + d$lambdalb
+  e_em <- d$mu + d$lambdaone
+  e_lb <- d$mu + d$lambdatwo
 
   expect_equal((e_em + e_lb) / 2, 12)
-  expect_equal(e_em - e_lb, d$lambdaem - d$lambdalb)
+  expect_equal(e_em - e_lb, d$lambdaone - d$lambdatwo)
 })

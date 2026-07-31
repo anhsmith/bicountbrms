@@ -6,7 +6,7 @@
 \alias{log_lik_bipois}
 \alias{posterior_predict_bipois}
 \alias{posterior_epred_bipois}
-\title{Joint EM/logbook bivariate-Poisson custom family for brms}
+\title{Joint bivariate-Poisson custom family for brms}
 \usage{
 bipois()
 
@@ -23,22 +23,22 @@ A brms custom_family object.
 }
 \description{
 Returns a brms custom family for the joint distribution of a matched pair
-of counts, `(y_em, y_lb)`, constructed via trivariate reduction: `y_em =
-N_shared + N10`, `y_lb = N_shared + N01`, with `N_shared ~
-Poisson(mu)`, `N10 ~ Poisson(lambdaem)`, `N01 ~ Poisson(lambdalb)`
+of counts, `(y1, y2)`, constructed via trivariate reduction: `y1 =
+N_shared + N1`, `y2 = N_shared + N2`, with `N_shared ~
+Poisson(mu)`, `N1 ~ Poisson(lambdaone)`, `N2 ~ Poisson(lambdatwo)`
 mutually independent given their rates. All three rates are link = "log".
-See `05-07-audit-track-step2-redesign.qmd` in the `tnc001-belize-em`
-project for the full generative-model rationale (why this replaces a
-`d = y_em - y_lb ~ y_lb` design).
+Modelling the pair jointly avoids regressing the difference on one of its
+own components (a `d = y1 - y2 ~ y2` design), which induces regression to
+the mean.
 
-`y_em` is the family's response; `y_lb` is passed in as supplementary
+`y1` is the family's response; `y2` is passed in as supplementary
 integer data via brms's `vint()` addition term, since brms's
 `custom_family()` machinery is built around a single declared response
 column -- see Details.
 
 Use in a brm() call as:
   brm(
-    bf(y_em | vint(y_lb) ~ ...),
+    bf(y1 | vint(y2) ~ ...),
     family   = bipois(),
     stanvars = bipois_stanvars(),
     data     = dat
@@ -49,26 +49,33 @@ Use in a brm() call as:
 `dnorm1()`: `brms::custom_family()` requires a dpar literally named
 `"mu"` (`stop2("All families must have a 'mu' parameter.")`,
 unconditional). Here it is bound to `lambda_shared`, the rate of the
-component shared between `y_em` and `y_lb` -- not a mean of either
-response individually. `lambdaem` (EM-only rate) and `lambdalb`
-(LB-only rate) are the other two dpars, plainly named (no forced
+component shared between `y1` and `y2` -- not a mean of either
+response individually. `lambdaone` (source-1-only rate) and `lambdatwo`
+(source-2-only rate) are the other two dpars, plainly named (no forced
 reinterpretation needed for those two).
 
-**Why `y_lb` travels via `vint()`, not as a second response.** brms's
+**Why `lambdaone`, not `lambda1`.** `custom_family()` rejects dpar names
+ending in a digit (`stop2("'dpars' should not end with a number.")`), as
+well as dots and underscores. The documentation therefore writes these
+rates as \eqn{\lambda_1}{lambda_1} and \eqn{\lambda_2}{lambda_2} while the
+code must spell them `lambdaone`/`lambdatwo`. See the notation table in
+the package README.
+
+**Why `y2` travels via `vint()`, not as a second response.** brms's
 `custom_family()` API supports exactly one declared response column
 (`Y`) plus optional supplementary integer/real data (`vint()`/`vreal()`
 addition terms) -- the same mechanism used for, e.g., binomial trial
 counts in the brms custom-families vignette. There is no
 *undeclared-response* concept for a genuinely joint two-count
-likelihood; `vint(y_lb)` is the correct fit for that gap, not a
-workaround. This does mean `y_lb` is *not* itself treated as
+likelihood; `vint(y2)` is the correct fit for that gap, not a
+workaround. This does mean `y2` is *not* itself treated as
 brms-modelled response data (no missing-value handling, no
 resp_*() addition terms apply to it) -- it is fixed, observed
 per-row data, consistent with the fact that every row used here comes
 from the matched (both-observed) subset.
 
 **Order of dpars matters for the generated Stan call.** brms generates
-`target += bipois_lpmf(Y[n] | mu[n], lambdaem[n], lambdalb[n],
+`target += bipois_lpmf(Y[n] | mu[n], lambdaone[n], lambdatwo[n],
 vint1[n])` -- dpars in the order declared here, then vint/vreal args in
 the order declared in `vars`. `bipois_stan_funs` (stanfunctions via
 `bipois_stanvars()`) declares `bipois_lpmf` with exactly this argument

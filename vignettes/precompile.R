@@ -1,20 +1,30 @@
-# Precompile the vignette.
+# Precompile the vignette and the pkgdown articles that fit models.
 #
-# vignettes/pairedcountbrms.Rmd fits a real brms model. Building that on every
-# R CMD check and every CI run would need a full Stan toolchain plus minutes of
-# compilation, so it is precompiled instead: the .Rmd.orig source is knitted
-# HERE, on a machine with Stan, and the resulting .Rmd carries the output as
-# static text. Downstream builds only render markdown.
+# Both vignettes/pairedcountbrms.Rmd and
+# vignettes/articles/paired-count-anatomy.Rmd fit real brms models. Building
+# those on every R CMD check and every CI run would need a full Stan toolchain
+# plus minutes of compilation, so they are precompiled instead: each .Rmd.orig
+# source is knitted HERE, on a machine with Stan, and the resulting .Rmd carries
+# the output as static text. Downstream builds only render markdown.
 #
-# Run this by hand after changing pairedcountbrms.Rmd.orig, then commit BOTH
-# files. The knitr::knit() call executes every chunk, so the numbers in the
-# committed .Rmd are real output, not transcribed.
+# This is what lets .github/workflows/pkgdown.yaml use dependencies: '"hard"'
+# and install no Stan backend at all.
+#
+# Run this by hand after changing either .Rmd.orig, then commit BOTH files of
+# each pair. The knitr::knit() calls execute every chunk, so the numbers in the
+# committed .Rmd files are real output, not transcribed.
 #
 #   Rscript vignettes/precompile.R
 #
-# The vignette produces no figures, so there is no fig.path to rewrite. If you
-# add a plotting chunk, set fig.path to "figure/" and make sure the generated
-# images are committed alongside the .Rmd.
+# EDIT THE .Rmd.orig, NEVER THE .Rmd -- the .Rmd is generated and the next run
+# of this script will overwrite it.
+#
+# FIGURES. Downstream builds do not re-run the chunks, so any figure must
+# already exist on disk. paired-count-anatomy sets dev = "svg" and
+# fig.path = "figure/" in its setup chunk, so its plots land in
+# vignettes/articles/figure/ and must be COMMITTED alongside the .Rmd. The
+# vignette currently produces no figures; if you add a plotting chunk there, do
+# the same.
 
 stopifnot(
   "run from the package root" = file.exists("DESCRIPTION"),
@@ -23,14 +33,22 @@ stopifnot(
     requireNamespace("rstan", quietly = TRUE)
 )
 
-message("Knitting pairedcountbrms.Rmd.orig -- this fits a model, allow a few minutes.")
-
-old <- setwd("vignettes")
-on.exit(setwd(old), add = TRUE)
-
-knitr::knit(
-  input  = "pairedcountbrms.Rmd.orig",
-  output = "pairedcountbrms.Rmd"
+# input/output are relative to the directory each pair lives in, so knitr
+# resolves any relative paths inside the document the same way a build would.
+targets <- list(
+  list(dir = "vignettes",          stem = "pairedcountbrms"),
+  list(dir = "vignettes/articles", stem = "paired-count-anatomy")
 )
 
-message("Done. Commit both pairedcountbrms.Rmd.orig and pairedcountbrms.Rmd.")
+for (tg in targets) {
+  message("Knitting ", tg$dir, "/", tg$stem,
+          ".Rmd.orig -- this fits a model, allow a few minutes.")
+  old <- setwd(tg$dir)
+  knitr::knit(
+    input  = paste0(tg$stem, ".Rmd.orig"),
+    output = paste0(tg$stem, ".Rmd")
+  )
+  setwd(old)
+}
+
+message("Done. Commit both the .Rmd.orig and the .Rmd of each pair.")

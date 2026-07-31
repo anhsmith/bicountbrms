@@ -7,29 +7,29 @@
 binegbin_mfd_to_dpars(M, f, delta = 0, kappas = NULL, kappax = NULL)
 }
 \arguments{
-\item{M}{Overall level: `mu + (lambdaem + lambdalb)/2`. Non-negative.}
+\item{M}{Overall level: `mu + (lambdaone + lambdatwo)/2`. Non-negative.}
 
 \item{f}{Congruence, the share of `M` that both sources saw: `mu / M`. In
 `[0, 1]`. `f = 1` means perfect agreement (both excesses vanish); `f = 0`
 means no shared component at all.}
 
-\item{delta}{Method bias on the log-ratio scale,
-`0.5 * log(lambdaem/lambdalb)`. `0` is unbiased. `+/-Inf` is permitted and
-gives the limit where one excess rate is zero.}
+\item{delta}{Source bias on the log-ratio scale,
+`0.5 * log(lambdaone/lambdatwo)`. `0` is unbiased. `+/-Inf` is permitted
+and gives the limit where one excess rate is zero.}
 
 \item{kappas, kappax}{Optional SD-scale dispersions for the shared and excess
 components. `0` is the Poisson limit. If supplied, the returned list gains
 `shapes`/`shapex` (`= 1/kappa^2`, so `kappa = 0` gives `Inf`).}
 }
 \value{
-A named list of `mu`, `lambdaem`, `lambdalb`, plus `shapes` and
+A named list of `mu`, `lambdaone`, `lambdatwo`, plus `shapes` and
   `shapex` when `kappas`/`kappax` are supplied.
 }
 \description{
 Maps the interpretable coordinates -- overall level `M`, congruence `f`, and
-method bias `delta` -- onto the rate dpars that [binegbin()] and [bipois()]
-actually take (`mu`, `lambdaem`, `lambdalb`), optionally converting SD-scale
-dispersions `kappas`/`kappax` to the `shapes`/`shapex` dpars.
+source bias `delta` -- onto the rate dpars that [binegbin()] and [bipois()]
+actually take (`mu`, `lambdaone`, `lambdatwo`), optionally converting
+SD-scale dispersions `kappas`/`kappax` to the `shapes`/`shapex` dpars.
 
 [binegbin_dpars_to_mfd()] is the exact inverse.
 }
@@ -43,7 +43,7 @@ regardless of `delta` -- the bias becomes unidentifiable, which
 well defined; only the inverse degenerates.
 }
 \examples{
-# A moderately congruent pair, EM running high
+# A moderately congruent pair, source 1 running high
 binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = 0.2)
 
 # Perfect congruence: both excesses vanish
@@ -51,12 +51,12 @@ binegbin_mfd_to_dpars(M = 12, f = 1, delta = 0.5)
 
 # To FIT in these coordinates, pass them through a non-linear formula
 # (all five dpars are log-linked, so the link supplies the exp()):
-#   bf(y_em | vint(y_lb) ~ 1, nl = TRUE) +
-#     nlf(mu       ~ eta + log_inv_logit(con)) +
-#     nlf(lambdaem ~ log(2) + eta + log_inv_logit(-con) +
-#                    log_inv_logit(2 * methd)) +
-#     nlf(lambdalb ~ log(2) + eta + log_inv_logit(-con) +
-#                    log_inv_logit(-2 * methd)) +
+#   bf(y1 | vint(y2) ~ 1, nl = TRUE) +
+#     nlf(mu        ~ eta + log_inv_logit(con)) +
+#     nlf(lambdaone ~ log(2) + eta + log_inv_logit(-con) +
+#                     log_inv_logit(2 * methd)) +
+#     nlf(lambdatwo ~ log(2) + eta + log_inv_logit(-con) +
+#                     log_inv_logit(-2 * methd)) +
 #     lf(eta ~ 1, con ~ 1, methd ~ 1)
 # where eta = log M, con = logit f, methd = delta.
 

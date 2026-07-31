@@ -54,8 +54,7 @@ p^|z|`, not a continuous-Laplace `b` — confirmed numerically to NOT
 match this family's CDF-differenced PMF (e.g. at `b=3`,
 `p=exp(-1/3)`: `P(0) = 0.1535` here vs `0.1651` there). This package's
 tests validate against a hand-derived CDF-difference R reference
-instead (the documented fallback for when a package reference isn't
-applicable), matching the CDF-differencing already used in
-`05-04-candidate-family-validation.qmd`'s exploratory plots.
+instead — the documented fallback for when a package reference isn't
+applicable.
 }
 \keyword{internal}

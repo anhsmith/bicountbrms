@@ -16,7 +16,7 @@ reference:
 
 - title: Difference families
   desc: >
-    Model the difference `d = y_em - y_lb` directly. The `1` variants fix the
+    Model the difference `d = y1 - y2` directly. The `1` variants fix the
     location at zero (do the two sources agree on average?); the `2` variants
     estimate it (by how much do they disagree?).
   contents:

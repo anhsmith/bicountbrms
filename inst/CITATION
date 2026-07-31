@@ -1,0 +1,33 @@
+# Version and year are taken from DESCRIPTION so there is one source of truth;
+# bumping Version/Date is enough to keep citation() current.
+year <- if (!is.null(meta$Date)) {
+  format(as.Date(meta$Date), "%Y")
+} else {
+  format(Sys.Date(), "%Y")
+}
+version <- meta$Version
+
+citHeader(
+  "To cite pairedcountbrms in publications, cite the package itself and, ",
+  "because every family here is a brms custom family, brms as well ",
+  "(citation(\"brms\")). If you use a specific family, please also cite the ",
+  "distribution it implements -- see the References section of the package ",
+  "README for Skellam (1946), Holgate (1964) and Karlis & Ntzoufras (2003, ",
+  "2006)."
+)
+
+bibentry(
+  bibtype  = "Manual",
+  title    = "{pairedcountbrms}: Skellam, Discrete-Difference, and Joint Bivariate-Count {brms} Custom Families",
+  author   = person("Adam N. H.", "Smith"),
+  year     = year,
+  note     = paste("R package version", version),
+  url      = "https://github.com/anhsmith/pairedcountbrms",
+  header   = "Package citation:",
+  textVersion = paste0(
+    "Smith, A. N. H. (", year, "). pairedcountbrms: Skellam, ",
+    "Discrete-Difference, and Joint Bivariate-Count brms Custom Families. ",
+    "R package version ", version, ". ",
+    "https://github.com/anhsmith/pairedcountbrms"
+  )
+)

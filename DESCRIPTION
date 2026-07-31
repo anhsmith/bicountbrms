@@ -1,25 +1,27 @@
 Package: pairedcountbrms
-Title: Skellam, Discrete-Difference, and Joint Bivariate-Count brms
-    Custom Families
-Version: 0.6.0
+Title: Joint Bivariate-Count and Discrete-Difference brms Custom
+    Families for Paired Counts
+Version: 0.7.0
+Date: 2026-07-31
 Authors@R: person("Adam N. H.", "Smith", , "anhsmith@gmail.com", role = c("aut", "cre"))
 Description: Provides custom brms families for comparing two paired count
-    sources, via two complementary approaches. First, families that model the
-    difference directly: the symmetric and asymmetric Skellam distributions
-    (the distribution of the difference of two Poisson random variables), and
+    sources. The principal families model the pair jointly, via trivariate
+    reduction: a bivariate Poisson (bipois), its overdispersed bivariate
+    Negative-Binomial sibling (binegbin), and a censoring-aware extension
+    (binegbin_joint) that admits rows on which one of the two counts is
+    unobserved, through its integrated-out marginal. Modelling the pair rather
+    than its difference captures the overall level, the correlation between
+    sources, and marginal overdispersion alongside the disagreement, and
+    supports simulating one count conditional on the other. An interpretable
+    reparameterisation separates overall level, congruence, and source bias,
+    giving each a finite null and so admitting penalised-complexity priors.
+    Also provided are families that model the difference directly, for when
+    only the disagreement is of interest or truncation via brms's resp_trunc()
+    is required: the symmetric and asymmetric Skellam distributions (the
+    distribution of the difference of two Poisson random variables), and
     discrete Laplace and discrete normal distributions discretised via CDF
-    differencing, each available with location fixed at zero (testing whether
-    two sources agree on average) or with a free location parameter
-    (quantifying systematic disagreement), all sampled on a common SD-scale
-    spread parameter and supporting truncation via brms's resp_trunc().
-    Second, joint bivariate-count families built by trivariate reduction -- a
-    bivariate Poisson (bipois) and its overdispersed bivariate
-    Negative-Binomial sibling (binegbin) -- that model a matched pair of
-    counts jointly, capturing their correlation, marginal overdispersion, and
-    difference together rather than the difference alone, plus a
-    censoring-aware extension (binegbin_joint) that admits rows on which one
-    of the two counts is unobserved via its integrated-out marginal. Intended
-    for modelling set-level agreement between paired count sources.
+    differencing, each with location fixed at zero or free, all sampled on a
+    common SD-scale spread parameter.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Imports:

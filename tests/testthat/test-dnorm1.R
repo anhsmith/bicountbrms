@@ -231,7 +231,7 @@ test_that("dnorm1_stanvars() + dnorm1_lccdf_stanvars() recovers sigma_true under
   set.seed(7)
   n          <- 50
   sigma_true <- 6
-  y_lb       <- sample(0:8, n, replace = TRUE)
+  y2       <- sample(0:8, n, replace = TRUE)
 
   draw_trunc <- function(y) {
     repeat {
@@ -239,8 +239,8 @@ test_that("dnorm1_stanvars() + dnorm1_lccdf_stanvars() recovers sigma_true under
       if (d >= -y) return(d)
     }
   }
-  delta <- vapply(y_lb, draw_trunc, numeric(1))
-  dat   <- data.frame(delta = delta, neg_bound = -y_lb)
+  delta <- vapply(y2, draw_trunc, numeric(1))
+  dat   <- data.frame(delta = delta, neg_bound = -y2)
 
   sane_prior <- brms::prior(normal(1, 1.5), class = "Intercept")
 

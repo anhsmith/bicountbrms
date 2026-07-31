@@ -201,9 +201,8 @@ test_that("Stan skellam2_lccdf matches package pskellam reference", {
 
 test_that("Stan skellam2_lccdf is numerically stable at large sigma (normal-approx branch)", {
   skip_if_not(lccdf_ready, "rstan unavailable or Stan compilation failed")
-  # Realistic-but-stressed range: real per-taxon mu_hat in this project's
-  # data tops out around 30 (see
-  # 05-04-candidate-family-validation.qmd), so mu in [-50, 50] and
+  # Realistic-but-stressed range: in the count data these families are built
+  # for, per-group mu_hat tops out around 30, so mu in [-50, 50] and
   # sigma in [0, 100] is comfortably beyond anything this model will see
   # without being an arbitrary, disconnected extreme. y is chosen near
   # each mu (where real data would actually land), not deliberately far
@@ -306,7 +305,7 @@ test_that("skellam2_stanvars() + skellam2_lccdf_stanvars() recovers nonzero mu_t
   sigma_true <- 5
   theta1_true <- (sigma_true^2 + mu_true) / 2
   theta2_true <- (sigma_true^2 - mu_true) / 2
-  y_lb       <- sample(0:10, n, replace = TRUE)
+  y2       <- sample(0:10, n, replace = TRUE)
 
   draw_trunc <- function(y) {
     repeat {
@@ -314,8 +313,8 @@ test_that("skellam2_stanvars() + skellam2_lccdf_stanvars() recovers nonzero mu_t
       if (d >= -y) return(d)
     }
   }
-  delta <- vapply(y_lb, draw_trunc, numeric(1))
-  dat   <- data.frame(delta = delta, neg_bound = -y_lb)
+  delta <- vapply(y2, draw_trunc, numeric(1))
+  dat   <- data.frame(delta = delta, neg_bound = -y2)
 
   # Same documented default-prior fragility as skellam1 (see
   # test-lccdf.R) -- applying weakly-informative priors on both

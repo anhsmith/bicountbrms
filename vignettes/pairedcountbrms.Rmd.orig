@@ -45,16 +45,16 @@ formula syntax used further down is documented in @burkner2018.
 ## The generative model
 
 `binegbin()` builds a bivariate count pair by **trivariate reduction**
-[@karlis2003]. Three independent Negative-Binomial counts are drawn, and the two
-observed counts share one of them:
+[@holgate1964; @karlis2003]. Three independent Negative-Binomial counts are
+drawn, and the two observed counts share one of them:
 
 $$
 \begin{aligned}
 N_{\text{shared}} &\sim \mathrm{NB2}(\mu,\ \phi_s) \\
-N_{10} &\sim \mathrm{NB2}(\lambda_{\text{em}},\ \phi_x) \qquad
-N_{01} \sim \mathrm{NB2}(\lambda_{\text{lb}},\ \phi_x) \\[4pt]
-y_{\text{em}} &= N_{\text{shared}} + N_{10} \qquad
-y_{\text{lb}} = N_{\text{shared}} + N_{01}
+N_1 &\sim \mathrm{NB2}(\lambda_1,\ \phi_x) \qquad
+N_2 \sim \mathrm{NB2}(\lambda_2,\ \phi_x) \\[4pt]
+y_1 &= N_{\text{shared}} + N_1 \qquad
+y_2 = N_{\text{shared}} + N_2
 \end{aligned}
 $$
 
@@ -70,15 +70,19 @@ Five dpars, all with a log link:
 
 | dpar | role |
 |---|---|
-| `mu` | rate of the shared component |
-| `lambdaem` | rate of the first source's excess |
-| `lambdalb` | rate of the second source's excess |
+| `mu` | rate of the shared component, $\mu$ |
+| `lambdaone` | rate of the first source's excess, $\lambda_1$ |
+| `lambdatwo` | rate of the second source's excess, $\lambda_2$ |
 | `shapes` | dispersion $\phi_s$ of the shared component |
 | `shapex` | dispersion $\phi_x$, shared by both excesses |
 
 `mu` is brms's mandatory first-dpar name. Here it is bound to the shared
 component's *rate* — it is not the mean of either response, and not the mean of
-their difference. `E[y_em] = mu + lambdaem`.
+their difference. `E[y1] = mu + lambdaone`.
+
+The two rates are spelled `lambdaone`/`lambdatwo` rather than `lambda1`/`lambda2`
+because `custom_family()` rejects dpar names ending in a digit. The maths below
+writes them $\lambda_1$ and $\lambda_2$.
 
 All five use a log link, the conventional log-linear rate parameterisation for
 this construction [@karlis2003].
@@ -91,24 +95,24 @@ set.seed(20260724)
 
 n <- 400
 truth <- list(
-  mu       = 8,
-  lambdaem = 3,
-  lambdalb = 2,
-  shapes   = 4,
-  shapex   = 6
+  mu        = 8,
+  lambdaone = 3,
+  lambdatwo = 2,
+  shapes    = 4,
+  shapex    = 6
 )
 
 n_shared <- rnbinom(n, size = truth$shapes, mu = truth$mu)
-n10      <- rnbinom(n, size = truth$shapex, mu = truth$lambdaem)
-n01      <- rnbinom(n, size = truth$shapex, mu = truth$lambdalb)
+n1       <- rnbinom(n, size = truth$shapex, mu = truth$lambdaone)
+n2       <- rnbinom(n, size = truth$shapex, mu = truth$lambdatwo)
 
 dat <- data.frame(
-  y_em = n_shared + n10,
-  y_lb = n_shared + n01
+  y1 = n_shared + n1,
+  y2 = n_shared + n2
 )
 
 str(dat)
-cor(dat$y_em, dat$y_lb)
+cor(dat$y1, dat$y2)
 ```
 
 The correlation is positive and substantial because both counts carry the same
@@ -120,7 +124,7 @@ throws away.
 Two things are specific to this package and easy to miss.
 
 **The second count travels via `vint()`.** `brms::custom_family()` declares a
-single response column, so only `y_em` can be the response. `y_lb` is passed
+single response column, so only `y1` can be the response. `y2` is passed
 alongside as supplementary integer data, and the family's Stan signature reads
 it from there.
 
@@ -135,21 +139,21 @@ the generated model will not compile.
 #| message: false
 fit <- brm(
   bf(
-    y_em | vint(y_lb) ~ 1,
-    lambdaem          ~ 1,
-    lambdalb          ~ 1,
-    shapes            ~ 1,
-    shapex            ~ 1
+    y1 | vint(y2) ~ 1,
+    lambdaone     ~ 1,
+    lambdatwo     ~ 1,
+    shapes        ~ 1,
+    shapex        ~ 1
   ),
   family   = binegbin(),
   stanvars = binegbin_stanvars(),
   data     = dat,
   prior    = c(
-    prior(normal(0, 3), class = "Intercept"),
-    prior(normal(0, 3), class = "Intercept", dpar = "lambdaem"),
-    prior(normal(0, 3), class = "Intercept", dpar = "lambdalb"),
-    prior(normal(1, 2), class = "Intercept", dpar = "shapes"),
-    prior(normal(1, 2), class = "Intercept", dpar = "shapex")
+    prior(normal(2, 1), class = "Intercept"),
+    prior(normal(2, 1), class = "Intercept", dpar = "lambdaone"),
+    prior(normal(2, 1), class = "Intercept", dpar = "lambdatwo"),
+    prior(normal(2, 1), class = "Intercept", dpar = "shapes"),
+    prior(normal(2, 1), class = "Intercept", dpar = "shapex")
   ),
   chains  = 2,
   iter    = 1500,
@@ -159,9 +163,24 @@ fit <- brm(
 )
 ```
 
-The priors are deliberately weak and not centred on the truth — `normal(0, 3)`
-on a log rate spans roughly `[0.003, 400]`. With 400 observations the data does
-the work.
+One weakly-informative prior serves all five, since every dpar here is a
+log-linked positive quantity of similar magnitude. On the natural scale
+`normal(2, 1)` is lognormal with 95% of its mass in roughly `[1, 52]`.
+
+The five truths span `0.69` to `2.08` on the log scale, so no single prior sits
+away from all of them: the shared rate's truth falls near the prior mean, the
+second excess rate's 1.3 prior SDs below it. Recovery here is therefore not on
+its own evidence that the prior is uninfluential. The article
+[*The anatomy of a paired count*][anatomy] tests that directly, shifting a prior
+median sevenfold and moving the corresponding posterior median by 0.005.
+
+[anatomy]: https://anhsmith.github.io/pairedcountbrms/articles/paired-count-anatomy.html
+
+To adapt these priors, shift the **mean** to the scale of the counts rather than
+increasing the SD. All five dpars are log-linked, so a normal prior is lognormal
+on the natural scale, and increasing its SD moves mass to implausible values
+rather than making the prior neutral
+[@smithInstantaneousVsNoninstantaneous2020, supplement 3].
 
 ## Did it recover the truth?
 
@@ -174,11 +193,11 @@ onto the natural scale.
 draws <- as_draws_df(fit)
 
 pars <- c(
-  mu       = "b_Intercept",
-  lambdaem = "b_lambdaem_Intercept",
-  lambdalb = "b_lambdalb_Intercept",
-  shapes   = "b_shapes_Intercept",
-  shapex   = "b_shapex_Intercept"
+  mu        = "b_Intercept",
+  lambdaone = "b_lambdaone_Intercept",
+  lambdatwo = "b_lambdatwo_Intercept",
+  shapes    = "b_shapes_Intercept",
+  shapex    = "b_shapex_Intercept"
 )
 
 recovery <- do.call(rbind, lapply(names(pars), function(p) {
@@ -205,9 +224,9 @@ not a warning sign.
 
 ## Predict and score
 
-`posterior_predict()` draws new `y_em` **conditional on each row's observed
-`y_lb`**. It samples the discrete conditional distribution of
-$N_{\text{shared}}$ given `y_lb`, then adds a fresh excess draw — the exact
+`posterior_predict()` draws new `y1` **conditional on each row's observed
+`y2`**. It samples the discrete conditional distribution of
+$N_{\text{shared}}$ given `y2`, then adds a fresh excess draw — the exact
 conditional, not an approximation.
 
 ```{r}
@@ -218,7 +237,7 @@ dim(yrep)
 
 data.frame(
   quantity = c("mean", "sd", "max"),
-  observed = c(mean(dat$y_em), sd(dat$y_em), max(dat$y_em)),
+  observed = c(mean(dat$y1), sd(dat$y1), max(dat$y1)),
   predicted = c(mean(yrep), mean(apply(yrep, 1, sd)), mean(apply(yrep, 1, max)))
 ) |>
   knitr::kable(digits = 2)
@@ -266,8 +285,19 @@ truncation.
 - `binegbin_joint()` — censoring-aware, for data where one of the two counts is
   missing on some rows. It admits those rows via the integrated-out marginal
   instead of dropping them.
+- The $(M, f, \delta)$ **reparameterisation** — overall level $M$, congruence
+  $f$, and source bias $\delta$, with the dispersions on an SD scale
+  $\kappa = 1/\sqrt{\phi}$ where $\kappa = 0$ is the Poisson limit. It is fitted
+  through `nlf()` rather than a separate family, and
+  [`binegbin_mfd_to_dpars()`](../reference/binegbin_mfd_to_dpars.html) converts
+  between the two. Because $\delta = 0$ and $\kappa = 0$ are finite,
+  interpretable nulls, these coordinates admit penalised-complexity priors
+  [@simpsonPenalisingModelComponent2017], which shrink to the simpler model
+  unless the data support otherwise; the rate parameterisation has no such
+  nulls. Worked end to end in the article
+  [*The anatomy of a paired count*][anatomy].
 - `skellam1()` / `skellam2()`, `dnorm1()` / `dnorm2()`, `dlaplace1()` /
-  `dlaplace2()` — the difference families, which model `d = y_em - y_lb`
+  `dlaplace2()` — the difference families, which model `d = y1 - y2`
   directly. The `1` variants fix the location at zero (does the pair agree on
   average?); the `2` variants estimate it (by how much do they disagree?). All
   support truncation through `resp_trunc()`. The difference of two independent
