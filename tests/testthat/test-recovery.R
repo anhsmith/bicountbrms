@@ -3,6 +3,7 @@
 test_that("parameter recovery from simulated hierarchical data", {
   skip_on_cran()
   skip_if_not_installed("brms")
+  skip_if_no_stan()
 
   set.seed(42)
 

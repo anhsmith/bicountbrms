@@ -264,6 +264,7 @@ binegbin_fit <- function(dat, mu_re = FALSE, ...) {
 test_that("binegbin recovers all five dpars (intercepts only)", {
   skip_on_cran()
   skip_if_not_installed("brms")
+  skip_if_no_stan()
 
   dat   <- binegbin_sim(20260705)
   fit   <- binegbin_fit(dat)
@@ -305,6 +306,7 @@ test_that("binegbin recovers all five dpars (intercepts only)", {
 test_that("binegbin composes with a group-level term on mu and samples cleanly", {
   skip_on_cran()
   skip_if_not_installed("brms")
+  skip_if_no_stan()
 
   fit   <- binegbin_fit(binegbin_sim_re(20260706), mu_re = TRUE)
   draws <- as.data.frame(fit)
@@ -344,6 +346,7 @@ test_that("binegbin composes with a group-level term on mu and samples cleanly",
 test_that("binegbin posterior intervals are calibrated (coverage over replicates)", {
   skip_on_cran()
   skip_if_not_installed("brms")
+  skip_if_no_stan()
   skip_unless_coverage()
 
   R           <- 10L

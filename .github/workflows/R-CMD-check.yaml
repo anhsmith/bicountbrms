@@ -2,16 +2,27 @@
 #
 # TWO JOBS, ON DELIBERATELY DIFFERENT CADENCES.
 #
-# Everything in this package that fits a model is behind skip_on_cran(), so a
-# plain `R CMD check` runs the analytic and R-side tests and SKIPS every Stan
-# fit. That is the right default -- compiling Stan models on every push would
-# make the check useless -- but it means a check that does not set NOT_CRAN
-# reports success while silently skipping the tests most likely to catch a real
-# regression. Two assertions were failing undetected for weeks that way.
+# Everything in this package that fits a model is guarded twice: by
+# skip_on_cran(), and by skip_if_no_stan() (tests/testthat/helper-stan.R), which
+# tries to COMPILE a trivial Stan program. Both guards are needed and neither
+# implies the other:
 #
-#   check       every push/PR. No Stan backend. ~5 minutes. The fast signal:
-#               does it build, are the docs consistent, do the examples run,
-#               do the analytic tests pass.
+#   * r-lib/actions/check-r-package sets NOT_CRAN=true, so skip_on_cran() does
+#     NOT fire in either job below. Do not assume otherwise.
+#   * brms imports rstan, so rstan is present even under dependencies: 'hard'.
+#     But the Boost headers (BH) are not, so rstan cannot compile a model.
+#     skip_if_not_installed("brms") therefore does not establish that a fit can
+#     run; only attempting a compile does.
+#
+# The first CI run of this package failed for exactly that reason: the
+# difference-family fits skipped on a file-local stan_ready check while the
+# joint-family fits, lacking one, reached rstan::stan_model() and errored with
+# "Boost not found".
+#
+#   check       every push/PR. No Stan backend, so the model fits skip via
+#               skip_if_no_stan(). ~5 minutes. The fast signal: does it build,
+#               are the docs consistent, do the examples run, do the analytic
+#               and R-side tests pass.
 #
 #   check-stan  weekly, plus on demand. Sets NOT_CRAN=true so the fitting tests
 #               actually run, and installs BOTH backends because the suite needs

@@ -220,6 +220,7 @@ test_that("Stan binegbin_joint_lpmf is numerically stable at extreme rates and s
 test_that("binegbin_joint fits, dispatches loo()/posterior_predict(), and recovers params", {
   skip_on_cran()
   skip_if_not_installed("brms")
+  skip_if_no_stan()
 
   set.seed(20260706)
 

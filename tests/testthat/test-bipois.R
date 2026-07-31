@@ -111,6 +111,7 @@ test_that("Stan bipois_lpmf is numerically stable at near-zero and large rates",
 test_that("bipois parameter recovery from simulated vessel-level data", {
   skip_on_cran()
   skip_if_not_installed("brms")
+  skip_if_no_stan()
 
   set.seed(20260704)
 
