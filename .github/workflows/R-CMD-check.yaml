@@ -60,7 +60,7 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -99,7 +99,7 @@ jobs:
       # THE POINT OF THIS JOB. Without it every model fit is skipped.
       NOT_CRAN: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -110,12 +110,19 @@ jobs:
           use-public-rspm: true
           extra-repositories: https://stan-dev.r-universe.dev
 
+      # BH is named explicitly. It is in rstan's LinkingTo, not its Imports, so
+      # installing a binary rstan from RSPM does NOT bring it -- and without the
+      # Boost headers rstan cannot compile a model. That is what made the first
+      # run of this job pass in 68 seconds while every fit skipped.
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: |
             any::rcmdcheck
             any::rstan
             any::cmdstanr
+            any::BH
+            any::RcppEigen
+            any::StanHeaders
           needs: check
 
       # Compiling CmdStan takes ~10 minutes, so keep it between runs.
@@ -134,7 +141,45 @@ jobs:
           }
         shell: Rscript {0}
 
+      # FAIL LOUDLY RATHER THAN SKIP. The fitting tests are guarded by
+      # skip_if_no_stan() (tests/testthat/helper-stan.R), which is correct for a
+      # machine without a toolchain but turns this job into a silent no-op if it
+      # ever lacks one: every fit skips and the job reports success. This job
+      # exists to run those fits, so a broken toolchain is a failure, not a skip.
+      - name: Verify the Stan toolchain before checking
+        run: |
+          ok <- tryCatch(
+            { rstan::stan_model(model_code = "model {}"); TRUE },
+            error = function(e) { message(conditionMessage(e)); FALSE }
+          )
+          if (!ok) {
+            stop("check-stan requires a working Stan toolchain; refusing to ",
+                 "pass by skipping every model fit.")
+          }
+          cat("Stan toolchain OK\n")
+        shell: Rscript {0}
+
       - uses: r-lib/actions/check-r-package@v2
         with:
           args: 'c("--no-manual")'
           upload-snapshots: true
+
+      # Guard against the inverse failure: the toolchain works but the fits are
+      # skipped for some other reason, and the job still passes. Only the
+      # coverage assessment should be skipped here.
+      - name: Assert the model fits actually ran
+        if: always()
+        run: |
+          f <- list.files("check", pattern = "testthat[.]Rout",
+                          recursive = TRUE, full.names = TRUE)
+          if (!length(f)) stop("no testthat output found")
+          txt <- paste(readLines(f[1], warn = FALSE), collapse = "\n")
+          m <- regmatches(txt, regexpr("SKIP [0-9]+", txt))
+          if (!length(m)) stop("could not read a SKIP count from testthat output")
+          n <- as.integer(sub("SKIP ", "", m))
+          cat("skips reported:", n, "\n")
+          if (n > 1) {
+            stop("expected at most 1 skip (the coverage gate) but saw ", n,
+                 " -- model fits are being skipped in a job meant to run them.")
+          }
+        shell: Rscript {0}
