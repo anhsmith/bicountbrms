@@ -8,21 +8,37 @@
 # implies the other:
 #
 #   * r-lib/actions/check-r-package sets NOT_CRAN=true, so skip_on_cran() does
-#     NOT fire in either job below. Do not assume otherwise.
+#     NOT fire unless a job overrides it. The `check` job below sets
+#     NOT_CRAN: false explicitly for exactly that reason.
 #   * brms imports rstan, so rstan is present even under dependencies: 'hard'.
-#     But the Boost headers (BH) are not, so rstan cannot compile a model.
 #     skip_if_not_installed("brms") therefore does not establish that a fit can
 #     run; only attempting a compile does.
 #
-# The first CI run of this package failed for exactly that reason: the
-# difference-family fits skipped on a file-local stan_ready check while the
-# joint-family fits, lacking one, reached rstan::stan_model() and errored with
-# "Boost not found".
+# The first CI run of this package failed because the difference-family fits
+# skipped on a file-local stan_ready check while the joint-family fits, lacking
+# one, reached rstan::stan_model() and errored.
 #
-#   check       every push/PR. No Stan backend, so the model fits skip via
-#               skip_if_no_stan(). ~5 minutes. The fast signal: does it build,
-#               are the docs consistent, do the examples run, do the analytic
-#               and R-side tests pass.
+# CORRECTION (0.8.0). This file previously asserted that dependencies: '"hard"'
+# leaves rstan unable to compile because the Boost headers (BH) are absent.
+# That is FALSE, and relying on it silently turned the fast job into a slow one.
+# rstan declares `LinkingTo: Rcpp, RcppEigen, BH, StanHeaders, RcppParallel`,
+# and LinkingTo IS a hard dependency -- so BH and StanHeaders are installed
+# alongside rstan and compilation works. With NOT_CRAN=true also set by the
+# action, BOTH guards passed and the `check` job was compiling every model and
+# running every fit: ~40 minutes against the ~5 claimed here.
+#
+# Two changes fixed it, and both are needed:
+#   1. NOT_CRAN: false in the `check` job env, so skip_on_cran() fires and the
+#      brm() fits skip.
+#   2. stan_tests_enabled() (tests/testthat/helper-stan.R) guarding every
+#      FILE-LEVEL rstan::stan_model() block. Those sit outside test_that(), so
+#      no skip_*() can reach them; without this they compile regardless and
+#      cost ~15 minutes on their own.
+#
+#   check       every push/PR. NOT_CRAN=false, so both the fits and the
+#               file-level compiles skip. The fast signal: does it build, are
+#               the docs consistent, do the examples run, do the analytic and
+#               R-side tests pass.
 #
 #   check-stan  weekly, plus on demand. Sets NOT_CRAN=true so the fitting tests
 #               actually run, and installs BOTH backends because the suite needs
@@ -59,6 +75,10 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      # KEEPS THIS JOB FAST. check-r-package sets NOT_CRAN=true itself, which
+      # un-skips every fitting test; setting it false here overrides that.
+      # Do not remove without reading the note above about BH.
+      NOT_CRAN: false
     steps:
       - uses: actions/checkout@v5
 

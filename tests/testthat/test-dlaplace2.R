@@ -130,7 +130,7 @@ test_that("R brute-force log-CCDF agrees with the closed form across grid", {
 lpmf_stan_code <- paste0("functions {\n", dlaplace2_stan_funs, "}\nmodel {}\n")
 
 stan_ready <- FALSE
-if (requireNamespace("rstan", quietly = TRUE)) {
+if (stan_tests_enabled() && requireNamespace("rstan", quietly = TRUE)) {
   tryCatch({
     suppressMessages({
       sm <- rstan::stan_model(model_code = lpmf_stan_code)
@@ -156,7 +156,7 @@ test_that("Stan log-PMF matches R log-space reference across grid", {
 lccdf_stan_code <- paste0("functions {\n", dlaplace2_lccdf_stan, "}\nmodel {}\n")
 
 lccdf_ready <- FALSE
-if (requireNamespace("rstan", quietly = TRUE)) {
+if (stan_tests_enabled() && requireNamespace("rstan", quietly = TRUE)) {
   tryCatch({
     suppressMessages({
       sm_lccdf <- rstan::stan_model(model_code = lccdf_stan_code)

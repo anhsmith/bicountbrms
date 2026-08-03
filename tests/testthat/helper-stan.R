@@ -50,3 +50,40 @@ skip_if_no_stan <- function() {
     "no working Stan toolchain (rstan cannot compile a model)"
   )
 }
+
+# --------------------------------------------------------------------------
+# Whether to ATTEMPT Stan compilation at all
+# --------------------------------------------------------------------------
+#
+# The two guards above decide whether a Stan test can run. This one decides
+# whether it is worth asking, and it exists because the expensive part of this
+# suite is not the sampling -- it is compilation.
+#
+# Several test files compile a model at FILE level, outside any test_that(), so
+# that rstan::expose_stan_functions() can expose an lpmf for comparison against
+# the R reference. Being outside a test, no skip_*() can reach them: they run
+# whenever the file is sourced, and they cost minutes each.
+#
+# That was tolerable while CI could not compile at all. It cannot be relied on:
+# `dependencies: '"hard"'` installs brms -> rstan, and rstan declares
+# `LinkingTo: BH, StanHeaders, ...` -- LinkingTo IS a hard dependency, so the
+# Boost headers arrive with it and rstan compiles fine. The fast CI job was
+# therefore compiling every model and running every fit, taking ~40 minutes
+# against the ~5 its comments claimed.
+#
+# So compilation is now opt-in, on the same switch that governs the fits
+# (NOT_CRAN), which keeps "did the Stan tests run?" a single question with a
+# single answer rather than two that can disagree. Set NOT_CRAN=true to compile;
+# leave it unset and every Stan block skips without attempting a compile, so a
+# push gets the analytic and R-side signal in a couple of minutes.
+#
+# Use as the condition on a file-level compile block:
+#
+#   stan_ready <- FALSE
+#   if (stan_tests_enabled() && requireNamespace("rstan", quietly = TRUE)) {
+#     tryCatch({ ...compile and expose... ; stan_ready <- TRUE },
+#              error = function(e) NULL)
+#   }
+stan_tests_enabled <- function() {
+  isTRUE(as.logical(Sys.getenv("NOT_CRAN", "false")))
+}

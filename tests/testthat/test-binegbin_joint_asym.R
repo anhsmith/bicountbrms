@@ -259,7 +259,7 @@ test_that("a prep with no recognisable excess dispersion errors informatively", 
 stan_code_asym <- paste0("functions {\n", binegbin_joint_stan_funs, "}\nmodel {}\n")
 
 stan_ready_asym <- FALSE
-if (requireNamespace("rstan", quietly = TRUE)) {
+if (stan_tests_enabled() && requireNamespace("rstan", quietly = TRUE)) {
   tryCatch({
     suppressMessages({
       sm <- rstan::stan_model(model_code = stan_code_asym)

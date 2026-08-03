@@ -54,7 +54,7 @@ test_that("R log-PMF is numerically stable at large sigma", {
 stan_code <- paste0("functions {\n", skellam1_stan_funs, "}\nmodel {}\n")
 
 stan_ready <- FALSE
-if (requireNamespace("rstan", quietly = TRUE)) {
+if (stan_tests_enabled() && requireNamespace("rstan", quietly = TRUE)) {
   tryCatch({
     suppressMessages({
       sm <- rstan::stan_model(model_code = stan_code)

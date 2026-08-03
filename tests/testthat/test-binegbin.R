@@ -56,7 +56,7 @@ test_that("binegbin reduces to bipois as shapes, shapex -> Inf (Poisson limit)",
 stan_code <- paste0("functions {\n", binegbin_stan_funs, "}\nmodel {}\n")
 
 stan_ready <- FALSE
-if (requireNamespace("rstan", quietly = TRUE)) {
+if (stan_tests_enabled() && requireNamespace("rstan", quietly = TRUE)) {
   tryCatch({
     suppressMessages({
       sm <- rstan::stan_model(model_code = stan_code)

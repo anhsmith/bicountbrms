@@ -84,7 +84,7 @@ lccdf_stan_block <- function(threshold = 100) {
 }
 
 stan_ready <- FALSE
-if (requireNamespace("rstan", quietly = TRUE)) {
+if (stan_tests_enabled() && requireNamespace("rstan", quietly = TRUE)) {
   tryCatch({
     suppressMessages({
       sm <- rstan::stan_model(model_code = lccdf_stan_block(100))

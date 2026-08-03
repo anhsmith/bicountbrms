@@ -136,7 +136,7 @@ test_that("R brute-force log-CCDF agrees with skellam::pskellam across grid", {
 lpmf_stan_code <- paste0("functions {\n", skellam2_stan_funs, "}\nmodel {}\n")
 
 stan_ready <- FALSE
-if (requireNamespace("rstan", quietly = TRUE)) {
+if (stan_tests_enabled() && requireNamespace("rstan", quietly = TRUE)) {
   tryCatch({
     suppressMessages({
       sm <- rstan::stan_model(model_code = lpmf_stan_code)
@@ -165,7 +165,7 @@ lccdf_stan_block2 <- function(threshold = 100) {
 }
 
 lccdf_ready <- FALSE
-if (requireNamespace("rstan", quietly = TRUE)) {
+if (stan_tests_enabled() && requireNamespace("rstan", quietly = TRUE)) {
   tryCatch({
     suppressMessages({
       sm_lccdf <- rstan::stan_model(model_code = lccdf_stan_block2(100))
