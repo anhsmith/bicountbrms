@@ -1,15 +1,16 @@
 Package: pairedcountbrms
 Title: Joint Bivariate-Count and Discrete-Difference brms Custom
     Families for Paired Counts
-Version: 0.7.0
-Date: 2026-07-31
+Version: 0.8.0
+Date: 2026-08-03
 Authors@R: person("Adam N. H.", "Smith", , "anhsmith@gmail.com", role = c("aut", "cre"))
 Description: Provides custom brms families for comparing two paired count
     sources. The principal families model the pair jointly, via trivariate
     reduction: a bivariate Poisson (bipois), its overdispersed bivariate
     Negative-Binomial sibling (binegbin), and a censoring-aware extension
     (binegbin_joint) that admits rows on which one of the two counts is
-    unobserved, through its integrated-out marginal. Modelling the pair rather
+    unobserved, through its integrated-out marginal and allows the two
+    source-specific components to differ in overdispersion. Modelling the pair rather
     than its difference captures the overall level, the correlation between
     sources, and marginal overdispersion alongside the disagreement, and
     supports simulating one count conditional on the other. An interpretable

@@ -127,7 +127,7 @@ jobs:
 
       # Compiling CmdStan takes ~10 minutes, so keep it between runs.
       - name: Cache CmdStan
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cmdstan
           key: cmdstan-${{ runner.os }}-v1

@@ -111,6 +111,74 @@ test_that("dispersion conversion inverts, with the direction reversed", {
             binegbin_mfd_to_dpars(1, 0.5, 0, kappas = 1)$shapes)
 })
 
+# --------------------------------------------------------------------------
+# Per-margin excess dispersions (binegbin_joint, 0.8.0+)
+# --------------------------------------------------------------------------
+
+test_that("kappaxone/kappaxtwo convert to shapexone/shapextwo and round-trip", {
+  # binegbin_joint carries one excess dispersion per margin, so the converters
+  # accept and return the pair under the family's own dpar names rather than
+  # making the caller re-derive shape = 1/kappa^2 by hand.
+  d <- binegbin_mfd_to_dpars(12, 0.6, 0.2, kappas = 0.5,
+                             kappaxone = 2, kappaxtwo = 0.25)
+  expect_equal(d$shapes,    1 / 0.5^2)
+  expect_equal(d$shapexone, 1 / 2^2)
+  expect_equal(d$shapextwo, 1 / 0.25^2)
+  # the single-dispersion spelling must NOT appear when the pair was asked for
+  expect_null(d$shapex)
+
+  back <- binegbin_dpars_to_mfd(d$mu, d$lambdaone, d$lambdatwo,
+                                shapes = d$shapes,
+                                shapexone = d$shapexone,
+                                shapextwo = d$shapextwo)
+  expect_equal(back$kappas,    0.5)
+  expect_equal(back$kappaxone, 2)
+  expect_equal(back$kappaxtwo, 0.25)
+  expect_null(back$kappax)
+  # rates round-trip as before
+  expect_equal(back$M, 12); expect_equal(back$f, 0.6); expect_equal(back$delta, 0.2)
+})
+
+test_that("the pair uses the same kappa <-> shape map as the single kappax", {
+  # Not a separate formula: passing one value through kappax and through
+  # kappaxone must give the same number, or the two spellings could drift.
+  one  <- binegbin_mfd_to_dpars(12, 0.6, 0, kappax    = 1.7)$shapex
+  pair <- binegbin_mfd_to_dpars(12, 0.6, 0, kappaxone = 1.7)$shapexone
+  expect_identical(one, pair)
+  expect_equal(binegbin_mfd_to_dpars(12, 0.6, 0, kappaxone = 0)$shapexone, Inf)
+})
+
+test_that("symmetric case: the same kappa twice gives equal dispersions", {
+  d <- binegbin_mfd_to_dpars(12, 0.6, 0, kappaxone = 1.3, kappaxtwo = 1.3)
+  expect_identical(d$shapexone, d$shapextwo)
+})
+
+test_that("kappax and the per-margin pair cannot be combined", {
+  expect_error(
+    binegbin_mfd_to_dpars(12, 0.6, 0, kappax = 1, kappaxone = 2),
+    "not both"
+  )
+  expect_error(
+    binegbin_mfd_to_dpars(12, 0.6, 0, kappax = 1, kappaxtwo = 2),
+    "not both"
+  )
+  expect_error(
+    binegbin_dpars_to_mfd(8, 4, 3, shapex = 1, shapexone = 2),
+    "not both"
+  )
+  # ...but either alone is fine
+  expect_type(binegbin_mfd_to_dpars(12, 0.6, 0, kappax = 1)$shapex, "double")
+  expect_type(binegbin_mfd_to_dpars(12, 0.6, 0, kappaxone = 1)$shapexone, "double")
+})
+
+test_that("the pair vectorises over draws like every other argument", {
+  d <- binegbin_mfd_to_dpars(M = c(10, 12), f = 0.6, delta = 0,
+                             kappaxone = c(1, 2), kappaxtwo = c(0.5, 0.25))
+  expect_length(d$shapexone, 2)
+  expect_equal(d$shapexone, 1 / c(1, 2)^2)
+  expect_equal(d$shapextwo, 1 / c(0.5, 0.25)^2)
+})
+
 test_that("kappa = 0 is the Poisson limit, handled exactly", {
   expect_equal(binegbin_mfd_to_dpars(12, 0.6, 0, kappas = 0)$shapes, Inf)
   expect_equal(binegbin_dpars_to_mfd(1, 1, 1, shapes = Inf)$kappas, 0)

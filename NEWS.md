@@ -1,3 +1,61 @@
+# pairedcountbrms 0.8.0
+
+* **Breaking (dpar split): `binegbin_joint()`'s single excess dispersion
+  `shapex` is now the per-margin pair `shapexone`/`shapextwo`**, giving the
+  family six dpars (`mu`, `lambdaone`, `lambdatwo`, `shapes`, `shapexone`,
+  `shapextwo`), all log-linked. The two source-only excess components may now
+  differ in overdispersion, which the single `shapex` forced them not to. The
+  rates were already free to differ; the dispersions now are too.
+
+* **The symmetric model is a formula constraint, not a separate family.**
+  `shapexone == shapextwo` recovers the pre-0.8.0 likelihood term for term.
+  Express it by routing both dpars through one non-linear parameter:
+
+  ```r
+  bf(y1 | vint(y2, y1_obs) ~ 1,
+     mu ~ 1 + (1 | vessel),
+     nlf(shapexone ~ shapexx),
+     nlf(shapextwo ~ shapexx),
+     shapexx ~ 1, ..., nl = TRUE)
+  ```
+
+  This is the only source change a symmetric model needs. Note the prior moves
+  with the name: `prior(..., dpar = "shapex")` becomes
+  `prior(..., nlpar = "shapexx")`.
+
+* **Fits made before this release still post-process; no refitting and no shim
+  are required.** brms resolves a custom family's `log_lik_*` /
+  `posterior_predict_*` by name against the live search path at call time, not
+  from anything frozen in the fit, so a stored fit always runs the currently
+  attached code. Only the dpar NAMES it carries are frozen, and both excess
+  dispersions now fall back to a five-dpar fit's single `shapex` — which is
+  precisely the constraint that fit was estimated under. Verified on stored
+  five-dpar fits: `log_lik()` and `posterior_predict()` agree with 0.7.0
+  bitwise, and `loo()` runs unchanged.
+
+* The generalised family absorbs a project-local asymmetric family developed
+  outside the package. During the migration the two were compared element by
+  element over 15,480,000 pointwise log-likelihood values from ten stored
+  fits, and every value was bitwise identical. That was a one-off check
+  against artefacts outside this repository, not a package test; it is
+  recorded with its method and versions in `migration/family-unification.md`,
+  alongside the dpar mapping table and adoption steps.
+
+* `binegbin_mfd_to_dpars()` gains `kappaxone`/`kappaxtwo`, and
+  `binegbin_dpars_to_mfd()` gains `shapexone`/`shapextwo`, so the
+  \eqn{(M, f, \delta)} converters serve `binegbin_joint()`'s per-margin excess
+  dispersions under the family's own dpar names instead of leaving the caller
+  to re-derive `shape = 1/kappa^2`. Purely additive: the existing
+  `kappax`/`shapex` arguments are unchanged and still return `shapex`/`kappax`.
+  Supplying `kappax` together with either of the new arguments is an error,
+  since they are two spellings of the same quantity for different families.
+
+* Note on identifiability: `shapextwo` governs the always-observed margin and
+  appears on both branches, so the censored rows inform it. `shapexone`
+  appears only on the matched branch and is identified solely by the matched
+  rows, as `lambdaone` is. A design with few matched rows will learn
+  `shapexone` weakly.
+
 # pairedcountbrms 0.7.0
 
 * **Breaking (dpar rename): the joint families' excess-rate dpars

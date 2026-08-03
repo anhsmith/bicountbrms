@@ -3,8 +3,10 @@
 ^\.positai$
 ^\.claude$
 ^LICENSE\.md$
+^CLAUDE\.md$
 ^_pkgdown\.yml$
 ^docs$
+^migration$
 ^pkgdown$
 ^\.github$
 ^vignettes/articles$

@@ -304,7 +304,10 @@ truncation.
   the two with `loo()`.
 - `binegbin_joint()` — censoring-aware, for data where one of the two counts is
   missing on some rows. It admits those rows via the integrated-out marginal
-  instead of dropping them.
+  instead of dropping them. It also gives each excess component its own
+  dispersion (`shapexone`/`shapextwo`, six dpars rather than five), so the two
+  sources may be differently overdispersed; tying them together with `nlf()`
+  recovers the single-`shapex` model shown above.
 - The $(M, f, \delta)$ **reparameterisation** — overall level $M$, congruence
   $f$, and source bias $\delta$, with the dispersions on an SD scale
   $\kappa = 1/\sqrt{\phi}$ where $\kappa = 0$ is the Poisson limit. It is fitted

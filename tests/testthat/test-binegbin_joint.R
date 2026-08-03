@@ -156,8 +156,11 @@ test_that("Stan binegbin_joint_lpmf matches R brute-force reference (both branch
     means <- c(mu + lone, mu + ltwo)
     ys <- unique(pmax(c(0L, 1L, round(means), round(means) + 4L), 0L))
     yg <- expand.grid(y1 = ys, y2 = ys, y1_obs = c(0L, 1L))
+    # Symmetric case: the single `sx` is passed for BOTH shapexone and
+    # shapextwo, which is the constraint the pre-0.8.0 five-dpar family
+    # imposed. The asymmetric grid lives in test-binegbin_joint_asym.R.
     stan_vals <- mapply(
-      function(r, s, e) binegbin_joint_lpmf(r, mu, lone, ltwo, ss, sx, s, e),
+      function(r, s, e) binegbin_joint_lpmf(r, mu, lone, ltwo, ss, sx, sx, s, e),
       yg$y1, yg$y2, yg$y1_obs)
     r_vals <- binegbin_joint_lpmf_r(yg$y1, yg$y2, yg$y1_obs, mu, lone, ltwo, ss, sx)
     max(abs(stan_vals - r_vals))
@@ -181,7 +184,7 @@ test_that("Stan binegbin_joint matched branch == Stan binegbin lpmf (equivalence
     means <- c(mu + lone, mu + ltwo)
     ys <- unique(pmax(c(0L, 1L, round(means), round(means) + 4L), 0L))
     yg <- expand.grid(y1 = ys, y2 = ys)
-    joint_vals <- mapply(function(r, s) binegbin_joint_lpmf(r, mu, lone, ltwo, ss, sx, s, 1L),
+    joint_vals <- mapply(function(r, s) binegbin_joint_lpmf(r, mu, lone, ltwo, ss, sx, sx, s, 1L),
                          yg$y1, yg$y2)
     bineg_vals <- mapply(function(r, s) binegbin_lpmf(r, mu, lone, ltwo, ss, sx, s),
                          yg$y1, yg$y2)
@@ -204,7 +207,7 @@ test_that("Stan binegbin_joint_lpmf is numerically stable at extreme rates and s
     ys <- 0:5
     yg <- expand.grid(y1 = ys, y2 = ys, y1_obs = c(0L, 1L))
     stan_vals <- mapply(
-      function(r, s, e) binegbin_joint_lpmf(r, ec[["mu"]], ec[["lone"]], ec[["ltwo"]], ec[["ss"]], ec[["sx"]], s, e),
+      function(r, s, e) binegbin_joint_lpmf(r, ec[["mu"]], ec[["lone"]], ec[["ltwo"]], ec[["ss"]], ec[["sx"]], ec[["sx"]], s, e),
       yg$y1, yg$y2, yg$y1_obs)
     r_vals <- binegbin_joint_lpmf_r(yg$y1, yg$y2, yg$y1_obs,
                                     ec[["mu"]], ec[["lone"]], ec[["ltwo"]], ec[["ss"]], ec[["sx"]])
@@ -217,7 +220,13 @@ test_that("Stan binegbin_joint_lpmf is numerically stable at extreme rates and s
 # brms end-to-end: dispatch (loo + posterior_predict) and recovery
 # -----------------------------------------------------------------------
 
-test_that("binegbin_joint fits, dispatches loo()/posterior_predict(), and recovers params", {
+test_that("binegbin_joint fits the SYMMETRIC model via nlf, dispatches, and recovers params", {
+  # Since 0.8.0 the two excess dispersions are separate dpars, so the
+  # symmetric model -- one dispersion for both excess components, which is
+  # what this simulation generates -- is expressed as a formula constraint:
+  # both dpars routed through a single non-linear parameter `shapexx`. This
+  # is the migration idiom documented in migration/family-unification.md, so the
+  # test doubles as a check that it fits and recovers.
   skip_on_cran()
   skip_if_not_installed("brms")
   skip_if_no_stan()
@@ -260,7 +269,9 @@ test_that("binegbin_joint fits, dispatches loo()/posterior_predict(), and recove
         mu ~ 1 + (1 | vessel),
         brms::nlf(lambdaone ~ lamx),
         brms::nlf(lambdatwo ~ lamx),
-        lamx ~ 1, shapes ~ 1, shapex ~ 1, nl = TRUE
+        brms::nlf(shapexone ~ shapexx),
+        brms::nlf(shapextwo ~ shapexx),
+        lamx ~ 1, shapes ~ 1, shapexx ~ 1, nl = TRUE
       ),
       family   = binegbin_joint(),
       stanvars = binegbin_joint_stanvars(),
@@ -300,7 +311,7 @@ test_that("binegbin_joint fits, dispatches loo()/posterior_predict(), and recove
   expect_true(check_recovery(log(true_lone),    "b_lamx_Intercept"))
   expect_true(check_recovery(true_sd_vessel,   "sd_vessel__Intercept"))
   expect_true(check_recovery(log(true_shapes), "b_shapes_Intercept"))
-  expect_true(check_recovery(log(true_shapex), "b_shapex_Intercept"))
+  expect_true(check_recovery(log(true_shapex), "b_shapexx_Intercept"))
 
   n_div <- sum(brms::nuts_params(fit, pars = "divergent__")$Value)
   expect_equal(n_div, 0, label = paste0(n_div, " divergent transitions"))

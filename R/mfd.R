@@ -1,5 +1,11 @@
 # ==========================================================================
-# (M, f, delta) <-> native dpar coordinates for the joint bivariate families
+# (M, f, delta) <-> native dpar coordinates for binegbin() and bipois()
+#
+# NOT binegbin_joint(), whose excess dispersion is the per-margin PAIR
+# shapexone/shapextwo since 0.8.0 rather than a single shapex. The RATE half of
+# these converters (mu, lambdaone, lambdatwo) applies to it unchanged -- it is
+# only the dispersion half that differs. See the @details of
+# binegbin_mfd_to_dpars() for how to use these coordinates with that family.
 #
 # binegbin()/bipois() are parameterised by three rates -- mu (shared),
 # lambdaone and lambdatwo (the two source-specific excesses) -- because that
@@ -69,7 +75,12 @@
 #'   and gives the limit where one excess rate is zero.
 #' @param kappas,kappax Optional SD-scale dispersions for the shared and excess
 #'   components. `0` is the Poisson limit. If supplied, the returned list gains
-#'   `shapes`/`shapex` (`= 1/kappa^2`, so `kappa = 0` gives `Inf`).
+#'   `shapes`/`shapex` (`= 1/kappa^2`, so `kappa = 0` gives `Inf`). `kappax` is
+#'   the single excess dispersion of [binegbin()]/[bipois()].
+#' @param kappaxone,kappaxtwo Optional per-margin SD-scale excess dispersions,
+#'   for [binegbin_joint()], which carries one per margin rather than one
+#'   shared. If supplied, the returned list gains `shapexone`/`shapextwo`.
+#'   Mutually exclusive with `kappax`.
 #'
 #' @details
 #' Arguments are recycled to a common length, so this vectorises over posterior
@@ -80,8 +91,20 @@
 #' [binegbin_dpars_to_mfd()] reports back as `NA`. This direction is always
 #' well defined; only the inverse degenerates.
 #'
-#' @return A named list of `mu`, `lambdaone`, `lambdatwo`, plus `shapes` and
-#'   `shapex` when `kappas`/`kappax` are supplied.
+#' **Using these coordinates with [binegbin_joint()].** The three rates carry
+#' over unchanged. Since 0.8.0 that family's excess dispersion is the pair
+#' `shapexone`/`shapextwo` rather than a single `shapex`, so supply
+#' `kappaxone`/`kappaxtwo` instead of `kappax` and the returned list is named
+#' to match its dpars. `kappax` and the pair are mutually exclusive in one
+#' call -- they are two spellings of the same quantity for different families,
+#' and returning both would leave the caller to guess which their family wants.
+#'
+#' For the symmetric model (one excess dispersion, term for term the pre-0.8.0
+#' likelihood) pass the same value twice: `kappaxone = k, kappaxtwo = k`.
+#'
+#' @return A named list of `mu`, `lambdaone`, `lambdatwo`, plus `shapes` when
+#'   `kappas` is supplied, `shapex` when `kappax` is, and
+#'   `shapexone`/`shapextwo` when `kappaxone`/`kappaxtwo` are.
 #'
 #' @examples
 #' # A moderately congruent pair, source 1 running high
@@ -103,7 +126,8 @@
 #'
 #' @seealso [binegbin_dpars_to_mfd()], [binegbin()], [bipois()]
 #' @export
-binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL) {
+binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL,
+                                  kappaxone = NULL, kappaxtwo = NULL) {
   n <- max(length(M), length(f), length(delta))
   M     <- rep_len(M, n)
   f     <- rep_len(f, n)
@@ -111,6 +135,15 @@ binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL)
 
   if (any(M < 0, na.rm = TRUE)) stop("`M` must be non-negative.", call. = FALSE)
   if (any(f < 0 | f > 1, na.rm = TRUE)) stop("`f` must lie in [0, 1].", call. = FALSE)
+  # `kappax` and the per-margin pair name the same quantity for different
+  # families, so accepting both at once would silently return two spellings of
+  # the excess dispersion and leave the caller to guess which their family
+  # wants.
+  if (!is.null(kappax) && (!is.null(kappaxone) || !is.null(kappaxtwo))) {
+    stop("Supply either `kappax` (one excess dispersion, for binegbin/bipois) ",
+         "or `kappaxone`/`kappaxtwo` (the per-margin pair, for ",
+         "binegbin_joint), not both.", call. = FALSE)
+  }
 
   excess_mid <- M * (1 - f)          # = (lambdaone + lambdatwo)/2, for any delta
   b <- tanh(delta)                   # bounded bias in [-1, 1]; tanh(+-Inf) = +-1
@@ -121,8 +154,10 @@ binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL)
     lambdatwo = excess_mid * (1 - b)
   )
 
-  if (!is.null(kappas)) out$shapes <- .kappa_to_shape(rep_len(kappas, n))
-  if (!is.null(kappax)) out$shapex <- .kappa_to_shape(rep_len(kappax, n))
+  if (!is.null(kappas))    out$shapes    <- .kappa_to_shape(rep_len(kappas, n))
+  if (!is.null(kappax))    out$shapex    <- .kappa_to_shape(rep_len(kappax, n))
+  if (!is.null(kappaxone)) out$shapexone <- .kappa_to_shape(rep_len(kappaxone, n))
+  if (!is.null(kappaxtwo)) out$shapextwo <- .kappa_to_shape(rep_len(kappaxtwo, n))
   out
 }
 
@@ -138,6 +173,10 @@ binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL)
 #' @param lambdaone,lambdatwo The two excess rates.
 #' @param shapes,shapex Optional NB2 dispersions. If supplied, the returned list
 #'   gains `kappas`/`kappax` (`= 1/sqrt(shape)`, so `shape = Inf` gives `0`).
+#'   `shapex` is the single excess dispersion of [binegbin()]/[bipois()].
+#' @param shapexone,shapextwo Optional per-margin NB2 excess dispersions, as
+#'   carried by [binegbin_joint()]. If supplied, the returned list gains
+#'   `kappaxone`/`kappaxtwo`. Mutually exclusive with `shapex`.
 #'
 #' @details
 #' Arguments are recycled to a common length, so this vectorises over posterior
@@ -158,7 +197,8 @@ binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL)
 #' source of truth rather than repeatedly converting back and forth.
 #'
 #' @return A named list of `M`, `f`, `delta`, plus `beta` (the bounded bias
-#'   `tanh(delta)`), and `kappas`/`kappax` when `shapes`/`shapex` are supplied.
+#'   `tanh(delta)`), `kappas`/`kappax` when `shapes`/`shapex` are supplied, and
+#'   `kappaxone`/`kappaxtwo` when `shapexone`/`shapextwo` are.
 #'
 #' @examples
 #' binegbin_dpars_to_mfd(mu = 8.04, lambdaone = 4.75, lambdatwo = 3.17)
@@ -173,7 +213,8 @@ binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL)
 #' @seealso [binegbin_mfd_to_dpars()], [binegbin()], [bipois()]
 #' @export
 binegbin_dpars_to_mfd <- function(mu, lambdaone, lambdatwo,
-                                  shapes = NULL, shapex = NULL) {
+                                  shapes = NULL, shapex = NULL,
+                                  shapexone = NULL, shapextwo = NULL) {
   n <- max(length(mu), length(lambdaone), length(lambdatwo))
   mu        <- rep_len(mu, n)
   lambdaone <- rep_len(lambdaone, n)
@@ -181,6 +222,13 @@ binegbin_dpars_to_mfd <- function(mu, lambdaone, lambdatwo,
 
   if (any(c(mu, lambdaone, lambdatwo) < 0, na.rm = TRUE)) {
     stop("Rates must be non-negative.", call. = FALSE)
+  }
+  # Mirrors the guard in binegbin_mfd_to_dpars(): one spelling of the excess
+  # dispersion per call, chosen by which family the dpars came from.
+  if (!is.null(shapex) && (!is.null(shapexone) || !is.null(shapextwo))) {
+    stop("Supply either `shapex` (one excess dispersion, from binegbin/bipois) ",
+         "or `shapexone`/`shapextwo` (the per-margin pair, from ",
+         "binegbin_joint), not both.", call. = FALSE)
   }
 
   excess_sum <- lambdaone + lambdatwo
@@ -197,8 +245,10 @@ binegbin_dpars_to_mfd <- function(mu, lambdaone, lambdatwo,
 
   out <- list(M = M, f = f, delta = delta, beta = beta)
 
-  if (!is.null(shapes)) out$kappas <- .shape_to_kappa(rep_len(shapes, n))
-  if (!is.null(shapex)) out$kappax <- .shape_to_kappa(rep_len(shapex, n))
+  if (!is.null(shapes))    out$kappas    <- .shape_to_kappa(rep_len(shapes, n))
+  if (!is.null(shapex))    out$kappax    <- .shape_to_kappa(rep_len(shapex, n))
+  if (!is.null(shapexone)) out$kappaxone <- .shape_to_kappa(rep_len(shapexone, n))
+  if (!is.null(shapextwo)) out$kappaxtwo <- .shape_to_kappa(rep_len(shapextwo, n))
   out
 }
 
