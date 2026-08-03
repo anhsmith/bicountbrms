@@ -249,9 +249,35 @@ caveat this implies.
 
 **Two excess dispersions.** Unlike `binegbin`, which carries a single
 `shapex`, `binegbin_joint` gives each source-only excess component its
-own dispersion — `shapexone` for $`N_1`$, `shapextwo` for $`N_2`$ — so
-the two sources may be differently overdispersed. Six dpars in all. The
-symmetric model is the constraint
+own dispersion — `shapexone` $`=\phi_{\text{x}1}`$ for $`N_1`$ and
+`shapextwo` $`=\phi_{\text{x}2}`$ for $`N_2`$ — so the two sources may
+be differently overdispersed. Six dpars in all. The moments follow from
+the same decomposition as before, with the two excess terms no longer
+sharing a dispersion:
+
+``` math
+\mathrm{Var}(y_1) = \Big(\mu+\tfrac{\mu^2}{\phi_{\text{s}}}\Big)
+  + \Big(\lambda_1+\tfrac{\lambda_1^2}{\phi_{\text{x}1}}\Big),
+\qquad
+\mathrm{Var}(y_2) = \Big(\mu+\tfrac{\mu^2}{\phi_{\text{s}}}\Big)
+  + \Big(\lambda_2+\tfrac{\lambda_2^2}{\phi_{\text{x}2}}\Big),
+```
+
+while $`\mathrm{Cov}(y_1,y_2) = \mu+\mu^2/\phi_{\text{s}}`$ is
+unchanged, since only the shared component contributes to it. Freeing
+the two dispersions therefore alters the margins and the difference but
+not the covariance, and the correlation changes only through its
+denominator. For the difference,
+$`\mathrm{Var}(d) = \big(\lambda_1+\lambda_1^2/\phi_{\text{x}1}\big)
++ \big(\lambda_2+\lambda_2^2/\phi_{\text{x}2}\big)`$, which at
+$`\lambda_1=\lambda_2=\lambda`$ reduces to
+$`2\lambda + \lambda^2\big(1/\phi_{\text{x}1} + 1/\phi_{\text{x}2}\big)`$:
+the two dispersions enter through their reciprocals, so the more
+overdispersed source contributes the greater share of the disagreement.
+Setting $`\phi_{\text{x}1}=\phi_{\text{x}2}`$ recovers every `binegbin`
+expression above.
+
+The symmetric model is the constraint
 $`\texttt{shapexone} = \texttt{shapextwo}`$, written as a formula:
 
 ``` r
