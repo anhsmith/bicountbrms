@@ -65,6 +65,50 @@ test_that("y2-only branch normalises to 1 over y2 with shapexone != shapextwo", 
   expect_normalises(norm_check(10, 6, 1.5, 20,  0.4), tol = 1e-8)
 })
 
+test_that("moment identities hold with shapexone != shapextwo", {
+  # The variance structure the README states for the asymmetric family. Each
+  # margin picks up its OWN excess dispersion; the covariance picks up neither,
+  # because only the shared component contributes to it. Computed by exact
+  # summation over the joint pmf rather than by simulation, so this is an
+  # identity check to machine precision, not a Monte Carlo one -- the pmf has
+  # converged to 1 well inside the grid for these parameters (mass = 1 to
+  # ~1e-16), which is what licenses the tight tolerance.
+  #
+  # A swapped shapexone/shapextwo would show up here as Vy1 and Vy2 trading
+  # values, independently of the transposition check further down.
+  nb_var <- function(m, phi) m + m^2 / phi
+
+  check <- function(mu, l1, l2, ss, sx1, sx2, K = 150) {
+    ys <- 0:K
+    g  <- expand.grid(y1 = ys, y2 = ys)
+    p  <- exp(binegbin_joint_lpmf_r(g$y1, g$y2, 1L, mu, l1, l2, ss, sx1, sx2))
+    Ey1 <- sum(p * g$y1); Ey2 <- sum(p * g$y2)
+    lab <- paste(mu, l1, l2, ss, sx1, sx2, sep = ",")
+
+    expect_equal(sum(p), 1, tolerance = 1e-10, label = paste("mass:", lab))
+    expect_equal(Ey1, mu + l1, tolerance = 1e-8, label = paste("E[y1]:", lab))
+    expect_equal(Ey2, mu + l2, tolerance = 1e-8, label = paste("E[y2]:", lab))
+    expect_equal(sum(p * g$y1^2) - Ey1^2,
+                 nb_var(mu, ss) + nb_var(l1, sx1),
+                 tolerance = 1e-8, label = paste("Var(y1):", lab))
+    expect_equal(sum(p * g$y2^2) - Ey2^2,
+                 nb_var(mu, ss) + nb_var(l2, sx2),
+                 tolerance = 1e-8, label = paste("Var(y2):", lab))
+    # Cov depends on the shared component alone -- neither excess dispersion.
+    expect_equal(sum(p * g$y1 * g$y2) - Ey1 * Ey2,
+                 nb_var(mu, ss),
+                 tolerance = 1e-8, label = paste("Cov:", lab))
+    # Var(d) = the two excess variances summed; the shared count cancels.
+    d <- g$y1 - g$y2
+    expect_equal(sum(p * d^2) - sum(p * d)^2,
+                 nb_var(l1, sx1) + nb_var(l2, sx2),
+                 tolerance = 1e-8, label = paste("Var(d):", lab))
+  }
+
+  check(mu = 4, l1 = 3, l2 = 3, ss = 3, sx1 = 1.5, sx2 = 8)    # equal rates
+  check(mu = 6, l1 = 2, l2 = 5, ss = 2, sx1 = 6,   sx2 = 1.2)  # asymmetry reversed
+})
+
 test_that("marginal identity holds under asymmetry", {
   # Integrating the matched branch over all y1 must reproduce the y2-only
   # branch. This is the identity that makes the censored rows coherent with

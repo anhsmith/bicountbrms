@@ -9,9 +9,9 @@ Description: Provides custom brms families for comparing two paired count
     reduction: a bivariate Poisson (bipois), its overdispersed bivariate
     Negative-Binomial sibling (binegbin), and a censoring-aware extension
     (binegbin_joint) that admits rows on which one of the two counts is
-    unobserved, through its integrated-out marginal and allows the two
-    source-specific components to differ in overdispersion. Modelling the pair rather
-    than its difference captures the overall level, the correlation between
+    unobserved, through its integrated-out marginal, and lets the two
+    source-specific components differ in overdispersion. Modelling the pair
+    rather than its difference captures the overall level, the correlation between
     sources, and marginal overdispersion alongside the disagreement, and
     supports simulating one count conditional on the other. An interpretable
     reparameterisation separates overall level, congruence, and source bias,
