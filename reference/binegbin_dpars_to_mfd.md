@@ -8,7 +8,15 @@ converting \`shapes\`/\`shapex\` back to SD-scale \`kappas\`/\`kappax\`.
 ## Usage
 
 ``` r
-binegbin_dpars_to_mfd(mu, lambdaone, lambdatwo, shapes = NULL, shapex = NULL)
+binegbin_dpars_to_mfd(
+  mu,
+  lambdaone,
+  lambdatwo,
+  shapes = NULL,
+  shapex = NULL,
+  shapexone = NULL,
+  shapextwo = NULL
+)
 ```
 
 ## Arguments
@@ -25,13 +33,21 @@ binegbin_dpars_to_mfd(mu, lambdaone, lambdatwo, shapes = NULL, shapex = NULL)
 
   Optional NB2 dispersions. If supplied, the returned list gains
   \`kappas\`/\`kappax\` (\`= 1/sqrt(shape)\`, so \`shape = Inf\` gives
-  \`0\`).
+  \`0\`). \`shapex\` is the single excess dispersion of
+  \[binegbin()\]/\[bipois()\].
+
+- shapexone, shapextwo:
+
+  Optional per-margin NB2 excess dispersions, as carried by
+  \[binegbin_joint()\]. If supplied, the returned list gains
+  \`kappaxone\`/\`kappaxtwo\`. Mutually exclusive with \`shapex\`.
 
 ## Value
 
 A named list of \`M\`, \`f\`, \`delta\`, plus \`beta\` (the bounded bias
-\`tanh(delta)\`), and \`kappas\`/\`kappax\` when \`shapes\`/\`shapex\`
-are supplied.
+\`tanh(delta)\`), \`kappas\`/\`kappax\` when \`shapes\`/\`shapex\` are
+supplied, and \`kappaxone\`/\`kappaxtwo\` when
+\`shapexone\`/\`shapextwo\` are.
 
 ## Details
 

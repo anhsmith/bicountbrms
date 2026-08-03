@@ -13,7 +13,7 @@ congruence `f`, and source bias `delta`, optionally converting
 
     <a class="navbar-brand me-2" href="../index.html">pairedcountbrms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -53,7 +53,15 @@ congruence `f`, and source bias `delta`, optionally converting
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">binegbin_dpars_to_mfd</span><span class="op">(</span><span class="va">mu</span>, <span class="va">lambdaone</span>, <span class="va">lambdatwo</span>, shapes <span class="op">=</span> <span class="cn">NULL</span>, shapex <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">binegbin_dpars_to_mfd</span><span class="op">(</span></span>
+<span>  <span class="va">mu</span>,</span>
+<span>  <span class="va">lambdaone</span>,</span>
+<span>  <span class="va">lambdatwo</span>,</span>
+<span>  shapes <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  shapex <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  shapexone <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  shapextwo <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -70,13 +78,21 @@ congruence `f`, and source bias `delta`, optionally converting
 
 <dt id="arg-shapes-shapex">shapes, shapex<a class="anchor" aria-label="anchor" href="#arg-shapes-shapex"></a></dt>
 <dd><p>Optional NB2 dispersions. If supplied, the returned list
-gains `kappas`/`kappax` (`= 1/sqrt(shape)`, so `shape = Inf` gives `0`).</p></dd>
+gains `kappas`/`kappax` (`= 1/sqrt(shape)`, so `shape = Inf` gives `0`).
+`shapex` is the single excess dispersion of [binegbin()]/[bipois()].</p></dd>
+
+
+<dt id="arg-shapexone-shapextwo">shapexone, shapextwo<a class="anchor" aria-label="anchor" href="#arg-shapexone-shapextwo"></a></dt>
+<dd><p>Optional per-margin NB2 excess dispersions, as
+carried by [binegbin_joint()]. If supplied, the returned list gains
+`kappaxone`/`kappaxtwo`. Mutually exclusive with `shapex`.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A named list of `M`, `f`, `delta`, plus `beta` (the bounded bias
-  `tanh(delta)`), and `kappas`/`kappax` when `shapes`/`shapex` are supplied.</p>
+  `tanh(delta)`), `kappas`/`kappax` when `shapes`/`shapex` are supplied, and
+  `kappaxone`/`kappaxtwo` when `shapexone`/`shapextwo` are.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

@@ -1,11 +1,11 @@
 # pairedcountbrms
 
-Custom [brms](https://paul-buerkner.github.io/brms/) families (Bürkner
-2017) for modelling a **pair of counts** from two sources that are meant
-to measure the same thing — two observers, two instruments, two
-reporting channels — where the question is how much, and how
-systematically, they disagree. Code is also provided for modelling
-**differences in pairs of counts** directly.
+Custom [brms](https://paulbuerkner.com/brms/) families (Bürkner 2017)
+for modelling a **pair of counts** from two sources that are meant to
+measure the same thing — two observers, two instruments, two reporting
+channels — where the question is how much, and how systematically, they
+disagree. Code is also provided for modelling **differences in pairs of
+counts** directly.
 
 Pairs of counts are modelled using **[joint bivariate-count
 families](#joint-bivariate-count-families)** —
@@ -240,11 +240,25 @@ excess negative-binomials — **not** a separate single-dispersion
 model.
 
 One [`brm()`](https://paulbuerkner.com/brms/reference/brm.html) call
-thus pools matched and censored rows under one likelihood. $`\lambda_1`$
-and the between-source bias are identified **only** by the matched rows;
-the censored rows sharpen $`\mu`$, `shapes`, $`\lambda_2`$, and any
-shared random-effect structure. See [Limitations](#limitations) for the
-identifiability caveat this implies.
+thus pools matched and censored rows under one likelihood.
+$`\lambda_1`$, the between-source bias and `shapexone` are identified
+**only** by the matched rows; the censored rows sharpen $`\mu`$,
+`shapes`, $`\lambda_2`$, `shapextwo`, and any shared random-effect
+structure. See [Limitations](#limitations) for the identifiability
+caveat this implies.
+
+**Two excess dispersions.** Unlike `binegbin`, which carries a single
+`shapex`, `binegbin_joint` gives each source-only excess component its
+own dispersion — `shapexone` for $`N_1`$, `shapextwo` for $`N_2`$ — so
+the two sources may be differently overdispersed. Six dpars in all. The
+symmetric model is the constraint
+$`\texttt{shapexone} = \texttt{shapextwo}`$, written as a formula:
+
+``` r
+nlf(shapexone ~ shapexx), nlf(shapextwo ~ shapexx), shapexx ~ 1
+```
+
+which reproduces the pre-0.8.0 five-dpar likelihood term for term.
 
 ### Usage
 
@@ -275,7 +289,22 @@ fit_cj <- brm(
      mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
      nlf(lambdaone ~ lamx + methd),
      nlf(lambdatwo ~ lamx - methd),
-     lamx ~ 1, methd ~ 1, shapes ~ 1, shapex ~ 1, nl = TRUE),
+     lamx ~ 1, methd ~ 1, shapes ~ 1,
+     shapexone ~ 1, shapextwo ~ 1, nl = TRUE),
+  data = dat, family = binegbin_joint(), stanvars = binegbin_joint_stanvars(),
+  chains = 4
+)
+
+# ...or the symmetric special case, one dispersion for both excess components
+# (this is exactly the pre-0.8.0 five-dpar model)
+fit_cj_sym <- brm(
+  bf(y1 | vint(y2, y1_obs) ~ 1,
+     mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
+     nlf(lambdaone ~ lamx + methd),
+     nlf(lambdatwo ~ lamx - methd),
+     nlf(shapexone ~ shapexx),
+     nlf(shapextwo ~ shapexx),
+     lamx ~ 1, methd ~ 1, shapes ~ 1, shapexx ~ 1, nl = TRUE),
   data = dat, family = binegbin_joint(), stanvars = binegbin_joint_stanvars(),
   chains = 4
 )
@@ -317,12 +346,25 @@ prior = c(
 )
 ```
 
+For `binegbin_joint`, whose two excess dispersions are separate dpars,
+the last line becomes two:
+
+``` r
+  prior(normal(2, 1), class = "Intercept", dpar = "shapexone"),
+  prior(normal(2, 1), class = "Intercept", dpar = "shapextwo")
+```
+
+and under the symmetric `nlf(shapexone ~ shapexx)` idiom it becomes
+`prior(normal(2, 1), class = "b", nlpar = "shapexx")` instead — routing
+a dpar through a non-linear parameter moves its prior from `dpar =` to
+`nlpar =`.
+
 These suit rates and dispersions of roughly 1 to 50. To adapt them,
 shift the **mean** to the scale of the counts rather than increasing the
-SD. All five dpars are log-linked, so a normal prior is lognormal on the
-natural scale, and increasing its SD moves mass to implausible values
-rather than making the prior neutral (Smith et al. 2020, supplement 3 —
-see [References](#references)).
+SD. Every dpar of every joint family is log-linked, so a normal prior is
+lognormal on the natural scale, and increasing its SD moves mass to
+implausible values rather than making the prior neutral (Smith et
+al. 2020, supplement 3 — see [References](#references)).
 
 The `class`/`dpar`/`nlpar` slots differ between a rate supplied through
 [`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html)
@@ -591,7 +633,8 @@ for a `b_Intercept` is the quickest way to confirm.
 | `mu` | $`\mu`$ | rate of the shared component (**not** a response mean) |
 | `lambdaone`, `lambdatwo` | $`\lambda_1`$, $`\lambda_2`$ | rates of the two private components |
 | `shapes` | $`\phi_{\text{s}}`$ | NB2 dispersion of the shared component |
-| `shapex` | $`\phi_{\text{x}}`$ | NB2 dispersion shared by both private components |
+| `shapex` | $`\phi_{\text{x}}`$ | NB2 dispersion shared by both private components (`binegbin`, `bipois` sibling families) |
+| `shapexone`, `shapextwo` | $`\phi_{\text{x}1}`$, $`\phi_{\text{x}2}`$ | NB2 dispersions of the two private components (`binegbin_joint`) |
 | `y1_obs` (via `vint()`) | — | `binegbin_joint` flag: was $`y_1`$ observed? |
 
 The difference families use the same $`y_1, y_2`$ for the two sources,
@@ -668,12 +711,13 @@ for exact conditional simulation); `binegbin_joint` defines **no**
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
 for it.
 
-**`binegbin_joint` identifiability.** Because $`\lambda_1`$ and the
-between-source bias are informed only by the matched (`y1_obs == 1`)
-rows, a fit with few matched rows will learn the bias weakly even if the
-total sample is large; the censored rows add power for the shared/level
-parameters, not the bias. Fits that lean on the bias should be judged
-against the matched subset, not the full $`n`$.
+**`binegbin_joint` identifiability.** Because $`\lambda_1`$, the
+between-source bias and `shapexone` are informed only by the matched
+(`y1_obs == 1`) rows, a fit with few matched rows will learn them weakly
+even if the total sample is large; the censored rows add power for the
+shared/level parameters and for `shapextwo`, not for the bias. Fits that
+lean on the bias, or on a difference between the two excess dispersions,
+should be judged against the matched subset, not the full $`n`$.
 
 ## Testing
 

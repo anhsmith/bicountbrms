@@ -11,7 +11,15 @@ Maps the interpretable coordinates – overall level \`M\`, congruence
 ## Usage
 
 ``` r
-binegbin_mfd_to_dpars(M, f, delta = 0, kappas = NULL, kappax = NULL)
+binegbin_mfd_to_dpars(
+  M,
+  f,
+  delta = 0,
+  kappas = NULL,
+  kappax = NULL,
+  kappaxone = NULL,
+  kappaxtwo = NULL
+)
 ```
 
 ## Arguments
@@ -37,12 +45,21 @@ binegbin_mfd_to_dpars(M, f, delta = 0, kappas = NULL, kappax = NULL)
   Optional SD-scale dispersions for the shared and excess components.
   \`0\` is the Poisson limit. If supplied, the returned list gains
   \`shapes\`/\`shapex\` (\`= 1/kappa^2\`, so \`kappa = 0\` gives
-  \`Inf\`).
+  \`Inf\`). \`kappax\` is the single excess dispersion of
+  \[binegbin()\]/\[bipois()\].
+
+- kappaxone, kappaxtwo:
+
+  Optional per-margin SD-scale excess dispersions, for
+  \[binegbin_joint()\], which carries one per margin rather than one
+  shared. If supplied, the returned list gains
+  \`shapexone\`/\`shapextwo\`. Mutually exclusive with \`kappax\`.
 
 ## Value
 
 A named list of \`mu\`, \`lambdaone\`, \`lambdatwo\`, plus \`shapes\`
-and \`shapex\` when \`kappas\`/\`kappax\` are supplied.
+when \`kappas\` is supplied, \`shapex\` when \`kappax\` is, and
+\`shapexone\`/\`shapextwo\` when \`kappaxone\`/\`kappaxtwo\` are.
 
 ## Details
 
@@ -53,6 +70,19 @@ posterior draws.
 \`0\` regardless of \`delta\` – the bias becomes unidentifiable, which
 \[binegbin_dpars_to_mfd()\] reports back as \`NA\`. This direction is
 always well defined; only the inverse degenerates.
+
+\*\*Using these coordinates with \[binegbin_joint()\].\*\* The three
+rates carry over unchanged. Since 0.8.0 that family's excess dispersion
+is the pair \`shapexone\`/\`shapextwo\` rather than a single \`shapex\`,
+so supply \`kappaxone\`/\`kappaxtwo\` instead of \`kappax\` and the
+returned list is named to match its dpars. \`kappax\` and the pair are
+mutually exclusive in one call – they are two spellings of the same
+quantity for different families, and returning both would leave the
+caller to guess which their family wants.
+
+For the symmetric model (one excess dispersion, term for term the
+pre-0.8.0 likelihood) pass the same value twice: \`kappaxone = k,
+kappaxtwo = k\`.
 
 ## See also
 

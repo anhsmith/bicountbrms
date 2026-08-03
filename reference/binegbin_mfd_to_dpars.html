@@ -15,7 +15,7 @@ SD-scale dispersions `kappas`/`kappax` to the `shapes`/`shapex` dpars.
 
     <a class="navbar-brand me-2" href="../index.html">pairedcountbrms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,7 +56,15 @@ SD-scale dispersions `kappas`/`kappax` to the `shapes`/`shapex` dpars.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">binegbin_mfd_to_dpars</span><span class="op">(</span><span class="va">M</span>, <span class="va">f</span>, delta <span class="op">=</span> <span class="fl">0</span>, kappas <span class="op">=</span> <span class="cn">NULL</span>, kappax <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">binegbin_mfd_to_dpars</span><span class="op">(</span></span>
+<span>  <span class="va">M</span>,</span>
+<span>  <span class="va">f</span>,</span>
+<span>  delta <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  kappas <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  kappax <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  kappaxone <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  kappaxtwo <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -82,13 +90,22 @@ and gives the limit where one excess rate is zero.</p></dd>
 <dt id="arg-kappas-kappax">kappas, kappax<a class="anchor" aria-label="anchor" href="#arg-kappas-kappax"></a></dt>
 <dd><p>Optional SD-scale dispersions for the shared and excess
 components. `0` is the Poisson limit. If supplied, the returned list gains
-`shapes`/`shapex` (`= 1/kappa^2`, so `kappa = 0` gives `Inf`).</p></dd>
+`shapes`/`shapex` (`= 1/kappa^2`, so `kappa = 0` gives `Inf`). `kappax` is
+the single excess dispersion of [binegbin()]/[bipois()].</p></dd>
+
+
+<dt id="arg-kappaxone-kappaxtwo">kappaxone, kappaxtwo<a class="anchor" aria-label="anchor" href="#arg-kappaxone-kappaxtwo"></a></dt>
+<dd><p>Optional per-margin SD-scale excess dispersions,
+for [binegbin_joint()], which carries one per margin rather than one
+shared. If supplied, the returned list gains `shapexone`/`shapextwo`.
+Mutually exclusive with `kappax`.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A named list of `mu`, `lambdaone`, `lambdatwo`, plus `shapes` and
-  `shapex` when `kappas`/`kappax` are supplied.</p>
+    <p>A named list of `mu`, `lambdaone`, `lambdatwo`, plus `shapes` when
+  `kappas` is supplied, `shapex` when `kappax` is, and
+  `shapexone`/`shapextwo` when `kappaxone`/`kappaxtwo` are.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -98,6 +115,15 @@ draws.</p>
 regardless of `delta` – the bias becomes unidentifiable, which
 [binegbin_dpars_to_mfd()] reports back as `NA`. This direction is always
 well defined; only the inverse degenerates.</p>
+<p>**Using these coordinates with [binegbin_joint()].** The three rates carry
+over unchanged. Since 0.8.0 that family's excess dispersion is the pair
+`shapexone`/`shapextwo` rather than a single `shapex`, so supply
+`kappaxone`/`kappaxtwo` instead of `kappax` and the returned list is named
+to match its dpars. `kappax` and the pair are mutually exclusive in one
+call – they are two spellings of the same quantity for different families,
+and returning both would leave the caller to guess which their family wants.</p>
+<p>For the symmetric model (one excess dispersion, term for term the pre-0.8.0
+likelihood) pass the same value twice: `kappaxone = k, kappaxtwo = k`.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

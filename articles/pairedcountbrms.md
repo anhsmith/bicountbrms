@@ -313,7 +313,12 @@ are unaffected and work correctly with truncation.
 - [`binegbin_joint()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_joint.md)
   — censoring-aware, for data where one of the two counts is missing on
   some rows. It admits those rows via the integrated-out marginal
-  instead of dropping them.
+  instead of dropping them. It also gives each excess component its own
+  dispersion (`shapexone`/`shapextwo`, six dpars rather than five), so
+  the two sources may be differently overdispersed; tying them together
+  with
+  [`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html)
+  recovers the single-`shapex` model shown above.
 - The $`(M, f, \delta)`$**reparameterisation** — overall level $`M`$,
   congruence $`f`$, and source bias $`\delta`$, with the dispersions on
   an SD scale $`\kappa = 1/\sqrt{\phi}`$ where $`\kappa = 0`$ is the
@@ -378,7 +383,7 @@ Science* 32 (1): 1–28. <https://doi.org/10.1214/16-STS576>.
 Skellam, J. G. 1946. “The Frequency Distribution of the Difference
 Between Two Poisson Variates Belonging to Different Populations.”
 *Journal of the Royal Statistical Society* 109 (3): 296.
-<https://doi.org/10.1111/j.2397-2335.1946.tb04670.x>.
+<https://doi.org/10.2307/2981372>.
 
 Smith, A. N. H., D. Acuña-Marrero, P. Salinas-de-León, E. S. Harvey, M.
 D. M. Pawley, and M. J. Anderson. 2020. “Instantaneous Vs.

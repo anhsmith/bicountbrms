@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">pairedcountbrms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,6 +37,24 @@
       <small>Source: <a href="https://github.com/anhsmith/pairedcountbrms/blob/master/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.8.0" id="pairedcountbrms-080">pairedcountbrms 0.8.0<a class="anchor" aria-label="anchor" href="#pairedcountbrms-080"></a></h2>
+<ul><li><p><strong>Breaking (dpar split): <code><a href="../reference/binegbin_joint.html">binegbin_joint()</a></code>’s single excess dispersion <code>shapex</code> is now the per-margin pair <code>shapexone</code>/<code>shapextwo</code></strong>, giving the family six dpars (<code>mu</code>, <code>lambdaone</code>, <code>lambdatwo</code>, <code>shapes</code>, <code>shapexone</code>, <code>shapextwo</code>), all log-linked. The two source-only excess components may now differ in overdispersion, which the single <code>shapex</code> forced them not to. The rates were already free to differ; the dispersions now are too.</p></li>
+<li>
+<p><strong>The symmetric model is a formula constraint, not a separate family.</strong> <code>shapexone == shapextwo</code> recovers the pre-0.8.0 likelihood term for term. Express it by routing both dpars through one non-linear parameter:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula.html" class="external-link">bf</a></span><span class="op">(</span><span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span>, <span class="va">y1_obs</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>   <span class="va">mu</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">vessel</span><span class="op">)</span>,</span>
+<span>   <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapexone</span> <span class="op">~</span> <span class="va">shapexx</span><span class="op">)</span>,</span>
+<span>   <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapextwo</span> <span class="op">~</span> <span class="va">shapexx</span><span class="op">)</span>,</span>
+<span>   <span class="va">shapexx</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">...</span>, nl <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>This is the only source change a symmetric model needs. Note the prior moves with the name: <code>prior(..., dpar = "shapex")</code> becomes <code>prior(..., nlpar = "shapexx")</code>.</p>
+</li>
+<li><p><strong>Fits made before this release still post-process; no refitting and no shim are required.</strong> brms resolves a custom family’s <code>log_lik_*</code> / <code>posterior_predict_*</code> by name against the live search path at call time, not from anything frozen in the fit, so a stored fit always runs the currently attached code. Only the dpar NAMES it carries are frozen, and both excess dispersions now fall back to a five-dpar fit’s single <code>shapex</code> — which is precisely the constraint that fit was estimated under. Verified on stored five-dpar fits: <code><a href="https://mc-stan.org/rstantools/reference/log_lik.html" class="external-link">log_lik()</a></code> and <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> agree with 0.7.0 bitwise, and <code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code> runs unchanged.</p></li>
+<li><p>The generalised family absorbs a project-local asymmetric family developed outside the package. During the migration the two were compared element by element over 15,480,000 pointwise log-likelihood values from ten stored fits, and every value was bitwise identical. That was a one-off check against artefacts outside this repository, not a package test; it is recorded with its method and versions in <code>migration/family-unification.md</code>, alongside the dpar mapping table and adoption steps.</p></li>
+<li><p><code><a href="../reference/binegbin_mfd_to_dpars.html">binegbin_mfd_to_dpars()</a></code> gains <code>kappaxone</code>/<code>kappaxtwo</code>, and <code><a href="../reference/binegbin_dpars_to_mfd.html">binegbin_dpars_to_mfd()</a></code> gains <code>shapexone</code>/<code>shapextwo</code>, so the  converters serve <code><a href="../reference/binegbin_joint.html">binegbin_joint()</a></code>’s per-margin excess dispersions under the family’s own dpar names instead of leaving the caller to re-derive <code>shape = 1/kappa^2</code>. Purely additive: the existing <code>kappax</code>/<code>shapex</code> arguments are unchanged and still return <code>shapex</code>/<code>kappax</code>. Supplying <code>kappax</code> together with either of the new arguments is an error, since they are two spellings of the same quantity for different families.</p></li>
+<li><p>Note on identifiability: <code>shapextwo</code> governs the always-observed margin and appears on both branches, so the censored rows inform it. <code>shapexone</code> appears only on the matched branch and is identified solely by the matched rows, as <code>lambdaone</code> is. A design with few matched rows will learn <code>shapexone</code> weakly.</p></li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7.0" id="pairedcountbrms-070">pairedcountbrms 0.7.0<a class="anchor" aria-label="anchor" href="#pairedcountbrms-070"></a></h2>
 <ul><li>

@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">pairedcountbrms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -439,7 +439,12 @@ not overdispersed; compare the two with <code><a href="https://mc-stan.org/loo/r
 <li>
 <code><a href="../reference/binegbin_joint.html">binegbin_joint()</a></code> — censoring-aware, for data where one
 of the two counts is missing on some rows. It admits those rows via the
-integrated-out marginal instead of dropping them.</li>
+integrated-out marginal instead of dropping them. It also gives each
+excess component its own dispersion
+(<code>shapexone</code>/<code>shapextwo</code>, six dpars rather than
+five), so the two sources may be differently overdispersed; tying them
+together with <code><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf()</a></code> recovers the single-<code>shapex</code>
+model shown above.</li>
 <li>The
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mo>,</mo><mi>f</mi><mo>,</mo><mi>δ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(M, f, \delta)</annotation></semantics></math><strong>reparameterisation</strong> — overall level
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>,
@@ -516,7 +521,7 @@ Principled, Practical Approach to Constructing Priors.”</span>
 Skellam, J. G. 1946. <span>“The Frequency Distribution of the Difference
 Between Two <span>Poisson</span> Variates Belonging to Different
 Populations.”</span> <em>Journal of the Royal Statistical Society</em>
-109 (3): 296. <a href="https://doi.org/10.1111/j.2397-2335.1946.tb04670.x" class="external-link">https://doi.org/10.1111/j.2397-2335.1946.tb04670.x</a>.
+109 (3): 296. <a href="https://doi.org/10.2307/2981372" class="external-link">https://doi.org/10.2307/2981372</a>.
 </div>
 <div id="ref-smithInstantaneousVsNoninstantaneous2020" class="csl-entry">
 Smith, A. N. H., D. Acuña-Marrero, P. Salinas-de-León, E. S. Harvey, M.
