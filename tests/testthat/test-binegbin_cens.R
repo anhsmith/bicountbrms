@@ -1,4 +1,4 @@
-# tests/testthat/test-binegbin_joint.R
+# tests/testthat/test-binegbin_cens.R
 
 # -----------------------------------------------------------------------
 # R-side tests -- no Stan compilation required
@@ -8,7 +8,7 @@ test_that("matched (y1_obs==1) joint PMF normalises to 1 across parameter sets",
   norm_check <- function(mu, lone, ltwo, ss, sx, K = 120) {
     ys <- 0:K
     yg <- expand.grid(y1 = ys, y2 = ys)
-    lp <- binegbin_joint_lpmf_r(yg$y1, yg$y2, 1L, mu, lone, ltwo, ss, sx)
+    lp <- binegbin_cens_lpmf_r(yg$y1, yg$y2, 1L, mu, lone, ltwo, ss, sx)
     sum(exp(lp))
   }
   params <- list(
@@ -27,7 +27,7 @@ test_that("LB-only (y1_obs==0) branch normalises to 1 over y2", {
   # out), so it must sum to 1 over y2 alone.
   norm_check <- function(mu, lone, ltwo, ss, sx, K = 200) {
     ys <- 0:K
-    lp <- binegbin_joint_lpmf_r(rep(0L, length(ys)), ys, 0L, mu, lone, ltwo, ss, sx)
+    lp <- binegbin_cens_lpmf_r(rep(0L, length(ys)), ys, 0L, mu, lone, ltwo, ss, sx)
     sum(exp(lp))
   }
   params <- list(
@@ -50,19 +50,19 @@ test_that("marginal identity: sum over y1 of the matched branch == LB-only branc
   y2_vals <- c(0L, 1L, 3L, 7L, 15L)
   for (yl in y2_vals) {
     ys <- 0:K
-    lp_joint <- binegbin_joint_lpmf_r(ys, rep(yl, length(ys)), 1L, mu, lone, ltwo, ss, sx)
+    lp_joint <- binegbin_cens_lpmf_r(ys, rep(yl, length(ys)), 1L, mu, lone, ltwo, ss, sx)
     marg_from_joint <- { mx <- max(lp_joint); mx + log(sum(exp(lp_joint - mx))) }
-    lb_branch <- binegbin_joint_lpmf_r(0L, yl, 0L, mu, lone, ltwo, ss, sx)
+    lb_branch <- binegbin_cens_lpmf_r(0L, yl, 0L, mu, lone, ltwo, ss, sx)
     expect_equal(marg_from_joint, lb_branch, tolerance = 1e-10,
                  label = paste("y2 =", yl))
   }
 })
 
 test_that("matched branch is byte-for-byte the binegbin lpmf (equivalence)", {
-  # binegbin_joint(y1_obs==1) == binegbin on identical (y1, y2, params).
+  # binegbin_cens(y1_obs==1) == binegbin on identical (y1, y2, params).
   # Ties the two families' R references so they cannot silently drift; this
   # identity licenses reading a binegbin fit as the y1_obs==1 slice of a
-  # binegbin_joint fit and vice versa.
+  # binegbin_cens fit and vice versa.
   grid <- expand.grid(
     mu  = c(0.5, 3, 12),
     lone = c(0.5, 2, 6),
@@ -74,7 +74,7 @@ test_that("matched branch is byte-for-byte the binegbin lpmf (equivalence)", {
   yg <- expand.grid(y1 = ys, y2 = ys)
   for (r in seq_len(nrow(grid))) {
     g <- grid[r, ]
-    lp_joint <- binegbin_joint_lpmf_r(yg$y1, yg$y2, 1L,
+    lp_joint <- binegbin_cens_lpmf_r(yg$y1, yg$y2, 1L,
                                       g$mu, g$lone, g$ltwo, g$ss, g$sx)
     lp_bineg <- binegbin_lpmf_r(yg$y1, yg$y2,
                                 g$mu, g$lone, g$ltwo, g$ss, g$sx)
@@ -84,7 +84,7 @@ test_that("matched branch is byte-for-byte the binegbin lpmf (equivalence)", {
 })
 
 test_that("posterior_predict draws reproduce the joint/marginal conditional y1 | y2", {
-  # posterior_predict_binegbin_joint samples N_shared | y2 then adds a fresh
+  # posterior_predict_binegbin_cens samples N_shared | y2 then adds a fresh
   # N10. Its distribution must equal P(y1 | y2) = joint(y1, y2) /
   # marginal(y2) -- the exact discrete conditional. Checked by Monte Carlo.
   set.seed(20260706)
@@ -104,13 +104,13 @@ test_that("posterior_predict draws reproduce the joint/marginal conditional y1 |
     vint1 = y2,
     vint2 = 1L
   )
-  draws <- posterior_predict_binegbin_joint(1, prep)
+  draws <- posterior_predict_binegbin_cens(1, prep)
   expect_length(draws, ndraws)
 
   # Analytic conditional P(y1 = x | y2) = joint(x, y2) / marginal(y2).
   K <- 80
   xs <- 0:K
-  lp_joint <- binegbin_joint_lpmf_r(xs, rep(y2, length(xs)), 1L, mu, lone, ltwo, ss, sx)
+  lp_joint <- binegbin_cens_lpmf_r(xs, rep(y2, length(xs)), 1L, mu, lone, ltwo, ss, sx)
   lp_marg  <- { mx <- max(lp_joint); mx + log(sum(exp(lp_joint - mx))) }
   p_cond   <- exp(lp_joint - lp_marg)
 
@@ -125,10 +125,10 @@ test_that("posterior_predict draws reproduce the joint/marginal conditional y1 |
 # Stan tests -- require rstan; skipped silently if unavailable
 # -----------------------------------------------------------------------
 
-# Compile binegbin AND binegbin_joint together so the Stan-level equivalence
+# Compile binegbin AND binegbin_cens together so the Stan-level equivalence
 # check can call both lpmfs on identical inputs.
 stan_code <- paste0("functions {\n", binegbin_stan_funs, "\n",
-                    binegbin_joint_stan_funs, "}\nmodel {}\n")
+                    binegbin_cens_stan_funs, "}\nmodel {}\n")
 
 stan_ready <- FALSE
 if (stan_tests_enabled() && requireNamespace("rstan", quietly = TRUE)) {
@@ -141,7 +141,7 @@ if (stan_tests_enabled() && requireNamespace("rstan", quietly = TRUE)) {
   }, error = function(e) NULL)
 }
 
-test_that("Stan binegbin_joint_lpmf matches R brute-force reference (both branches)", {
+test_that("Stan binegbin_cens_lpmf matches R brute-force reference (both branches)", {
   skip_if_not(stan_ready, "rstan unavailable or Stan compilation failed")
 
   grid <- expand.grid(
@@ -158,11 +158,11 @@ test_that("Stan binegbin_joint_lpmf matches R brute-force reference (both branch
     yg <- expand.grid(y1 = ys, y2 = ys, y1_obs = c(0L, 1L))
     # Symmetric case: the single `sx` is passed for BOTH shapexone and
     # shapextwo, which is the constraint the pre-0.8.0 five-dpar family
-    # imposed. The asymmetric grid lives in test-binegbin_joint_asym.R.
+    # imposed. The asymmetric grid lives in test-binegbin_cens_asym.R.
     stan_vals <- mapply(
-      function(r, s, e) binegbin_joint_lpmf(r, mu, lone, ltwo, ss, sx, sx, s, e),
+      function(r, s, e) binegbin_cens_lpmf(r, mu, lone, ltwo, ss, sx, sx, s, e),
       yg$y1, yg$y2, yg$y1_obs)
-    r_vals <- binegbin_joint_lpmf_r(yg$y1, yg$y2, yg$y1_obs, mu, lone, ltwo, ss, sx)
+    r_vals <- binegbin_cens_lpmf_r(yg$y1, yg$y2, yg$y1_obs, mu, lone, ltwo, ss, sx)
     max(abs(stan_vals - r_vals))
   }
 
@@ -170,7 +170,7 @@ test_that("Stan binegbin_joint_lpmf matches R brute-force reference (both branch
   expect_true(max(diffs) < 1e-8, label = paste("max diff =", max(diffs)))
 })
 
-test_that("Stan binegbin_joint matched branch == Stan binegbin lpmf (equivalence)", {
+test_that("Stan binegbin_cens matched branch == Stan binegbin lpmf (equivalence)", {
   skip_if_not(stan_ready, "rstan unavailable or Stan compilation failed")
 
   grid <- expand.grid(
@@ -184,7 +184,7 @@ test_that("Stan binegbin_joint matched branch == Stan binegbin lpmf (equivalence
     means <- c(mu + lone, mu + ltwo)
     ys <- unique(pmax(c(0L, 1L, round(means), round(means) + 4L), 0L))
     yg <- expand.grid(y1 = ys, y2 = ys)
-    joint_vals <- mapply(function(r, s) binegbin_joint_lpmf(r, mu, lone, ltwo, ss, sx, sx, s, 1L),
+    joint_vals <- mapply(function(r, s) binegbin_cens_lpmf(r, mu, lone, ltwo, ss, sx, sx, s, 1L),
                          yg$y1, yg$y2)
     bineg_vals <- mapply(function(r, s) binegbin_lpmf(r, mu, lone, ltwo, ss, sx, s),
                          yg$y1, yg$y2)
@@ -194,7 +194,7 @@ test_that("Stan binegbin_joint matched branch == Stan binegbin lpmf (equivalence
   expect_true(max(diffs) < 1e-12, label = paste("max diff =", max(diffs)))
 })
 
-test_that("Stan binegbin_joint_lpmf is numerically stable at extreme rates and shapes", {
+test_that("Stan binegbin_cens_lpmf is numerically stable at extreme rates and shapes", {
   skip_if_not(stan_ready, "rstan unavailable or Stan compilation failed")
 
   edge_cases <- list(
@@ -207,9 +207,9 @@ test_that("Stan binegbin_joint_lpmf is numerically stable at extreme rates and s
     ys <- 0:5
     yg <- expand.grid(y1 = ys, y2 = ys, y1_obs = c(0L, 1L))
     stan_vals <- mapply(
-      function(r, s, e) binegbin_joint_lpmf(r, ec[["mu"]], ec[["lone"]], ec[["ltwo"]], ec[["ss"]], ec[["sx"]], ec[["sx"]], s, e),
+      function(r, s, e) binegbin_cens_lpmf(r, ec[["mu"]], ec[["lone"]], ec[["ltwo"]], ec[["ss"]], ec[["sx"]], ec[["sx"]], s, e),
       yg$y1, yg$y2, yg$y1_obs)
-    r_vals <- binegbin_joint_lpmf_r(yg$y1, yg$y2, yg$y1_obs,
+    r_vals <- binegbin_cens_lpmf_r(yg$y1, yg$y2, yg$y1_obs,
                                     ec[["mu"]], ec[["lone"]], ec[["ltwo"]], ec[["ss"]], ec[["sx"]])
     expect_false(any(!is.finite(stan_vals)), label = paste(ec, collapse = ","))
     expect_equal(stan_vals, r_vals, tolerance = 1e-8, label = paste(ec, collapse = ","))
@@ -220,7 +220,7 @@ test_that("Stan binegbin_joint_lpmf is numerically stable at extreme rates and s
 # brms end-to-end: dispatch (loo + posterior_predict) and recovery
 # -----------------------------------------------------------------------
 
-test_that("binegbin_joint fits the SYMMETRIC model via nlf, dispatches, and recovers params", {
+test_that("binegbin_cens fits the SYMMETRIC model via nlf, dispatches, and recovers params", {
   # Since 0.8.0 the two excess dispersions are separate dpars, so the
   # symmetric model -- one dispersion for both excess components, which is
   # what this simulation generates -- is expressed as a formula constraint:
@@ -273,8 +273,8 @@ test_that("binegbin_joint fits the SYMMETRIC model via nlf, dispatches, and reco
         brms::nlf(shapextwo ~ shapexx),
         lamx ~ 1, shapes ~ 1, shapexx ~ 1, nl = TRUE
       ),
-      family   = binegbin_joint(),
-      stanvars = binegbin_joint_stanvars(),
+      family   = binegbin_cens(),
+      stanvars = binegbin_cens_stanvars(),
       data     = dat,
       backend  = "rstan",
       chains   = 4,

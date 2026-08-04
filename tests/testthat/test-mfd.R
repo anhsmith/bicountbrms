@@ -112,11 +112,11 @@ test_that("dispersion conversion inverts, with the direction reversed", {
 })
 
 # --------------------------------------------------------------------------
-# Per-margin excess dispersions (binegbin_joint, 0.8.0+)
+# Per-margin excess dispersions (binegbin_cens, 0.8.0+)
 # --------------------------------------------------------------------------
 
 test_that("kappaxone/kappaxtwo convert to shapexone/shapextwo and round-trip", {
-  # binegbin_joint carries one excess dispersion per margin, so the converters
+  # binegbin_cens carries one excess dispersion per margin, so the converters
   # accept and return the pair under the family's own dpar names rather than
   # making the caller re-derive shape = 1/kappa^2 by hand.
   d <- binegbin_mfd_to_dpars(12, 0.6, 0.2, kappas = 0.5,
@@ -208,8 +208,8 @@ test_that("the map agrees with the trivariate-reduction moment identities", {
   expect_equal(e_em - e_lb, d$lambdaone - d$lambdatwo)
 })
 
-test_that("the rate half of the map serves bipois_joint unchanged", {
-  # bipois_joint takes the same three rates and no dispersion, so only the rate
+test_that("the rate half of the map serves bipois_cens unchanged", {
+  # bipois_cens takes the same three rates and no dispersion, so only the rate
   # half of the converters applies to it -- there is no kappa to supply. Rather
   # than assert that in prose, feed the converted rates to the family's censored
   # branch and check the resulting distribution has the mean the map predicts:
@@ -218,7 +218,7 @@ test_that("the rate half of the map serves bipois_joint unchanged", {
   d <- binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = 0.3)
 
   ys <- 0:400
-  lp <- bipois_joint_lpmf_r(0L, ys, 0L, d$mu, d$lambdaone, d$lambdatwo)
+  lp <- bipois_cens_lpmf_r(0L, ys, 0L, d$mu, d$lambdaone, d$lambdatwo)
   expect_equal(sum(exp(lp)), 1, tolerance = 1e-10)
   expect_equal(sum(ys * exp(lp)), d$mu + d$lambdatwo, tolerance = 1e-8)
   expect_equal(d$mu + d$lambdatwo, 12 * (1 - (1 - 0.67) * tanh(0.3)))

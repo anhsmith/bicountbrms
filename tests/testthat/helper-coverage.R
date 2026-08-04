@@ -32,7 +32,7 @@
 
 # Shared replacement for the three near-identical local check_recovery()
 # definitions that used to live in test-bipois.R, test-binegbin.R and
-# test-binegbin_joint.R. `level` is wide on purpose: see above.
+# test-binegbin_cens.R. `level` is wide on purpose: see above.
 recovery_ok <- function(draws, true_val, draws_col, level = 0.99) {
   stopifnot(draws_col %in% names(draws))
   a <- (1 - level) / 2

@@ -1,6 +1,6 @@
-# tests/testthat/test-binegbin_joint_asym.R
+# tests/testthat/test-binegbin_cens_asym.R
 #
-# The 0.8.0 generalisation of binegbin_joint: the single excess dispersion
+# The 0.8.0 generalisation of binegbin_cens: the single excess dispersion
 # `shapex` split into per-margin `shapexone`/`shapextwo`. Four things need
 # pinning, and they are separable:
 #
@@ -39,7 +39,7 @@ test_that("matched branch normalises to 1 with shapexone != shapextwo", {
   norm_check <- function(mu, lone, ltwo, ss, sx1, sx2, K = 150) {
     ys <- 0:K
     yg <- expand.grid(y1 = ys, y2 = ys)
-    sum(exp(binegbin_joint_lpmf_r(yg$y1, yg$y2, 1L, mu, lone, ltwo, ss, sx1, sx2)))
+    sum(exp(binegbin_cens_lpmf_r(yg$y1, yg$y2, 1L, mu, lone, ltwo, ss, sx1, sx2)))
   }
   params <- list(
     c(mu = 5,  lone = 3, ltwo = 3, ss = 2,   sx1 = 0.5, sx2 = 8),
@@ -58,7 +58,7 @@ test_that("y2-only branch normalises to 1 over y2 with shapexone != shapextwo", 
   # One dimension only, so K can be pushed far enough for a tight bound.
   norm_check <- function(mu, ltwo, ss, sx1, sx2, K = 4000) {
     ys <- 0:K
-    sum(exp(binegbin_joint_lpmf_r(rep(0L, length(ys)), ys, 0L,
+    sum(exp(binegbin_cens_lpmf_r(rep(0L, length(ys)), ys, 0L,
                                   mu, 3, ltwo, ss, sx1, sx2)))
   }
   expect_normalises(norm_check(5,  3, 2,   0.5, 8),   tol = 1e-8)
@@ -81,7 +81,7 @@ test_that("moment identities hold with shapexone != shapextwo", {
   check <- function(mu, l1, l2, ss, sx1, sx2, K = 150) {
     ys <- 0:K
     g  <- expand.grid(y1 = ys, y2 = ys)
-    p  <- exp(binegbin_joint_lpmf_r(g$y1, g$y2, 1L, mu, l1, l2, ss, sx1, sx2))
+    p  <- exp(binegbin_cens_lpmf_r(g$y1, g$y2, 1L, mu, l1, l2, ss, sx1, sx2))
     Ey1 <- sum(p * g$y1); Ey2 <- sum(p * g$y2)
     lab <- paste(mu, l1, l2, ss, sx1, sx2, sep = ",")
 
@@ -117,11 +117,11 @@ test_that("marginal identity holds under asymmetry", {
   K <- 400
   for (yl in c(0L, 1L, 3L, 7L, 15L)) {
     ys <- 0:K
-    lp <- binegbin_joint_lpmf_r(ys, rep(yl, length(ys)), 1L, mu, lone, ltwo, ss, sx1, sx2)
+    lp <- binegbin_cens_lpmf_r(ys, rep(yl, length(ys)), 1L, mu, lone, ltwo, ss, sx1, sx2)
     marg <- { mx <- max(lp); mx + log(sum(exp(lp - mx))) }
     expect_equal(
       marg,
-      binegbin_joint_lpmf_r(0L, yl, 0L, mu, lone, ltwo, ss, sx1, sx2),
+      binegbin_cens_lpmf_r(0L, yl, 0L, mu, lone, ltwo, ss, sx1, sx2),
       tolerance = 1e-10, label = paste("y2 =", yl)
     )
   }
@@ -136,16 +136,16 @@ test_that("shapexone does not enter the y2-only branch", {
   # dispersion with it. If shapexone leaked into that branch the two calls
   # below would differ -- and shapexone would be spuriously informed by the
   # censored rows, which is exactly the identifiability claim the docs make.
-  base <- binegbin_joint_lpmf_r(0L, 0:20, 0L, 6, 3, 4, 2, sx1 <- 0.5, 7)
+  base <- binegbin_cens_lpmf_r(0L, 0:20, 0L, 6, 3, 4, 2, sx1 <- 0.5, 7)
   for (alt in c(0.01, 1, 100, 1e4)) {
     expect_identical(
-      binegbin_joint_lpmf_r(0L, 0:20, 0L, 6, 3, 4, 2, alt, 7),
+      binegbin_cens_lpmf_r(0L, 0:20, 0L, 6, 3, 4, 2, alt, 7),
       base, label = paste("shapexone =", alt)
     )
   }
   # ...and it DOES enter the matched branch, so the test above is not vacuous.
-  m0 <- binegbin_joint_lpmf_r(3L, 5L, 1L, 6, 3, 4, 2, 0.5, 7)
-  m1 <- binegbin_joint_lpmf_r(3L, 5L, 1L, 6, 3, 4, 2, 100, 7)
+  m0 <- binegbin_cens_lpmf_r(3L, 5L, 1L, 6, 3, 4, 2, 0.5, 7)
+  m1 <- binegbin_cens_lpmf_r(3L, 5L, 1L, 6, 3, 4, 2, 100, 7)
   expect_false(isTRUE(all.equal(m0, m1)))
 })
 
@@ -157,8 +157,8 @@ test_that("swapping both rates and both dispersions transposes the joint", {
   # silently.
   ys <- 0:12
   yg <- expand.grid(y1 = ys, y2 = ys)
-  a <- binegbin_joint_lpmf_r(yg$y1, yg$y2, 1L, 6, 3, 4, 2, 0.6, 7)
-  b <- binegbin_joint_lpmf_r(yg$y2, yg$y1, 1L, 6, 4, 3, 2, 7, 0.6)
+  a <- binegbin_cens_lpmf_r(yg$y1, yg$y2, 1L, 6, 3, 4, 2, 0.6, 7)
+  b <- binegbin_cens_lpmf_r(yg$y2, yg$y1, 1L, 6, 4, 3, 2, 7, 0.6)
   expect_equal(a, b, tolerance = 1e-14)
 })
 
@@ -178,7 +178,7 @@ test_that("shapexone == shapextwo reproduces the five-dpar likelihood exactly", 
   for (r in seq_len(nrow(grid))) {
     g <- grid[r, ]
     expect_equal(
-      binegbin_joint_lpmf_r(yg$y1, yg$y2, 1L, g$mu, g$lone, g$ltwo, g$ss, g$sx, g$sx),
+      binegbin_cens_lpmf_r(yg$y1, yg$y2, 1L, g$mu, g$lone, g$ltwo, g$ss, g$sx, g$sx),
       binegbin_lpmf_r(yg$y1, yg$y2, g$mu, g$lone, g$ltwo, g$ss, g$sx),
       tolerance = 1e-14, label = paste(unlist(g), collapse = ",")
     )
@@ -189,8 +189,8 @@ test_that("shapextwo defaults to shapexone (eight-argument calls are symmetric)"
   ys <- 0:15
   yg <- expand.grid(y1 = ys, y2 = ys, y1_obs = c(0L, 1L))
   expect_identical(
-    binegbin_joint_lpmf_r(yg$y1, yg$y2, yg$y1_obs, 6, 3, 4, 2, 1.5),
-    binegbin_joint_lpmf_r(yg$y1, yg$y2, yg$y1_obs, 6, 3, 4, 2, 1.5, 1.5)
+    binegbin_cens_lpmf_r(yg$y1, yg$y2, yg$y1_obs, 6, 3, 4, 2, 1.5),
+    binegbin_cens_lpmf_r(yg$y1, yg$y2, yg$y1_obs, 6, 3, 4, 2, 1.5, 1.5)
   )
 })
 
@@ -208,10 +208,10 @@ test_that("a five-dpar prep resolves `shapex` to BOTH excess dispersions", {
   new <- make_synthetic_prep(c(common, list(shapexone = sx, shapextwo = sx)),
                              Y, vint1 = V1, vint2 = V2)
   for (i in seq_along(Y)) {
-    expect_equal(log_lik_binegbin_joint(i, old), log_lik_binegbin_joint(i, new),
+    expect_equal(log_lik_binegbin_cens(i, old), log_lik_binegbin_cens(i, new),
                  label = paste("obs", i))
-    set.seed(11); a <- posterior_predict_binegbin_joint(i, old)
-    set.seed(11); b <- posterior_predict_binegbin_joint(i, new)
+    set.seed(11); a <- posterior_predict_binegbin_cens(i, old)
+    set.seed(11); b <- posterior_predict_binegbin_cens(i, new)
     expect_identical(a, b, label = paste("posterior_predict, obs", i))
   }
 })
@@ -232,31 +232,31 @@ test_that("a prep in the project-local ax spelling resolves to the package names
     c(common, list(lambdaone = one, lambdatwo = two, shapexone = sx1, shapextwo = sx2)),
     Y, vint1 = V1, vint2 = V2)
   for (i in seq_along(Y)) {
-    expect_equal(log_lik_binegbin_joint(i, ax), log_lik_binegbin_joint(i, pkg),
+    expect_equal(log_lik_binegbin_cens(i, ax), log_lik_binegbin_cens(i, pkg),
                  label = paste("obs", i))
   }
   # Not vacuous: the asymmetry is real in these numbers.
   flip <- make_synthetic_prep(
     c(common, list(lambdaone = one, lambdatwo = two, shapexone = sx2, shapextwo = sx1)),
     Y, vint1 = V1, vint2 = V2)
-  expect_false(isTRUE(all.equal(log_lik_binegbin_joint(1, pkg),
-                                log_lik_binegbin_joint(1, flip))))
+  expect_false(isTRUE(all.equal(log_lik_binegbin_cens(1, pkg),
+                                log_lik_binegbin_cens(1, flip))))
 })
 
 test_that("a prep with no recognisable excess dispersion errors informatively", {
   bad <- make_synthetic_prep(
     list(mu = 6, lambdaone = 3, lambdatwo = 2, shapes = 4, shapeZ = 5),
     Y = 5L, vint1 = 4L, vint2 = 1L)
-  expect_error(log_lik_binegbin_joint(1, bad), "shapexone")
-  expect_error(log_lik_binegbin_joint(1, bad), "shapex")
-  expect_error(log_lik_binegbin_joint(1, bad), "shapeZ")
+  expect_error(log_lik_binegbin_cens(1, bad), "shapexone")
+  expect_error(log_lik_binegbin_cens(1, bad), "shapex")
+  expect_error(log_lik_binegbin_cens(1, bad), "shapeZ")
 })
 
 # -----------------------------------------------------------------------
 # Stan: asymmetric grid against the R reference
 # -----------------------------------------------------------------------
 
-stan_code_asym <- paste0("functions {\n", binegbin_joint_stan_funs, "}\nmodel {}\n")
+stan_code_asym <- paste0("functions {\n", binegbin_cens_stan_funs, "}\nmodel {}\n")
 
 stan_ready_asym <- FALSE
 if (stan_tests_enabled() && requireNamespace("rstan", quietly = TRUE)) {
@@ -269,7 +269,7 @@ if (stan_tests_enabled() && requireNamespace("rstan", quietly = TRUE)) {
   }, error = function(e) NULL)
 }
 
-test_that("Stan binegbin_joint_lpmf matches the R reference with shapexone != shapextwo", {
+test_that("Stan binegbin_cens_lpmf matches the R reference with shapexone != shapextwo", {
   skip_if_not(stan_ready_asym, "rstan unavailable or Stan compilation failed")
 
   grid <- expand.grid(mu = c(0.2, 1, 5, 20), lone = c(0.2, 1, 5),
@@ -280,9 +280,9 @@ test_that("Stan binegbin_joint_lpmf matches the R reference with shapexone != sh
     ys <- unique(pmax(c(0L, 1L, round(means), round(means) + 4L), 0L))
     yg <- expand.grid(y1 = ys, y2 = ys, y1_obs = c(0L, 1L))
     stan_vals <- mapply(
-      function(r, s, e) binegbin_joint_lpmf(r, mu, lone, ltwo, ss, sx1, sx2, s, e),
+      function(r, s, e) binegbin_cens_lpmf(r, mu, lone, ltwo, ss, sx1, sx2, s, e),
       yg$y1, yg$y2, yg$y1_obs)
-    r_vals <- binegbin_joint_lpmf_r(yg$y1, yg$y2, yg$y1_obs,
+    r_vals <- binegbin_cens_lpmf_r(yg$y1, yg$y2, yg$y1_obs,
                                     mu, lone, ltwo, ss, sx1, sx2)
     expect_true(all(is.finite(stan_vals)))
     max(abs(stan_vals - r_vals))
@@ -308,7 +308,7 @@ test_that("Stan binegbin_joint_lpmf matches the R reference with shapexone != sh
 # asymmetric grid, the marginal identity, the transposition check, and
 # shapexone's absence from the y2-only branch).
 
-test_that("binegbin_joint recovers shapexone and shapextwo when they differ", {
+test_that("binegbin_cens recovers shapexone and shapextwo when they differ", {
   skip_on_cran()
   skip_if_not_installed("brms")
   skip_if_no_stan()
@@ -377,8 +377,8 @@ test_that("binegbin_joint recovers shapexone and shapextwo when they differ", {
         brms::nlf(lambdatwo ~ lamx),
         lamx ~ 1, shapes ~ 1, shapexone ~ 1, shapextwo ~ 1, nl = TRUE
       ),
-      family   = binegbin_joint(),
-      stanvars = binegbin_joint_stanvars(),
+      family   = binegbin_cens(),
+      stanvars = binegbin_cens_stanvars(),
       prior    = dispersion_priors,
       data     = dat,
       backend  = "rstan",

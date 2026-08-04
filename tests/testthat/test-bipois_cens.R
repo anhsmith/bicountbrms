@@ -1,4 +1,4 @@
-# tests/testthat/test-bipois_joint.R
+# tests/testthat/test-bipois_cens.R
 
 # -----------------------------------------------------------------------
 # R-side tests -- no Stan compilation required
@@ -8,7 +8,7 @@ test_that("matched (y1_obs==1) joint PMF normalises to 1 across parameter sets",
   norm_check <- function(mu, lone, ltwo, K = 100) {
     ys <- 0:K
     yg <- expand.grid(y1 = ys, y2 = ys)
-    lp <- bipois_joint_lpmf_r(yg$y1, yg$y2, 1L, mu, lone, ltwo)
+    lp <- bipois_cens_lpmf_r(yg$y1, yg$y2, 1L, mu, lone, ltwo)
     sum(exp(lp))
   }
   params <- list(
@@ -29,7 +29,7 @@ test_that("y2-only (y1_obs==0) branch normalises to 1 over y2", {
   # and lambdaone entirely. Both are asserted below by varying them.
   norm_check <- function(mu, lone, ltwo, K = 250) {
     ys <- 0:K
-    lp <- bipois_joint_lpmf_r(rep(0L, length(ys)), ys, 0L, mu, lone, ltwo)
+    lp <- bipois_cens_lpmf_r(rep(0L, length(ys)), ys, 0L, mu, lone, ltwo)
     sum(exp(lp))
   }
   params <- list(
@@ -45,18 +45,18 @@ test_that("y2-only (y1_obs==0) branch normalises to 1 over y2", {
   # The censored branch must not depend on y1 or on lambdaone: neither is
   # observed on those rows, and a dependence on either would mean the branch is
   # not the y1-integrated marginal.
-  base <- bipois_joint_lpmf_r(0L, 7L, 0L, mu = 5, lambdaone = 3, lambdatwo = 4)
-  expect_equal(bipois_joint_lpmf_r(99L, 7L, 0L, 5, 3, 4),  base)
-  expect_equal(bipois_joint_lpmf_r(0L,  7L, 0L, 5, 40, 4), base)
+  base <- bipois_cens_lpmf_r(0L, 7L, 0L, mu = 5, lambdaone = 3, lambdatwo = 4)
+  expect_equal(bipois_cens_lpmf_r(99L, 7L, 0L, 5, 3, 4),  base)
+  expect_equal(bipois_cens_lpmf_r(0L,  7L, 0L, 5, 40, 4), base)
 })
 
 test_that("the censored branch's closed form equals the brute-force convolution", {
-  # THE IDENTITY THAT LICENSES THE ONE-LINE STAN BRANCH. binegbin_joint must
+  # THE IDENTITY THAT LICENSES THE ONE-LINE STAN BRANCH. binegbin_cens must
   # evaluate P(y2) = sum_k f_s(k) f_2(y2 - k) as a sum because NB2 + NB2 is not
   # NB2. For Poisson components the same convolution collapses exactly to
-  # Poisson(mu + lambdatwo), and bipois_joint uses that closed form on both the
+  # Poisson(mu + lambdatwo), and bipois_cens uses that closed form on both the
   # Stan and R sides. The brute-force sum is therefore kept HERE, as the
-  # independent route, rather than in R/bipois_joint.R -- otherwise the closed
+  # independent route, rather than in R/bipois_cens.R -- otherwise the closed
   # form would be assumed rather than checked.
   convolve_r <- function(y2, mu, ltwo) {
     k <- 0:y2
@@ -73,7 +73,7 @@ test_that("the censored branch's closed form equals the brute-force convolution"
   for (r in seq_len(nrow(grid))) {
     g <- grid[r, ]
     brute  <- vapply(y2_vals, convolve_r, numeric(1), mu = g$mu, ltwo = g$ltwo)
-    closed <- bipois_joint_lpmf_r(0L, y2_vals, 0L, g$mu, 1, g$ltwo)
+    closed <- bipois_cens_lpmf_r(0L, y2_vals, 0L, g$mu, 1, g$ltwo)
     expect_equal(brute, closed, tolerance = 1e-12,
                  label = paste(unlist(g), collapse = ","))
   }
@@ -89,20 +89,20 @@ test_that("marginal identity: sum over y1 of the matched branch == y2-only branc
   K  <- 200
   for (yl in c(0L, 1L, 3L, 7L, 15L)) {
     ys <- 0:K
-    lp_joint <- bipois_joint_lpmf_r(ys, rep(yl, length(ys)), 1L, mu, lone, ltwo)
+    lp_joint <- bipois_cens_lpmf_r(ys, rep(yl, length(ys)), 1L, mu, lone, ltwo)
     marg_from_joint <- { mx <- max(lp_joint); mx + log(sum(exp(lp_joint - mx))) }
-    censored_branch <- bipois_joint_lpmf_r(0L, yl, 0L, mu, lone, ltwo)
+    censored_branch <- bipois_cens_lpmf_r(0L, yl, 0L, mu, lone, ltwo)
     expect_equal(marg_from_joint, censored_branch, tolerance = 1e-10,
                  label = paste("y2 =", yl))
   }
 })
 
 test_that("matched branch is the bipois lpmf (equivalence)", {
-  # On the R side this holds BY CONSTRUCTION: bipois_joint_lpmf_r delegates its
+  # On the R side this holds BY CONSTRUCTION: bipois_cens_lpmf_r delegates its
   # matched branch to bipois_lpmf_r rather than restating the sum. The test is
   # therefore a guard against a later edit inlining a divergent copy, not
   # independent evidence. The substantive check is the Stan one below, where
-  # the recurrence is written out separately in bipois_joint_stan_funs.
+  # the recurrence is written out separately in bipois_cens_stan_funs.
   grid <- expand.grid(
     mu   = c(0.5, 3, 12),
     lone = c(0.5, 2, 6),
@@ -112,20 +112,20 @@ test_that("matched branch is the bipois lpmf (equivalence)", {
   yg <- expand.grid(y1 = ys, y2 = ys)
   for (r in seq_len(nrow(grid))) {
     g <- grid[r, ]
-    lp_joint  <- bipois_joint_lpmf_r(yg$y1, yg$y2, 1L, g$mu, g$lone, g$ltwo)
+    lp_joint  <- bipois_cens_lpmf_r(yg$y1, yg$y2, 1L, g$mu, g$lone, g$ltwo)
     lp_bipois <- bipois_lpmf_r(yg$y1, yg$y2, g$mu, g$lone, g$ltwo)
     expect_equal(lp_joint, lp_bipois, tolerance = 1e-14,
                  label = paste(unlist(g), collapse = ","))
   }
 })
 
-test_that("binegbin_joint reduces to bipois_joint in the Poisson limit, on both branches", {
-  # THE CROSS-FAMILY CHECK THIS FAMILY MAKES POSSIBLE. binegbin_joint's
+test_that("binegbin_cens reduces to bipois_cens in the Poisson limit, on both branches", {
+  # THE CROSS-FAMILY CHECK THIS FAMILY MAKES POSSIBLE. binegbin_cens's
   # censored branch is a numerical convolution whose only other test -- the
   # marginal identity -- compares it against the matched branch of the same
   # code, so an error shared by both sums would pass. Driving its three
   # dispersions to their Poisson limit gives an INDEPENDENT analytic target:
-  # NB2(m, phi) -> Poisson(m) as phi -> Inf, so binegbin_joint -> bipois_joint,
+  # NB2(m, phi) -> Poisson(m) as phi -> Inf, so binegbin_cens -> bipois_cens,
   # whose censored branch is closed form.
   #
   # The approach is O(1/phi) -- measured at 2.53e-3 for phi = 1e5 and 2.53e-5
@@ -138,10 +138,10 @@ test_that("binegbin_joint reduces to bipois_joint in the Poisson limit, on both 
   ys <- 0:25
   yg <- expand.grid(y1 = ys, y2 = ys, y1_obs = c(0L, 1L))
 
-  ref <- bipois_joint_lpmf_r(yg$y1, yg$y2, yg$y1_obs, mu, lone, ltwo)
+  ref <- bipois_cens_lpmf_r(yg$y1, yg$y2, yg$y1_obs, mu, lone, ltwo)
 
   err <- function(phi) {
-    nb <- binegbin_joint_lpmf_r(yg$y1, yg$y2, yg$y1_obs, mu, lone, ltwo,
+    nb <- binegbin_cens_lpmf_r(yg$y1, yg$y2, yg$y1_obs, mu, lone, ltwo,
                                 shapes = phi, shapexone = phi, shapextwo = phi)
     max(abs(nb - ref))
   }
@@ -156,9 +156,9 @@ test_that("binegbin_joint reduces to bipois_joint in the Poisson limit, on both 
 })
 
 test_that("posterior_predict draws reproduce the joint/marginal conditional y1 | y2", {
-  # posterior_predict_bipois_joint splits N_shared | y2 as a Binomial then adds
+  # posterior_predict_bipois_cens splits N_shared | y2 as a Binomial then adds
   # a fresh N1. Its distribution must equal P(y1 | y2) = joint(y1, y2) /
-  # marginal(y2). Checked by Monte Carlo, as for binegbin_joint. The Binomial
+  # marginal(y2). Checked by Monte Carlo, as for binegbin_cens. The Binomial
   # split is exact here (conditioning a sum of independent Poissons on its total
   # gives a Binomial), so this also confirms that shortcut.
   set.seed(20260804)
@@ -176,12 +176,12 @@ test_that("posterior_predict draws reproduce the joint/marginal conditional y1 |
     vint1 = y2,
     vint2 = 1L
   )
-  draws <- posterior_predict_bipois_joint(1, prep)
+  draws <- posterior_predict_bipois_cens(1, prep)
   expect_length(draws, ndraws)
 
   K  <- 80
   xs <- 0:K
-  lp_joint <- bipois_joint_lpmf_r(xs, rep(y2, length(xs)), 1L, mu, lone, ltwo)
+  lp_joint <- bipois_cens_lpmf_r(xs, rep(y2, length(xs)), 1L, mu, lone, ltwo)
   lp_marg  <- { mx <- max(lp_joint); mx + log(sum(exp(lp_joint - mx))) }
   p_cond   <- exp(lp_joint - lp_marg)
 
@@ -194,7 +194,7 @@ test_that("posterior_predict draws reproduce the joint/marginal conditional y1 |
   # simulated, and here it is exact -- the mean of that Binomial split. It must
   # agree with the analytic conditional mean to machine precision, not merely
   # to Monte Carlo error.
-  ep <- posterior_epred_bipois_joint(prep)
+  ep <- posterior_epred_bipois_cens(prep)
   expect_equal(dim(ep), c(ndraws, 1L))
   expect_equal(unique(as.vector(ep)), sum(xs * p_cond), tolerance = 1e-10)
 })
@@ -211,25 +211,25 @@ test_that("the censored branch ignores y1_obs only where it should", {
   )
   # Likelihood: branches on y1_obs, so it must NOT equal the matched value.
   expect_equal(
-    log_lik_bipois_joint(1, prep),
+    log_lik_bipois_cens(1, prep),
     stats::dpois(6L, 5 + 4, log = TRUE)
   )
   # epred: same value whether the row is censored or matched.
   prep_matched <- prep
   prep_matched$data$vint2 <- 1L
-  expect_equal(posterior_epred_bipois_joint(prep),
-               posterior_epred_bipois_joint(prep_matched))
+  expect_equal(posterior_epred_bipois_cens(prep),
+               posterior_epred_bipois_cens(prep_matched))
 })
 
 # -----------------------------------------------------------------------
 # Stan tests -- require rstan; skipped silently if unavailable
 # -----------------------------------------------------------------------
 
-# Compile bipois AND bipois_joint together so the Stan-level equivalence check
+# Compile bipois AND bipois_cens together so the Stan-level equivalence check
 # can call both lpmfs on identical inputs. The two declare different function
 # names, so there is no collision.
 stan_code <- paste0("functions {\n", bipois_stan_funs, "\n",
-                    bipois_joint_stan_funs, "}\nmodel {}\n")
+                    bipois_cens_stan_funs, "}\nmodel {}\n")
 
 stan_ready <- FALSE
 if (stan_tests_enabled() && requireNamespace("rstan", quietly = TRUE)) {
@@ -242,7 +242,7 @@ if (stan_tests_enabled() && requireNamespace("rstan", quietly = TRUE)) {
   }, error = function(e) NULL)
 }
 
-test_that("Stan bipois_joint_lpmf matches the R reference (both branches)", {
+test_that("Stan bipois_cens_lpmf matches the R reference (both branches)", {
   skip_if_not(stan_ready, "rstan unavailable or Stan compilation failed")
 
   grid <- expand.grid(
@@ -256,9 +256,9 @@ test_that("Stan bipois_joint_lpmf matches the R reference (both branches)", {
     ys <- unique(pmax(c(0L, 1L, round(means), round(means) + 4L), 0L))
     yg <- expand.grid(y1 = ys, y2 = ys, y1_obs = c(0L, 1L))
     stan_vals <- mapply(
-      function(r, s, e) bipois_joint_lpmf(r, mu, lone, ltwo, s, e),
+      function(r, s, e) bipois_cens_lpmf(r, mu, lone, ltwo, s, e),
       yg$y1, yg$y2, yg$y1_obs)
-    r_vals <- bipois_joint_lpmf_r(yg$y1, yg$y2, yg$y1_obs, mu, lone, ltwo)
+    r_vals <- bipois_cens_lpmf_r(yg$y1, yg$y2, yg$y1_obs, mu, lone, ltwo)
     max(abs(stan_vals - r_vals))
   }
 
@@ -266,8 +266,8 @@ test_that("Stan bipois_joint_lpmf matches the R reference (both branches)", {
   expect_true(max(diffs) < 1e-8, label = paste("max diff =", max(diffs)))
 })
 
-test_that("Stan bipois_joint matched branch == Stan bipois lpmf (equivalence)", {
-  # The substantive equivalence check: bipois_joint_stan_funs writes the
+test_that("Stan bipois_cens matched branch == Stan bipois lpmf (equivalence)", {
+  # The substantive equivalence check: bipois_cens_stan_funs writes the
   # recurrence out separately rather than calling bipois_lpmf, so the two Stan
   # implementations can drift. This is what stops them.
   skip_if_not(stan_ready, "rstan unavailable or Stan compilation failed")
@@ -281,7 +281,7 @@ test_that("Stan bipois_joint matched branch == Stan bipois lpmf (equivalence)", 
     means <- c(mu + lone, mu + ltwo)
     ys <- unique(pmax(c(0L, 1L, round(means), round(means) + 4L), 0L))
     yg <- expand.grid(y1 = ys, y2 = ys)
-    joint_vals <- mapply(function(r, s) bipois_joint_lpmf(r, mu, lone, ltwo, s, 1L),
+    joint_vals <- mapply(function(r, s) bipois_cens_lpmf(r, mu, lone, ltwo, s, 1L),
                          yg$y1, yg$y2)
     bipois_vals <- mapply(function(r, s) bipois_lpmf(r, mu, lone, ltwo, s),
                           yg$y1, yg$y2)
@@ -291,7 +291,7 @@ test_that("Stan bipois_joint matched branch == Stan bipois lpmf (equivalence)", 
   expect_true(max(diffs) < 1e-12, label = paste("max diff =", max(diffs)))
 })
 
-test_that("Stan bipois_joint_lpmf is numerically stable at extreme rates", {
+test_that("Stan bipois_cens_lpmf is numerically stable at extreme rates", {
   skip_if_not(stan_ready, "rstan unavailable or Stan compilation failed")
 
   edge_cases <- list(
@@ -304,9 +304,9 @@ test_that("Stan bipois_joint_lpmf is numerically stable at extreme rates", {
     ys <- 0:5
     yg <- expand.grid(y1 = ys, y2 = ys, y1_obs = c(0L, 1L))
     stan_vals <- mapply(
-      function(r, s, e) bipois_joint_lpmf(r, ec[["mu"]], ec[["lone"]], ec[["ltwo"]], s, e),
+      function(r, s, e) bipois_cens_lpmf(r, ec[["mu"]], ec[["lone"]], ec[["ltwo"]], s, e),
       yg$y1, yg$y2, yg$y1_obs)
-    r_vals <- bipois_joint_lpmf_r(yg$y1, yg$y2, yg$y1_obs,
+    r_vals <- bipois_cens_lpmf_r(yg$y1, yg$y2, yg$y1_obs,
                                   ec[["mu"]], ec[["lone"]], ec[["ltwo"]])
     expect_false(any(!is.finite(stan_vals)), label = paste(ec, collapse = ","))
     expect_equal(stan_vals, r_vals, tolerance = 1e-8, label = paste(ec, collapse = ","))
@@ -317,7 +317,7 @@ test_that("Stan bipois_joint_lpmf is numerically stable at extreme rates", {
 # brms end-to-end: dispatch (loo + posterior_predict) and recovery
 # -----------------------------------------------------------------------
 
-test_that("bipois_joint fits a censored design, dispatches, and recovers params", {
+test_that("bipois_cens fits a censored design, dispatches, and recovers params", {
   skip_on_cran()
   skip_if_not_installed("brms")
   skip_if_no_stan()
@@ -343,7 +343,7 @@ test_that("bipois_joint fits a censored design, dispatches, and recovers params"
   # Half the rows are y2-only (y1 unobserved) -- the censoring the family
   # exists to handle. mu and lambdatwo are separated only by the matched rows
   # (the censored branch sees them only through their sum), so the matched
-  # half is what makes this recoverable; see ?bipois_joint.
+  # half is what makes this recoverable; see ?bipois_cens.
   y1_obs <- rep(c(1L, 0L), length.out = n)
 
   dat <- data.frame(
@@ -362,8 +362,8 @@ test_that("bipois_joint fits a censored design, dispatches, and recovers params"
         brms::nlf(lambdatwo ~ lamx),
         lamx ~ 1, nl = TRUE
       ),
-      family   = bipois_joint(),
-      stanvars = bipois_joint_stanvars(),
+      family   = bipois_cens(),
+      stanvars = bipois_cens_stanvars(),
       data     = dat,
       backend  = "rstan",
       chains   = 4,
@@ -389,7 +389,7 @@ test_that("bipois_joint fits a censored design, dispatches, and recovers params"
   expect_equal(dim(pp)[2], n)
   expect_true(all(pp >= 0))
 
-  ep <- posterior_epred_bipois_joint(brms::prepare_predictions(fit))
+  ep <- posterior_epred_bipois_cens(brms::prepare_predictions(fit))
   expect_equal(dim(ep)[2], n)
   expect_true(all(is.finite(ep)))
 

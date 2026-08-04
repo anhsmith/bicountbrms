@@ -1,5 +1,5 @@
 # ==========================================================================
-# binegbin_joint: censoring-aware bivariate Negative-Binomial
+# binegbin_cens: censoring-aware bivariate Negative-Binomial
 #
 # The censoring-aware extension of binegbin (see binegbin.R). Same generative
 # model -- y1 = N_shared + N1, y2 = N_shared + N2 with
@@ -54,7 +54,7 @@
 # tests pin down:
 #   * sum over y1 of the matched-branch lpmf == the y2-only-branch lpmf
 #     (marginal identity),
-#   * binegbin_joint_lpmf(y1_obs == 1, shapexone == shapextwo) ==
+#   * binegbin_cens_lpmf(y1_obs == 1, shapexone == shapextwo) ==
 #     binegbin_lpmf on identical inputs (equivalence), and
 #   * the six-dpar lpmf evaluated with shapexone == shapextwo reproduces the
 #     pre-0.8.0 five-dpar lpmf to machine precision (non-regression).
@@ -64,7 +64,7 @@
 # brute-force reference (~1e-14), the conditional-prediction identity
 # (posterior_predict draws == joint / marginal), and a simulation-recovery
 # check with shapexone far from shapextwo. See
-# tests/testthat/test-binegbin_joint.R and test-binegbin_joint_asym.R.
+# tests/testthat/test-binegbin_cens.R and test-binegbin_cens_asym.R.
 
 # --------------------------------------------------------------------------
 # brms custom family
@@ -94,7 +94,7 @@
 #' `shapes`, `lambdatwo`, `shapextwo`, and the shared vessel/trip
 #' random-effect structure.
 #'
-#' [bipois_joint()] is the equidispersed counterpart: the same censoring, with
+#' [bipois_cens()] is the equidispersed counterpart: the same censoring, with
 #' Poisson rather than Negative-Binomial components. Prefer it where the margins
 #' are not overdispersed, rather than fitting this family with its dispersions
 #' pressed against the Poisson boundary, and compare the two with `loo()`.
@@ -116,8 +116,8 @@
 #'        nlf(lambdatwo ~ lamx - methd),
 #'        lamx ~ 1, methd ~ 1,
 #'        shapes ~ 1, shapexone ~ 1, shapextwo ~ 1, nl = TRUE),
-#'     family   = binegbin_joint(),
-#'     stanvars = binegbin_joint_stanvars(),
+#'     family   = binegbin_cens(),
+#'     stanvars = binegbin_cens_stanvars(),
 #'     data     = dat
 #'   )
 #'
@@ -150,10 +150,10 @@
 #' integers to the generated lpmf call in the order they are listed in the
 #' formula's `vint()` term, matching the `vars` declared here
 #' (`c("vint1[n]", "vint2[n]")`): so `vint(y2, y1_obs)` binds `vint1 = y2`
-#' and `vint2 = y1_obs`. brms generates `target += binegbin_joint_lpmf(Y[n] |
+#' and `vint2 = y1_obs`. brms generates `target += binegbin_cens_lpmf(Y[n] |
 #' mu[n], lambdaone[n], lambdatwo[n], shapes[n], shapexone[n], shapextwo[n],
 #' vint1[n], vint2[n])` -- dpars in the order declared here, then the two vint
-#' args. `binegbin_joint_stan_funs` declares `binegbin_joint_lpmf` with exactly
+#' args. `binegbin_cens_stan_funs` declares `binegbin_cens_lpmf` with exactly
 #' this signature; reordering the dpars or the two `vint()` terms without
 #' matching the Stan signature silently swaps which quantity governs which
 #' component or which integer is the branch flag.
@@ -175,9 +175,9 @@
 #'
 #' @return A brms custom_family object.
 #' @export
-binegbin_joint <- function() {
+binegbin_cens <- function() {
   brms::custom_family(
-    name  = "binegbin_joint",
+    name  = "binegbin_cens",
     dpars = c("mu", "lambdaone", "lambdatwo", "shapes", "shapexone", "shapextwo"),
     links = c("log", "log", "log", "log", "log", "log"),
     lb    = c(0, 0, 0, 0, 0, 0),
@@ -186,10 +186,10 @@ binegbin_joint <- function() {
   )
 }
 
-#' @rdname binegbin_joint
+#' @rdname binegbin_cens
 #' @export
-binegbin_joint_stanvars <- function() {
-  brms::stanvar(block = "functions", scode = binegbin_joint_stan_funs)
+binegbin_cens_stanvars <- function() {
+  brms::stanvar(block = "functions", scode = binegbin_cens_stan_funs)
 }
 
 # --------------------------------------------------------------------------
@@ -203,8 +203,8 @@ binegbin_joint_stanvars <- function() {
 # and with it shapexone -- and sums over k = 0..y2, i.e. the same joint with
 # the first margin integrated out. neg_binomial_2_lpmf(0 | m, phi) is
 # well-defined, so zero counts and the k = 0 term need no special casing.
-binegbin_joint_stan_funs <- "
-  real binegbin_joint_lpmf(int y1, real mu, real lambdaone, real lambdatwo,
+binegbin_cens_stan_funs <- "
+  real binegbin_cens_lpmf(int y1, real mu, real lambdaone, real lambdatwo,
                            real shapes, real shapexone, real shapextwo,
                            int y2, int y1_obs) {
     if (y1_obs == 1) {
@@ -233,14 +233,14 @@ binegbin_joint_stan_funs <- "
 
 # Independent brute-force evaluation of the same branching sum via R's
 # dnbinom, used to validate the Stan lpmf and to power
-# log_lik_binegbin_joint()/posterior_predict_binegbin_joint() post-hoc.
+# log_lik_binegbin_cens()/posterior_predict_binegbin_cens() post-hoc.
 # Internal reference only, mirroring binegbin_lpmf_r's role. Vectorised over
 # all arguments (recycled to common length); y1_obs selects the branch
 # per-row.
 #
 # `shapextwo` defaults to `shapexone`, so an eight-argument call is the
 # symmetric (pre-0.8.0) model and needs no rewriting.
-binegbin_joint_lpmf_r <- function(y1, y2, y1_obs, mu, lambdaone, lambdatwo,
+binegbin_cens_lpmf_r <- function(y1, y2, y1_obs, mu, lambdaone, lambdatwo,
                                   shapes, shapexone, shapextwo = shapexone) {
   n <- max(length(y1), length(y2), length(y1_obs), length(mu),
            length(lambdaone), length(lambdatwo), length(shapes),
@@ -285,10 +285,10 @@ binegbin_joint_lpmf_r <- function(y1, y2, y1_obs, mu, lambdaone, lambdatwo,
 .SHAPEXONE_NAMES <- c("shapexone", "shapexem", "shapex")
 .SHAPEXTWO_NAMES <- c("shapextwo", "shapexlb", "shapex")
 
-#' @rdname binegbin_joint
+#' @rdname binegbin_cens
 #' @export
 #' @keywords internal
-log_lik_binegbin_joint <- function(i, prep) {
+log_lik_binegbin_cens <- function(i, prep) {
   mu        <- brms::get_dpar(prep, "mu", i = i)        # lambda_shared
   lambdaone <- .get_rate(prep, "lambdaone", "lambdaem", i = i)
   lambdatwo <- .get_rate(prep, "lambdatwo", "lambdalb", i = i)
@@ -298,14 +298,14 @@ log_lik_binegbin_joint <- function(i, prep) {
   y1     <- prep$data$Y[i]
   y2     <- prep$data$vint1[i]
   y1_obs <- prep$data$vint2[i]
-  binegbin_joint_lpmf_r(y1, y2, y1_obs, mu, lambdaone, lambdatwo,
+  binegbin_cens_lpmf_r(y1, y2, y1_obs, mu, lambdaone, lambdatwo,
                         shapes, shapexone, shapextwo)
 }
 
-#' @rdname binegbin_joint
+#' @rdname binegbin_cens
 #' @export
 #' @keywords internal
-posterior_predict_binegbin_joint <- function(i, prep, ...) {
+posterior_predict_binegbin_cens <- function(i, prep, ...) {
   mu        <- brms::get_dpar(prep, "mu", i = i)        # lambda_shared
   lambdaone <- .get_rate(prep, "lambdaone", "lambdaem", i = i)
   lambdatwo <- .get_rate(prep, "lambdatwo", "lambdalb", i = i)
@@ -335,10 +335,10 @@ posterior_predict_binegbin_joint <- function(i, prep, ...) {
   out
 }
 
-#' @rdname binegbin_joint
+#' @rdname binegbin_cens
 #' @export
 #' @keywords internal
-posterior_epred_binegbin_joint <- function(prep) {
+posterior_epred_binegbin_cens <- function(prep) {
   mu        <- brms::get_dpar(prep, "mu")        # lambda_shared
   lambdaone <- .get_rate(prep, "lambdaone", "lambdaem")
   lambdatwo <- .get_rate(prep, "lambdatwo", "lambdalb")
@@ -346,12 +346,12 @@ posterior_epred_binegbin_joint <- function(prep) {
   shapextwo <- .get_dpar_any(prep, .SHAPEXTWO_NAMES)
   y2 <- prep$data$vint1
   # E[y1 | y2] = E[N_shared | y2] + lambdaone, the expectation of exactly what
-  # posterior_predict_binegbin_joint() simulates. `shapextwo` and not
+  # posterior_predict_binegbin_cens() simulates. `shapextwo` and not
   # `shapexone`: the quantity conditioned on is y2, so it is the SECOND
   # margin's excess dispersion that enters the conditional weights. See
   # .e_shared_given_y2_nb() in utils.R.
   #
-  # y1_obs is ignored, as it is in posterior_predict_binegbin_joint(): the
+  # y1_obs is ignored, as it is in posterior_predict_binegbin_cens(): the
   # conditional expectation of the first margin is defined on censored rows too,
   # and imputing it there is the point of having the family. Returning it for
   # every row keeps epred and posterior_predict comparable row by row.

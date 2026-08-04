@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 ```
 
 Every joint family in this package — `bipois()`, `binegbin()`, and their
-censoring-aware counterparts `bipois_joint()` and `binegbin_joint()` — is built
+censoring-aware counterparts `bipois_cens()` and `binegbin_cens()` — is built
 by **trivariate reduction**
 [@holgate1964; @karlis2003]. Three independent counts are drawn, and the two
 observed counts share one of them:

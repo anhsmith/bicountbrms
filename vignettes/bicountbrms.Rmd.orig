@@ -35,8 +35,8 @@ library(bicountbrms)
 This vignette walks the package's R API end to end on one family, `binegbin()`:
 simulate a matched pair of counts from known parameters, fit them, check that
 the posterior finds the truth, and then predict and score. The other joint
-families (`bipois()`, and the censoring-aware `binegbin_joint()` and
-`bipois_joint()`) follow the same pattern; the README compares them.
+families (`bipois()`, and the censoring-aware `binegbin_cens()` and
+`bipois_cens()`) follow the same pattern; the README compares them.
 
 Everything here is a brms custom family [@burkner2017], so the fitting,
 prediction and model-comparison interfaces are brms's own. The non-linear
@@ -271,9 +271,9 @@ not a marginal expectation. That is the quantity the construction makes
 available and the one worth having: it is what the second source implies about
 the first.
 
-For `bipois()` and `bipois_joint()` it is closed form, because conditioning a
+For `bipois()` and `bipois_cens()` it is closed form, because conditioning a
 sum of independent Poissons on its total gives a Binomial split. For
-`binegbin()` and `binegbin_joint()` there is no such shortcut, so the
+`binegbin()` and `binegbin_cens()` there is no such shortcut, so the
 conditional is evaluated over its support $k = 0, \ldots, y_2$ and summed. All
 four are exact, and each agrees with the mean of its own `posterior_predict()`
 draws to within Monte Carlo error.
@@ -297,7 +297,7 @@ posterior_epred_binegbin(prepare_predictions(fit))
 - `bipois()` — the non-overdispersed Poisson sibling. Same construction, three
   dpars instead of five. Use it when the margins are not overdispersed; compare
   the two with `loo()`.
-- `binegbin_joint()` — censoring-aware, for data where one of the two counts is
+- `binegbin_cens()` — censoring-aware, for data where one of the two counts is
   missing on some rows. It admits those rows via the integrated-out marginal
   instead of dropping them. It also gives each excess component its own
   dispersion (`shapexone`/`shapextwo`, six dpars rather than five), so the two
@@ -314,11 +314,11 @@ posterior_epred_binegbin(prepare_predictions(fit))
   unless the data support otherwise; the rate parameterisation has no such
   nulls. Worked end to end in the article
   [*The anatomy of a paired count*][anatomy].
-- `bipois_joint()` — censoring-aware and equidispersed: `binegbin_joint()`'s
+- `bipois_cens()` — censoring-aware and equidispersed: `binegbin_cens()`'s
   Poisson special case. Its integrated-out marginal is closed form,
   $y_2 \sim \mathrm{Poisson}(\mu + \lambda_2)$, since a sum of independent
   Poissons is Poisson. Use it when the margins are not overdispersed, rather
-  than fitting `binegbin_joint()` with its dispersions pressed against the
+  than fitting `binegbin_cens()` with its dispersions pressed against the
   Poisson boundary.
 - **Modelling the difference instead.** Where only the disagreement
   $d = y_1 - y_2$ is of interest, or where truncation via `resp_trunc()` is

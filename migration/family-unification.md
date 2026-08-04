@@ -7,10 +7,17 @@ that the change is safe, and what the Belize EM project (`tnc001-belize-em`)
 must do to adopt it.
 
 The generalisation itself is unchanged by the 0.9.0 rename and split, and the
-measurements below stand as recorded — they were made under the name
-`pairedcountbrms`, and are left saying so. Only the forward-looking adoption
-steps in §5 have been updated to the current package name; install
-`bicountbrms` where they say to install the package.
+measurements below stand as recorded — they were made under the names
+`pairedcountbrms` and `binegbin_joint()`, and are left saying so. Only the
+forward-looking adoption steps in §5 have been updated to current names.
+
+**Two renames sit between what §1–§4 describe and what §5 asks you to do.** The
+package is `bicountbrms`, and the family itself is now **`binegbin_cens()`** —
+`_joint` distinguished nothing once the package held four families that all
+model the pair jointly, so the suffix names the censoring instead. Everything
+below about dpars, likelihood and equivalence is unaffected; only the five
+exported symbols changed, and the old ones remain as aliases until the next
+major version.
 
 ---
 
@@ -198,7 +205,7 @@ for every observation, comparing the full draws vector each time. The whole
 check is about thirty lines and takes roughly six minutes over the ten fits.
 
 Separately, and **this is** in the suite
-(`tests/testthat/test-binegbin_joint_asym.R`), these self-contained checks pin
+(`tests/testthat/test-binegbin_cens_asym.R`), these self-contained checks pin
 the same properties without any external dependency:
 
 - the asymmetric likelihood is a proper pmf on both branches, and the marginal
@@ -331,9 +338,12 @@ Not performed here — this is the other session's work. In order:
 4. **Swap the family and stanvars:**
 
    ```r
-   family   = binegbin_joint_ax(),            ->  family   = binegbin_joint(),
-   stanvars = binegbin_joint_ax_stanvars()    ->  stanvars = binegbin_joint_stanvars()
+   family   = binegbin_joint_ax(),            ->  family   = binegbin_cens(),
+   stanvars = binegbin_joint_ax_stanvars()    ->  stanvars = binegbin_cens_stanvars()
    ```
+
+   `binegbin_joint()` also still works and produces the identical family, but it
+   warns; go straight to `binegbin_cens()`.
 
 5. **Decide what to do about the existing fits.** They are stored under the
    family name `binegbin_joint_ax`, so brms will look up
@@ -348,18 +358,19 @@ Not performed here — this is the other session's work. In order:
 
      ```r
      log_lik_binegbin_joint_ax <-
-       function(i, prep) bicountbrms::log_lik_binegbin_joint(i, prep)
+       function(i, prep) bicountbrms::log_lik_binegbin_cens(i, prep)
      posterior_predict_binegbin_joint_ax <-
-       function(i, prep, ...) bicountbrms::posterior_predict_binegbin_joint(i, prep, ...)
+       function(i, prep, ...) bicountbrms::posterior_predict_binegbin_cens(i, prep, ...)
      ```
 
      These work because the packaged functions resolve `lambdaem`/`lambdalb`/
      `shapexem`/`shapexlb` directly (§2b). Note the *aliases still need the
      `_ax` names* — that requirement comes from the stored fits' family name,
-     not from the package.
+     not from the package. It is the same mechanism by which the package keeps
+     `log_lik_binegbin_joint()` alive for its own pre-0.9.0 fits.
 
    Refitting is not required either way. Fits produced *after* step 4 will
-   carry the family name `binegbin_joint` and need neither.
+   carry the family name `binegbin_cens` and need neither.
 
 6. **Verify there, not here.** The models are being refitted against the
    packaged family anyway, so the authoritative equivalence check belongs in

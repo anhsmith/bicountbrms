@@ -1,8 +1,8 @@
 # ==========================================================================
-# bipois_joint: censoring-aware bivariate Poisson
+# bipois_cens: censoring-aware bivariate Poisson
 #
 # The censoring-aware extension of bipois (see bipois.R), standing in the same
-# relation to it as binegbin_joint does to binegbin. Same generative model --
+# relation to it as binegbin_cens does to binegbin. Same generative model --
 # y1 = N_shared + N1, y2 = N_shared + N2 with
 #
 #   N_shared ~ Poisson(mu)          (shared component; drives correlation)
@@ -15,7 +15,7 @@
 #   y1_obs == 1 (matched set):  full joint bipois lpmf on (y1, y2).
 #   y1_obs == 0 (y2-only set):  the y2 MARGINAL of the SAME bivariate model.
 #
-# THE CENSORED BRANCH IS ANALYTIC, AND THAT IS THE POINT. For binegbin_joint
+# THE CENSORED BRANCH IS ANALYTIC, AND THAT IS THE POINT. For binegbin_cens
 # the y1-integrated marginal is a convolution that must be evaluated as a sum,
 #
 #   P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo),
@@ -29,25 +29,25 @@
 # one closed-form line with no sum, no cutoff and no accumulated rounding. Two
 # consequences beyond the family being cheap to evaluate:
 #
-#   * It supplies an ANALYTIC REFERENCE for binegbin_joint's censored branch,
+#   * It supplies an ANALYTIC REFERENCE for binegbin_cens's censored branch,
 #     which the package otherwise lacks. That branch's marginal-identity test
 #     checks the NB sum against itself -- summing the matched branch over y1
 #     and comparing to the censored branch -- so both sides share any error in
 #     the convolution. Taking the NB family to its Poisson limit and comparing
 #     against this closed form is an independent check of the same code path.
-#     See test-bipois_joint.R.
+#     See test-bipois_cens.R.
 #   * It avoids a boundary. A user whose counts really are equidispersed must
-#     otherwise fit binegbin_joint with the dispersions pressed against their
+#     otherwise fit binegbin_cens with the dispersions pressed against their
 #     Poisson limit (shape -> Inf, i.e. kappa -> 0), which is exactly where
 #     sampling degrades. A dedicated family sidesteps that.
 #
 # WHY A DEDICATED FAMILY AND NOT TWO SEPARATE FITS. Unchanged from
-# binegbin_joint, and the argument does not depend on the component
+# binegbin_cens, and the argument does not depend on the component
 # distribution: the unmatched rows never observe y1, so a plain bipois fit
 # could only use the matched rows, yet those rows' y2 is a draw from the same
 # bivariate model and still informs mu, lambdatwo and any group-level
 # structure. Integrating the unobserved margin out pools every row under one
-# coherent likelihood. See binegbin_joint.R for the full statement.
+# coherent likelihood. See binegbin_cens.R for the full statement.
 #
 # WHAT EACH RATE IS IDENTIFIED FROM. lambdatwo enters both branches, so every
 # row sharpens it. lambdaone enters only the matched branch and is identified
@@ -56,7 +56,7 @@
 # between shared and source-2-only. Separating mu from lambdatwo therefore
 # rests on the matched rows as well, and a design with few of them will learn
 # the congruence f weakly however many censored rows it has. This is sharper
-# than the corresponding statement for binegbin_joint, where the two
+# than the corresponding statement for binegbin_cens, where the two
 # dispersions carry some of the same information, and it is visible directly in
 # the closed form above.
 #
@@ -64,8 +64,8 @@
 # is bipois exactly -- the R reference below delegates to bipois_lpmf_r rather
 # than restating the sum, so the equivalence is structural on the R side and
 # tested on the Stan side, where the recurrence is written out separately. As
-# shapes, shapexone and shapextwo -> Inf, binegbin_joint -> bipois_joint on
-# both branches. Both identities are pinned in test-bipois_joint.R.
+# shapes, shapexone and shapextwo -> Inf, binegbin_cens -> bipois_cens on
+# both branches. Both identities are pinned in test-bipois_cens.R.
 
 # --------------------------------------------------------------------------
 # brms custom family
@@ -83,14 +83,14 @@
 #' (the always-observed second count) and `y1_obs` (a 0/1 flag marking whether
 #' `y1` was observed for that row).
 #'
-#' Stands to [bipois()] exactly as [binegbin_joint()] stands to [binegbin()],
-#' and is the equidispersed special case of [binegbin_joint()].
+#' Stands to [bipois()] exactly as [binegbin_cens()] stands to [binegbin()],
+#' and is the equidispersed special case of [binegbin_cens()].
 #'
 #' On `y1_obs == 1` (matched) rows the likelihood is the full joint [bipois()]
 #' lpmf on `(y1, y2)`. On `y1_obs == 0` (`y2`-only) rows it is the
 #' `y1`-integrated marginal of that same joint, which for Poisson components is
 #' available in closed form: a sum of independent Poissons is Poisson, so
-#' `y2 ~ Poisson(mu + lambdatwo)` exactly. [binegbin_joint()] must evaluate the
+#' `y2 ~ Poisson(mu + lambdatwo)` exactly. [binegbin_cens()] must evaluate the
 #' corresponding convolution as a sum; this family does not.
 #'
 #' Three dpars, the same as [bipois()]: `mu` (shared rate), `lambdaone` and
@@ -103,17 +103,17 @@
 #'        nlf(lambdaone ~ lamx + methd),
 #'        nlf(lambdatwo ~ lamx - methd),
 #'        lamx ~ 1, methd ~ 1, nl = TRUE),
-#'     family   = bipois_joint(),
-#'     stanvars = bipois_joint_stanvars(),
+#'     family   = bipois_cens(),
+#'     stanvars = bipois_cens_stanvars(),
 #'     data     = dat
 #'   )
 #'
 #' @details
-#' **When to use this rather than [binegbin_joint()].** This family fixes each
+#' **When to use this rather than [binegbin_cens()].** This family fixes each
 #' latent component's variance equal to its mean. Where the counts are genuinely
-#' overdispersed relative to that, [binegbin_joint()] is the correct model and
+#' overdispersed relative to that, [binegbin_cens()] is the correct model and
 #' this one will understate the marginal variances. Where they are not,
-#' [binegbin_joint()] can only represent the fit by driving its dispersions to
+#' [binegbin_cens()] can only represent the fit by driving its dispersions to
 #' their Poisson limit (`shape` \eqn{\to\infty}, equivalently `kappa`
 #' \eqn{\to 0}), a boundary at which sampling degrades; fitting the
 #' equidispersed family directly avoids it. Compare the two with `loo()`.
@@ -133,10 +133,10 @@
 #' to the generated lpmf call in the order they are listed in the formula's
 #' `vint()` term, matching the `vars` declared here
 #' (`c("vint1[n]", "vint2[n]")`): so `vint(y2, y1_obs)` binds `vint1 = y2` and
-#' `vint2 = y1_obs`. brms generates `target += bipois_joint_lpmf(Y[n] | mu[n],
+#' `vint2 = y1_obs`. brms generates `target += bipois_cens_lpmf(Y[n] | mu[n],
 #' lambdaone[n], lambdatwo[n], vint1[n], vint2[n])` -- dpars in the order
-#' declared here, then the two vint args. `bipois_joint_stan_funs` declares
-#' `bipois_joint_lpmf` with exactly this signature; reordering the dpars or the
+#' declared here, then the two vint args. `bipois_cens_stan_funs` declares
+#' `bipois_cens_lpmf` with exactly this signature; reordering the dpars or the
 #' two `vint()` terms without matching the Stan signature silently swaps which
 #' rate governs which component or which integer is the branch flag.
 #'
@@ -155,9 +155,9 @@
 #'
 #' @return A brms custom_family object.
 #' @export
-bipois_joint <- function() {
+bipois_cens <- function() {
   brms::custom_family(
-    name  = "bipois_joint",
+    name  = "bipois_cens",
     dpars = c("mu", "lambdaone", "lambdatwo"),  # mu = lambda_shared -- see bipois()
     links = c("log", "log", "log"),
     lb    = c(0, 0, 0),
@@ -166,10 +166,10 @@ bipois_joint <- function() {
   )
 }
 
-#' @rdname bipois_joint
+#' @rdname bipois_cens
 #' @export
-bipois_joint_stanvars <- function() {
-  brms::stanvar(block = "functions", scode = bipois_joint_stan_funs)
+bipois_cens_stanvars <- function() {
+  brms::stanvar(block = "functions", scode = bipois_cens_stan_funs)
 }
 
 # --------------------------------------------------------------------------
@@ -181,15 +181,15 @@ bipois_joint_stanvars <- function() {
 # previous by a ratio update in log space, accumulated via log_sum_exp; see
 # bipois.R for the derivation of that ratio and its correspondence to the
 # cited source. It is written out here rather than calling bipois_lpmf so that
-# bipois_joint_stanvars() is self-contained: a model supplying only this
+# bipois_cens_stanvars() is self-contained: a model supplying only this
 # family's stanvars must still compile.
 #
 # The y1_obs == 0 branch is the closed-form marginal, poisson_lpmf(y2 | mu +
 # lambdatwo). No sum, so nothing to cap or truncate; this is the branch that
-# has no counterpart in binegbin_joint, where the same quantity is a
+# has no counterpart in binegbin_cens, where the same quantity is a
 # convolution over k = 0..y2.
-bipois_joint_stan_funs <- "
-  real bipois_joint_lpmf(int y1, real mu, real lambdaone, real lambdatwo,
+bipois_cens_stan_funs <- "
+  real bipois_cens_lpmf(int y1, real mu, real lambdaone, real lambdatwo,
                          int y2, int y1_obs) {
     if (y1_obs == 1) {
       int m = min(y1, y2);
@@ -214,8 +214,8 @@ bipois_joint_stan_funs <- "
 # --------------------------------------------------------------------------
 
 # Branch-selecting evaluation, vectorised over all arguments (recycled to a
-# common length), used to power log_lik_bipois_joint() and to validate the Stan
-# lpmf. Internal reference only, mirroring binegbin_joint_lpmf_r's role.
+# common length), used to power log_lik_bipois_cens() and to validate the Stan
+# lpmf. Internal reference only, mirroring binegbin_cens_lpmf_r's role.
 #
 # The matched branch DELEGATES to bipois_lpmf_r rather than restating the sum,
 # so "the matched branch is bipois" holds by construction on the R side. The
@@ -224,11 +224,11 @@ bipois_joint_stan_funs <- "
 # checks it.
 #
 # The censored branch uses the closed form, as Stan does. The independent route
-# -- brute-force convolution over k = 0..y2 -- lives in test-bipois_joint.R
+# -- brute-force convolution over k = 0..y2 -- lives in test-bipois_cens.R
 # rather than here, so log_lik() does not pay for a sum that has an exact
 # one-line answer. Keeping it in the test is what makes the closed form checked
 # rather than assumed.
-bipois_joint_lpmf_r <- function(y1, y2, y1_obs, mu, lambdaone, lambdatwo) {
+bipois_cens_lpmf_r <- function(y1, y2, y1_obs, mu, lambdaone, lambdatwo) {
   n <- max(length(y1), length(y2), length(y1_obs), length(mu),
            length(lambdaone), length(lambdatwo))
   y1        <- rep_len(y1, n)
@@ -260,23 +260,23 @@ bipois_joint_lpmf_r <- function(y1, y2, y1_obs, mu, lambdaone, lambdatwo) {
 # brms interface functions -- found by name convention, must be exported
 # --------------------------------------------------------------------------
 
-#' @rdname bipois_joint
+#' @rdname bipois_cens
 #' @export
 #' @keywords internal
-log_lik_bipois_joint <- function(i, prep) {
+log_lik_bipois_cens <- function(i, prep) {
   mu        <- brms::get_dpar(prep, "mu", i = i)   # lambda_shared -- see bipois()
   lambdaone <- .get_rate(prep, "lambdaone", "lambdaem", i = i)
   lambdatwo <- .get_rate(prep, "lambdatwo", "lambdalb", i = i)
   y1     <- prep$data$Y[i]
   y2     <- prep$data$vint1[i]
   y1_obs <- prep$data$vint2[i]
-  bipois_joint_lpmf_r(y1, y2, y1_obs, mu, lambdaone, lambdatwo)
+  bipois_cens_lpmf_r(y1, y2, y1_obs, mu, lambdaone, lambdatwo)
 }
 
-#' @rdname bipois_joint
+#' @rdname bipois_cens
 #' @export
 #' @keywords internal
-posterior_predict_bipois_joint <- function(i, prep, ...) {
+posterior_predict_bipois_cens <- function(i, prep, ...) {
   mu        <- brms::get_dpar(prep, "mu", i = i)   # lambda_shared -- see bipois()
   lambdaone <- .get_rate(prep, "lambdaone", "lambdaem", i = i)
   lambdatwo <- .get_rate(prep, "lambdatwo", "lambdalb", i = i)
@@ -284,7 +284,7 @@ posterior_predict_bipois_joint <- function(i, prep, ...) {
   # y1_obs is deliberately IGNORED here: every row gets a y1 draw conditional on
   # its observed y2, matched and y2-only alike, which is what imputing the
   # unobserved margin across every row requires. Same convention as
-  # posterior_predict_binegbin_joint().
+  # posterior_predict_binegbin_cens().
   #
   # Unlike the negative-binomial families, the conditional split is exactly
   # Binomial: conditioning a sum of independent Poissons on its total gives a
@@ -297,17 +297,17 @@ posterior_predict_bipois_joint <- function(i, prep, ...) {
   n_shared + n1
 }
 
-#' @rdname bipois_joint
+#' @rdname bipois_cens
 #' @export
 #' @keywords internal
-posterior_epred_bipois_joint <- function(prep) {
+posterior_epred_bipois_cens <- function(prep) {
   mu        <- brms::get_dpar(prep, "mu")   # lambda_shared -- see bipois()
   lambdaone <- .get_rate(prep, "lambdaone", "lambdaem")
   lambdatwo <- .get_rate(prep, "lambdatwo", "lambdalb")
   y2 <- prep$data$vint1
   # E[y1 | y2] = E[N_shared | y2] + E[N1] = y2 * mu/(mu + lambdatwo) + lambdaone,
   # exact, being the mean of the Binomial split used in
-  # posterior_predict_bipois_joint() above. Returned for every row including the
+  # posterior_predict_bipois_cens() above. Returned for every row including the
   # censored ones, matching that function's convention: the conditional
   # expectation of the unobserved margin is defined there too, and is the
   # quantity a user imputing y1 wants.

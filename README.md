@@ -29,8 +29,8 @@ overdispersed, and whether one of the two counts may be missing:
 
 | | both counts observed | first count sometimes unobserved |
 |---|---|---|
-| **equidispersed** (Poisson latents) | `bipois()` | `bipois_joint()` |
-| **overdispersed** (negative-binomial latents) | `binegbin()` | `binegbin_joint()` |
+| **equidispersed** (Poisson latents) | `bipois()` | `bipois_cens()` |
+| **overdispersed** (negative-binomial latents) | `binegbin()` | `binegbin_cens()` |
 
 The three rates the likelihood takes can be reparameterised as overall level
 $M$, congruence $f$, and source bias $\delta$, which separates the first three
@@ -58,27 +58,15 @@ positive correlation. Copulas are an alternative, imposing a dependence
 structure on transformed margins rather than generating one from the count
 parameters (Genest and Nešlehová 2007).
 
-The shared component cancels in the difference, so $d$ alone identifies neither
-the overall level nor the correlation. Modelling each count separately assumes
-the dependence is zero. Regressing the difference on one of the two counts
-places that count on both sides of the equation, inducing a spurious dependence:
-the fitted slope is biased towards $-1$ by shared sampling error alone (Bland
-and Altman 1986).
+Modelling each count separately assumes that dependence is zero. Standard
+`brms` count families (Poisson, negative binomial, …) model a single
+non-negative response, and cannot take a jointly-modelled pair.
 
-Standard `brms` count families (Poisson, negative binomial, …) model a single
-non-negative response, and cannot take a jointly-modelled pair. This package
-supplies that.
+This package supplies four families with likelihood $P(y_1, y_2)$.
 
-**What a joint family costs and buys, against modelling $d$ directly.** It
-retains the pair's level, its correlation, and its difference, so nothing a
-difference model captures is lost. Two requirements point the other way:
-truncation via `resp_trunc()`, which these families do not support, and — for
-`bipois()`/`binegbin()` — rows on which only one count was observed, which the
-`_joint` variants admit and the others do not.
-
-The two parameterisations are related. For the bivariate Poisson the difference
-$y_1 - y_2$ is exactly Skellam-distributed (Skellam 1946), so `bipois` contains
-the Skellam as its induced difference model.
+For the bivariate Poisson the difference $y_1 - y_2$ is exactly
+Skellam-distributed (Skellam 1946), so `bipois()` induces the Skellam as its
+difference model.
 
 ## The construction
 
@@ -159,8 +147,8 @@ an interactive widget linking the two parameterisations.
 
 | Latent law | Families | Dispersion dpars | Var of each latent | Use when |
 |---|---|---|---|---|
-| Poisson | `bipois()`, `bipois_joint()` | none | $\mathrm{Var}=\text{mean}$ | margins are **not** overdispersed |
-| negative-binomial | `binegbin()`, `binegbin_joint()` | `shapes` (shared), `shapex` or `shapexone`/`shapextwo` (private) | $m + m^2/\phi$ | margins **are** overdispersed (the usual case) |
+| Poisson | `bipois()`, `bipois_cens()` | none | $\mathrm{Var}=\text{mean}$ | margins are **not** overdispersed |
+| negative-binomial | `binegbin()`, `binegbin_cens()` | `shapes` (shared), `shapex` or `shapexone`/`shapextwo` (private) | $m + m^2/\phi$ | margins **are** overdispersed (the usual case) |
 
 With Poisson latents, each component has $\mathrm{Var}=\text{mean}$, so the
 Poisson families cannot represent overdispersed margins and underfit the
@@ -171,11 +159,11 @@ $m + m^2/\phi$. They carry the extra spread in **scalar** dispersion dpars:
 `shapes` $=\phi_{\text{s}}$ for the shared count, and `shapex`
 $=\phi_{\text{x}}$ shared across both private counts (`binegbin`) or
 `shapexone`/`shapextwo` $=\phi_{\text{x}1},\phi_{\text{x}2}$, one per private
-count (`binegbin_joint`). The moments become
+count (`binegbin_cens`). The moments become
 
 $$
-\mathrm{Var}(y_1) = \Big(\mu+\tfrac{\mu^2}{\phi_{\text{s}}}\Big)
-  + \Big(\lambda_1+\tfrac{\lambda_1^2}{\phi_{\text{x}}}\Big),
+\mathrm{Var}(y_1) = \Big(\mu+\tfrac{\mu^2}{\phi_{\text{s}}}\Big) +
+  \Big(\lambda_1+\tfrac{\lambda_1^2}{\phi_{\text{x}}}\Big),
 \qquad
 \mathrm{Cov}(y_1,y_2) = \mu+\tfrac{\mu^2}{\phi_{\text{s}}},
 $$
@@ -183,7 +171,7 @@ $$
 and, with $\lambda_1=\lambda_2=\lambda$,
 $\mathrm{Var}(d) = 2\big(\lambda + \lambda^2/\phi_{\text{x}}\big)$. As
 $\phi_{\text{s}},\phi_{\text{x}}\to\infty$ the negative-binomials collapse to
-Poissons, `binegbin` $\to$ `bipois` and `binegbin_joint` $\to$ `bipois_joint`.
+Poissons, `binegbin` $\to$ `bipois` and `binegbin_cens` $\to$ `bipois_cens`.
 That limit is not only a description: it is used as a test (see
 [Testing](#testing)).
 
@@ -200,9 +188,9 @@ posterior-predictive check does not reveal this; a marginal one does. Scalar
 `shapes`/`shapex` are instead identified from the aggregate mean–variance
 relationship across units. The `binegbin.R` file header gives the detail.
 
-### `bipois_joint` and `binegbin_joint`: partially-observed pairs
+### `bipois_cens` and `binegbin_cens`: partially-observed pairs
 
-The two `_joint` families extend their siblings to rows where $y_1$ was **not
+The two `_cens` families extend their siblings to rows where $y_1$ was **not
 observed** — that margin is censored, not matched. Each row carries a second
 `vint()` integer, a `y1_obs` $\in\{0,1\}$ flag:
 
@@ -227,44 +215,44 @@ structure. See [Limitations](#limitations) for the identifiability caveat this
 implies.
 
 **The Poisson case's marginal is closed form.** A sum of independent Poissons is
-Poisson, so for `bipois_joint` the convolution above collapses exactly to
+Poisson, so for `bipois_cens` the convolution above collapses exactly to
 
 $$
 y_2 \sim \mathrm{Poisson}(\mu + \lambda_2),
 $$
 
-with no sum to evaluate. `binegbin_joint` has no such shortcut, because
+with no sum to evaluate. `binegbin_cens` has no such shortcut, because
 $\mathrm{NB2} + \mathrm{NB2}$ is not $\mathrm{NB2}$ unless the two components
 share a success probability, so it evaluates the convolution term by term. This
-also makes `bipois_joint` the analytic reference against which
-`binegbin_joint`'s censored branch is checked.
+also makes `bipois_cens` the analytic reference against which
+`binegbin_cens`'s censored branch is checked.
 
-It sharpens what the censored rows can say, too. For `bipois_joint` they see
+It sharpens what the censored rows can say, too. For `bipois_cens` they see
 $\mu$ and $\lambda_2$ only through their **sum**: they constrain the total rate
 of the observed margin, not how it splits between shared and private. Separating
 the two — and so estimating the congruence $f$ — rests on the matched rows
 however many censored rows there are.
 
-**Two excess dispersions (`binegbin_joint` only).** Unlike `binegbin`, which
-carries a single `shapex`, `binegbin_joint` gives each private component its own
+**Two excess dispersions (`binegbin_cens` only).** Unlike `binegbin`, which
+carries a single `shapex`, `binegbin_cens` gives each private component its own
 dispersion — `shapexone` $=\phi_{\text{x}1}$ for $N_1$ and `shapextwo`
 $=\phi_{\text{x}2}$ for $N_2$ — so the two sources may be differently
 overdispersed. Six dpars in all:
 
 $$
-\mathrm{Var}(y_1) = \Big(\mu+\tfrac{\mu^2}{\phi_{\text{s}}}\Big)
-  + \Big(\lambda_1+\tfrac{\lambda_1^2}{\phi_{\text{x}1}}\Big),
+\mathrm{Var}(y_1) = \Big(\mu+\tfrac{\mu^2}{\phi_{\text{s}}}\Big) +
+  \Big(\lambda_1+\tfrac{\lambda_1^2}{\phi_{\text{x}1}}\Big),
 \qquad
-\mathrm{Var}(y_2) = \Big(\mu+\tfrac{\mu^2}{\phi_{\text{s}}}\Big)
-  + \Big(\lambda_2+\tfrac{\lambda_2^2}{\phi_{\text{x}2}}\Big),
+\mathrm{Var}(y_2) = \Big(\mu+\tfrac{\mu^2}{\phi_{\text{s}}}\Big) +
+  \Big(\lambda_2+\tfrac{\lambda_2^2}{\phi_{\text{x}2}}\Big),
 $$
 
 while $\mathrm{Cov}(y_1,y_2) = \mu+\mu^2/\phi_{\text{s}}$ is unchanged, since
 only the shared component contributes to it. Freeing the two dispersions
 therefore alters the margins and the difference but not the covariance, and the
 correlation changes only through its denominator. For the difference,
-$\mathrm{Var}(d) = \big(\lambda_1+\lambda_1^2/\phi_{\text{x}1}\big)
-+ \big(\lambda_2+\lambda_2^2/\phi_{\text{x}2}\big)$, which at
+$\mathrm{Var}(d) = \big(\lambda_1+\lambda_1^2/\phi_{\text{x}1}\big) +
+\big(\lambda_2+\lambda_2^2/\phi_{\text{x}2}\big)$, which at
 $\lambda_1=\lambda_2=\lambda$ reduces to
 $2\lambda + \lambda^2\big(1/\phi_{\text{x}1} + 1/\phi_{\text{x}2}\big)$: the two
 dispersions enter through their reciprocals, so the more overdispersed source
@@ -304,18 +292,18 @@ fit_nb <- brm(
   data = dat, family = binegbin(), stanvars = binegbin_stanvars(), chains = 4
 )
 
-# bipois_joint(): equidispersed, and y1 is unobserved where y1_obs == 0
+# bipois_cens(): equidispersed, and y1 is unobserved where y1_obs == 0
 fit_pj <- brm(
   bf(y1 | vint(y2, y1_obs) ~ 1,
      mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
      nlf(lambdaone ~ lamx + methd),
      nlf(lambdatwo ~ lamx - methd),
      lamx ~ 1, methd ~ 1, nl = TRUE),
-  data = dat, family = bipois_joint(), stanvars = bipois_joint_stanvars(),
+  data = dat, family = bipois_cens(), stanvars = bipois_cens_stanvars(),
   chains = 4
 )
 
-# binegbin_joint(): the same censoring, with overdispersed margins
+# binegbin_cens(): the same censoring, with overdispersed margins
 fit_cj <- brm(
   bf(y1 | vint(y2, y1_obs) ~ 1,
      mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
@@ -323,7 +311,7 @@ fit_cj <- brm(
      nlf(lambdatwo ~ lamx - methd),
      lamx ~ 1, methd ~ 1, shapes ~ 1,
      shapexone ~ 1, shapextwo ~ 1, nl = TRUE),
-  data = dat, family = binegbin_joint(), stanvars = binegbin_joint_stanvars(),
+  data = dat, family = binegbin_cens(), stanvars = binegbin_cens_stanvars(),
   chains = 4
 )
 
@@ -336,7 +324,7 @@ fit_cj_sym <- brm(
      nlf(shapexone ~ shapexx),
      nlf(shapextwo ~ shapexx),
      lamx ~ 1, methd ~ 1, shapes ~ 1, shapexx ~ 1, nl = TRUE),
-  data = dat, family = binegbin_joint(), stanvars = binegbin_joint_stanvars(),
+  data = dat, family = binegbin_cens(), stanvars = binegbin_cens_stanvars(),
   chains = 4
 )
 ```
@@ -349,7 +337,7 @@ ratio of the two private rates); giving the two rates separate predictors
 (`nlf(lambdaone ~ l1)`, `nlf(lambdatwo ~ l2)`, `l1 ~ 1`, `l2 ~ 1`) is the fully
 unconstrained version.
 
-The second count (and, for the `_joint` families, the flag) travel via `vint()`
+The second count (and, for the `_cens` families, the flag) travel via `vint()`
 because `custom_family()` declares a single response column —
 `vint(y2, y1_obs)` binds `vint1 = y2`, `vint2 = y1_obs` in listed order. On
 censored rows the response column is not read by the likelihood, so any integer
@@ -375,7 +363,7 @@ prior = c(
 )
 ```
 
-For `binegbin_joint`, whose two excess dispersions are separate dpars, the last
+For `binegbin_cens`, whose two excess dispersions are separate dpars, the last
 line becomes two:
 
 ```r
@@ -417,16 +405,16 @@ $$
 \mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_{\text{shared}} \mid y_2] + \lambda_1
 $$
 
-- **`bipois` / `bipois_joint`:** the conditional split is closed form.
+- **`bipois` / `bipois_cens`:** the conditional split is closed form.
   Conditioning a sum of independent Poissons on its total gives a Binomial, so
   $N_{\text{shared}}\mid y_2 \sim \text{Binomial}\big(y_2,\,
   \mu/(\mu+\lambda_2)\big)$, then a fresh $N_1$; the expectation is
   $y_2\,\mu/(\mu+\lambda_2) + \lambda_1$.
-- **`binegbin` / `binegbin_joint`:** a negative-binomial sum has no Binomial
+- **`binegbin` / `binegbin_cens`:** a negative-binomial sum has no Binomial
   conditional, so the discrete law $P(N_{\text{shared}}=k\mid y_2)
   \propto f_{\text{s}}(k)\,f_2(y_2-k)$ over $k = 0,\ldots,y_2$ is sampled
   directly for prediction, and summed for the expectation. Both are exact.
-- For the `_joint` families, `y1_obs` is **ignored** by both: every row (matched
+- For the `_cens` families, `y1_obs` is **ignored** by both: every row (matched
   and censored alike) gets a conditional $y_1$, so the unobserved margin can be
   imputed fleet-wide. That is the point of fitting them.
 
@@ -489,8 +477,8 @@ confirm.
 | `lambdaone`, `lambdatwo` | $\lambda_1$, $\lambda_2$ | rates of the two private components |
 | `shapes` | $\phi_{\text{s}}$ | NB2 dispersion of the shared component |
 | `shapex` | $\phi_{\text{x}}$ | NB2 dispersion shared by both private components (`binegbin`) |
-| `shapexone`, `shapextwo` | $\phi_{\text{x}1}$, $\phi_{\text{x}2}$ | NB2 dispersions of the two private components (`binegbin_joint`) |
-| `y1_obs` (via `vint()`) | — | the `_joint` families' flag: was $y_1$ observed? |
+| `shapexone`, `shapextwo` | $\phi_{\text{x}1}$, $\phi_{\text{x}2}$ | NB2 dispersions of the two private components (`binegbin_cens`) |
+| `y1_obs` (via `vint()`) | — | the `_cens` families' flag: was $y_1$ observed? |
 
 Source 1 is whichever count you put on the left-hand side of the formula; the
 labelling carries no further meaning.
@@ -511,14 +499,29 @@ and then `pairedcountbrms` (0.6.0–0.8.0), which carried both these joint
 families and a set of families for modelling the difference $d = y_1 - y_2$
 directly. At 0.9.0 the two were separated: the joint families are this package,
 and the difference families returned to
-[`skellambrms`](https://github.com/anhsmith/skellambrms). No family, dpar or
-Stan function name changed in the split, so a stored fit still resolves its
-post-processing methods once the right package is attached — only
-`library(pairedcountbrms)` becomes `library(bicountbrms)` or
-`library(skellambrms)`. One numerical result did change: see
-`posterior_epred_binegbin()` under [Limitations](#limitations), and `NEWS.md`.
+[`skellambrms`](https://github.com/anhsmith/skellambrms). The split itself
+renamed nothing, so `library(pairedcountbrms)` becomes `library(bicountbrms)` or
+`library(skellambrms)` and that is all it requires.
 
 `github.com/anhsmith/pairedcountbrms` redirects here.
+
+**Migrating from 0.8.0 or earlier.** Two changes need action, and neither
+requires refitting.
+
+`binegbin_joint()` was renamed `binegbin_cens()` at 0.9.0, because all four
+families model the pair jointly and `_joint` therefore named a property common
+to all of them. `binegbin_joint()` and `binegbin_joint_stanvars()` still work
+and warn; replace them with `binegbin_cens()` and `binegbin_cens_stanvars()`.
+
+Stored fits need no change. A fit records `family$name == "binegbin_joint"`
+permanently, and brms builds its post-processing method names from that stored
+name, so `log_lik_binegbin_joint()`, `posterior_predict_binegbin_joint()` and
+`posterior_epred_binegbin_joint()` are retained as silent forwarders and are
+reached automatically by `loo()` and `posterior_predict()`. All five aliases are
+removed in the next major version. No dpar name changed.
+
+One numerical result also changed: see `posterior_epred_binegbin()` under
+[Limitations](#limitations), and `NEWS.md`.
 
 Documentation, including a worked getting-started vignette that simulates,
 fits, and recovers `binegbin` parameters end to end, is at
@@ -550,12 +553,12 @@ opposite directions, so they should not be substituted for one another.
 families; no `_lccdf_stanvars()` is provided for them. The difference families
 in [`skellambrms`](https://github.com/anhsmith/skellambrms) do support it.
 
-**The `_joint` families' identifiability under sparse pairing.** $\lambda_1$ and
+**The `_cens` families' identifiability under sparse pairing.** $\lambda_1$ and
 the between-source bias are informed only by the matched (`y1_obs == 1`) rows —
-as is `shapexone` for `binegbin_joint` — so a fit with few matched rows will
+as is `shapexone` for `binegbin_cens` — so a fit with few matched rows will
 learn them weakly even if the total sample is large. The censored rows add power
 for the shared and level parameters and for `shapextwo`, not for the bias. For
-`bipois_joint` the censored rows see $\mu$ and $\lambda_2$ only through their
+`bipois_cens` the censored rows see $\mu$ and $\lambda_2$ only through their
 sum, so the congruence $f$ is likewise a matched-row quantity. Fits that lean on
 the bias, on the congruence, or on a difference between the two excess
 dispersions should be judged against the matched subset, not the full $n$.
@@ -582,17 +585,17 @@ For every family the suite (`tests/testthat/`) validates:
 - the analytic **moment identities** — mean, marginal variance, difference
   variance, covariance;
 - the **Poisson-limit reductions** `binegbin` $\to$ `bipois` and
-  `binegbin_joint` $\to$ `bipois_joint`, the latter checked as a limit (the
+  `binegbin_cens` $\to$ `bipois_cens`, the latter checked as a limit (the
   error must shrink as $\phi$ grows) rather than at a single tolerance;
 - for `bipois`, that the induced difference $d = y_1 - y_2$ matches
   `skellam::dskellam()`;
 - end-to-end **parameter recovery** with divergence/$\hat R$ checks.
 
-For the `_joint` families it additionally pins the **marginal identity**
+For the `_cens` families it additionally pins the **marginal identity**
 ($\sum_{y_1}$ of the matched branch equals the $y_2$-only branch), the
 **equivalence** to the corresponding non-censoring family on `y1_obs == 1` rows
 (R and Stan), the **conditional-prediction identity** (`posterior_predict` draws
-match joint/marginal), and — for `bipois_joint` — that the closed-form censored
+match joint/marginal), and — for `bipois_cens` — that the closed-form censored
 branch equals the brute-force convolution, which is what licenses using the
 closed form at all.
 
@@ -659,18 +662,15 @@ Each family exports the family object, its `_stanvars()`, and `log_lik_`,
 | Function | Purpose |
 |---|---|
 | `bipois()` / `bipois_stanvars()` | Joint bivariate Poisson |
-| `bipois_joint()` / `bipois_joint_stanvars()` | Censoring-aware bivariate Poisson; closed-form censored branch |
+| `bipois_cens()` / `bipois_cens_stanvars()` | Censoring-aware bivariate Poisson; closed-form censored branch |
 | `binegbin()` / `binegbin_stanvars()` | Joint bivariate negative-binomial (overdispersed margins) |
-| `binegbin_joint()` / `binegbin_joint_stanvars()` | Censoring-aware bivariate negative-binomial, with a dispersion per private component |
+| `binegbin_cens()` / `binegbin_cens_stanvars()` | Censoring-aware bivariate negative-binomial, with a dispersion per private component |
 | `binegbin_mfd_to_dpars()` / `binegbin_dpars_to_mfd()` | Convert between $(M, f, \delta)$ and the rate/dispersion dpars |
 
 The `log_lik_`, `posterior_predict_` and `posterior_epred_` functions are
 located by `brms` via name convention and are not normally called directly.
 
 ## References
-
-Bland JM, Altman DG (1986) Statistical methods for assessing agreement between
-two methods of clinical measurement. *The Lancet* 327:307–310.
 
 Bürkner P-C (2017) brms: an R package for Bayesian multilevel models using Stan.
 *Journal of Statistical Software* 80:1–28.

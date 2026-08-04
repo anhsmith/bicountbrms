@@ -21,8 +21,8 @@ reference:
     components it is a convolution, and the two source-specific components may
     differ in overdispersion.
   contents:
-  - bipois_joint
-  - binegbin_joint
+  - bipois_cens
+  - binegbin_cens
 
 - title: Parameterisation helpers
   desc: >
@@ -31,3 +31,11 @@ reference:
   contents:
   - binegbin_mfd_to_dpars
   - binegbin_dpars_to_mfd
+
+- title: Deprecated
+  desc: >
+    Retained so that code and fitted models predating the 0.9.0 rename
+    binegbin_joint -> binegbin_cens keep working. Removed in the next major
+    version.
+  contents:
+  - binegbin_joint-deprecated

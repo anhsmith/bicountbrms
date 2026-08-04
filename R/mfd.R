@@ -2,19 +2,19 @@
 # (M, f, delta) <-> native dpar coordinates
 #
 # THE RATE HALF SERVES ALL FOUR FAMILIES. mu, lambdaone and lambdatwo are the
-# same three rates in bipois(), bipois_joint(), binegbin() and
-# binegbin_joint(), so the (M, f, delta) map below applies to every one of them
+# same three rates in bipois(), bipois_cens(), binegbin() and
+# binegbin_cens(), so the (M, f, delta) map below applies to every one of them
 # unchanged. Only the DISPERSION half is family-specific:
 #
-#   bipois(), bipois_joint()   no dispersion at all -- supply no kappa
+#   bipois(), bipois_cens()   no dispersion at all -- supply no kappa
 #   binegbin()                 one excess dispersion, kappax  -> shapex
-#   binegbin_joint()           one per margin since 0.8.0,
+#   binegbin_cens()           one per margin since 0.8.0,
 #                              kappaxone/kappaxtwo -> shapexone/shapextwo
 #
 # The argument names below say binegbin/bipois because those are the families
 # whose full dpar set they cover; see the @details of binegbin_mfd_to_dpars()
 # for the per-margin pair, and test-mfd.R for the check that the rate half
-# feeds bipois_joint()'s likelihood consistently.
+# feeds bipois_cens()'s likelihood consistently.
 #
 # binegbin()/bipois() are parameterised by three rates -- mu (shared),
 # lambdaone and lambdatwo (the two source-specific excesses) -- because that
@@ -73,10 +73,10 @@
 #' (`mu`, `lambdaone`, `lambdatwo`), optionally converting SD-scale dispersions
 #' `kappas`/`kappax` to the `shapes`/`shapex` dpars.
 #'
-#' The three rates are common to [bipois()], [bipois_joint()], [binegbin()] and
-#' [binegbin_joint()], so this direction serves all four. The dispersions are
+#' The three rates are common to [bipois()], [bipois_cens()], [binegbin()] and
+#' [binegbin_cens()], so this direction serves all four. The dispersions are
 #' where they differ: the Poisson families have none, [binegbin()] has one
-#' excess dispersion, and [binegbin_joint()] has one per margin.
+#' excess dispersion, and [binegbin_cens()] has one per margin.
 #'
 #' [binegbin_dpars_to_mfd()] is the exact inverse.
 #'
@@ -91,9 +91,9 @@
 #'   components. `0` is the Poisson limit. If supplied, the returned list gains
 #'   `shapes`/`shapex` (`= 1/kappa^2`, so `kappa = 0` gives `Inf`). `kappax` is
 #'   [binegbin()]'s single excess dispersion. Omit both for [bipois()] and
-#'   [bipois_joint()], which have no dispersion parameters.
+#'   [bipois_cens()], which have no dispersion parameters.
 #' @param kappaxone,kappaxtwo Optional per-margin SD-scale excess dispersions,
-#'   for [binegbin_joint()], which carries one per margin rather than one
+#'   for [binegbin_cens()], which carries one per margin rather than one
 #'   shared. If supplied, the returned list gains `shapexone`/`shapextwo`.
 #'   Mutually exclusive with `kappax`.
 #'
@@ -106,7 +106,7 @@
 #' [binegbin_dpars_to_mfd()] reports back as `NA`. This direction is always
 #' well defined; only the inverse degenerates.
 #'
-#' **Using these coordinates with [binegbin_joint()].** The three rates carry
+#' **Using these coordinates with [binegbin_cens()].** The three rates carry
 #' over unchanged. Since 0.8.0 that family's excess dispersion is the pair
 #' `shapexone`/`shapextwo` rather than a single `shapex`, so supply
 #' `kappaxone`/`kappaxtwo` instead of `kappax` and the returned list is named
@@ -118,7 +118,7 @@
 #' likelihood) pass the same value twice: `kappaxone = k, kappaxtwo = k`.
 #'
 #' **Using these coordinates with the Poisson families.** [bipois()] and
-#' [bipois_joint()] take the same three rates and no dispersion, so call this
+#' [bipois_cens()] take the same three rates and no dispersion, so call this
 #' with `M`, `f` and `delta` alone and pass the result straight through. There
 #' is no `kappa` to supply: the Poisson case is not a dispersion set to a
 #' particular value but the absence of the parameter, which is precisely why
@@ -147,7 +147,7 @@
 #' #     lf(eta ~ 1, con ~ 1, methd ~ 1)
 #' # where eta = log M, con = logit f, methd = delta.
 #'
-#' @seealso [binegbin_dpars_to_mfd()], [bipois()], [bipois_joint()], [binegbin()], [binegbin_joint()]
+#' @seealso [binegbin_dpars_to_mfd()], [bipois()], [bipois_cens()], [binegbin()], [binegbin_cens()]
 #' @export
 binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL,
                                   kappaxone = NULL, kappaxtwo = NULL) {
@@ -165,7 +165,7 @@ binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL,
   if (!is.null(kappax) && (!is.null(kappaxone) || !is.null(kappaxtwo))) {
     stop("Supply either `kappax` (one excess dispersion, for binegbin/bipois) ",
          "or `kappaxone`/`kappaxtwo` (the per-margin pair, for ",
-         "binegbin_joint), not both.", call. = FALSE)
+         "binegbin_cens), not both.", call. = FALSE)
   }
 
   excess_mid <- M * (1 - f)          # = (lambdaone + lambdatwo)/2, for any delta
@@ -193,7 +193,7 @@ binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL,
 #' `shapes`/`shapex` back to SD-scale `kappas`/`kappax`.
 #'
 #' As with the forward direction, the three rates are common to [bipois()],
-#' [bipois_joint()], [binegbin()] and [binegbin_joint()], so this serves all
+#' [bipois_cens()], [binegbin()] and [binegbin_cens()], so this serves all
 #' four; only the dispersion arguments are family-specific.
 #'
 #' @param mu Shared-component rate.
@@ -201,9 +201,9 @@ binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL,
 #' @param shapes,shapex Optional NB2 dispersions. If supplied, the returned list
 #'   gains `kappas`/`kappax` (`= 1/sqrt(shape)`, so `shape = Inf` gives `0`).
 #'   `shapex` is [binegbin()]'s single excess dispersion. A fit of [bipois()] or
-#'   [bipois_joint()] has neither to pass: read its three rates alone.
+#'   [bipois_cens()] has neither to pass: read its three rates alone.
 #' @param shapexone,shapextwo Optional per-margin NB2 excess dispersions, as
-#'   carried by [binegbin_joint()]. If supplied, the returned list gains
+#'   carried by [binegbin_cens()]. If supplied, the returned list gains
 #'   `kappaxone`/`kappaxtwo`. Mutually exclusive with `shapex`.
 #'
 #' @details
@@ -238,7 +238,7 @@ binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL,
 #' # Perfect congruence: bias is unidentified, reported as NA
 #' binegbin_dpars_to_mfd(mu = 12, lambdaone = 0, lambdatwo = 0)$delta
 #'
-#' @seealso [binegbin_mfd_to_dpars()], [bipois()], [bipois_joint()], [binegbin()], [binegbin_joint()]
+#' @seealso [binegbin_mfd_to_dpars()], [bipois()], [bipois_cens()], [binegbin()], [binegbin_cens()]
 #' @export
 binegbin_dpars_to_mfd <- function(mu, lambdaone, lambdatwo,
                                   shapes = NULL, shapex = NULL,
@@ -256,7 +256,7 @@ binegbin_dpars_to_mfd <- function(mu, lambdaone, lambdatwo,
   if (!is.null(shapex) && (!is.null(shapexone) || !is.null(shapextwo))) {
     stop("Supply either `shapex` (one excess dispersion, from binegbin/bipois) ",
          "or `shapexone`/`shapextwo` (the per-margin pair, from ",
-         "binegbin_joint), not both.", call. = FALSE)
+         "binegbin_cens), not both.", call. = FALSE)
   }
 
   excess_sum <- lambdaone + lambdatwo

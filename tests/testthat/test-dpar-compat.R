@@ -3,8 +3,8 @@
 # 0.7.0 renamed the joint families' excess-rate dpars lambdaem/lambdalb to
 # lambdaone/lambdatwo. A brmsfit stores its OWN family object, so
 # prepare_predictions() on a fit made before the rename hands post-processing a
-# prep whose dpars carry the old names. Every rate read in bipois/binegbin/
-# binegbin_joint therefore goes through .get_rate(), which resolves the name
+# prep whose dpars carry the old names. Every rate read in bipois/bipois_cens/
+# binegbin/binegbin_cens therefore goes through .get_rate(), which resolves the name
 # against the fit rather than assuming the current spelling.
 #
 # What these tests pin: identical inputs under either spelling produce
@@ -53,9 +53,9 @@ test_that("log_lik is identical under old and new rate-dpar names", {
       label = paste0("bipois, obs ", i)
     )
     expect_equal(
-      log_lik_binegbin_joint(i, mk(OLD, vint2 = V2)),
-      log_lik_binegbin_joint(i, mk(NEW, vint2 = V2)),
-      label = paste0("binegbin_joint, obs ", i)
+      log_lik_binegbin_cens(i, mk(OLD, vint2 = V2)),
+      log_lik_binegbin_cens(i, mk(NEW, vint2 = V2)),
+      label = paste0("binegbin_cens, obs ", i)
     )
   }
 })
@@ -78,15 +78,15 @@ test_that("posterior_epred is identical under old and new rate-dpar names", {
     posterior_epred_bipois(mk(OLD, five = FALSE)),
     posterior_epred_bipois(mk(NEW, five = FALSE))
   )
-  # binegbin_joint gained a posterior_epred at 0.9.0, so a pre-existing fit is
+  # binegbin_cens gained a posterior_epred at 0.9.0, so a pre-existing fit is
   # post-processed by code it never ran under. It resolves both rates through
   # .get_rate() and its excess dispersion through .SHAPEXTWO_NAMES, whose last
   # candidate is the five-dpar `shapex` supplied by mk() -- the same fallback
-  # log_lik and posterior_predict already rely on. bipois_joint is not tested
+  # log_lik and posterior_predict already rely on. bipois_cens is not tested
   # here: it is new at 0.9.0, so no fit can carry the old spellings.
   expect_equal(
-    posterior_epred_binegbin_joint(mk(OLD, vint2 = V2)),
-    posterior_epred_binegbin_joint(mk(NEW, vint2 = V2))
+    posterior_epred_binegbin_cens(mk(OLD, vint2 = V2)),
+    posterior_epred_binegbin_cens(mk(NEW, vint2 = V2))
   )
 })
 
@@ -102,9 +102,9 @@ test_that("posterior_predict is identical under old and new rate-dpar names", {
     set.seed(42); b <- posterior_predict_bipois(i, mk(NEW, five = FALSE))
     expect_identical(a, b, label = paste0("bipois, obs ", i))
 
-    set.seed(42); a <- posterior_predict_binegbin_joint(i, mk(OLD, vint2 = V2))
-    set.seed(42); b <- posterior_predict_binegbin_joint(i, mk(NEW, vint2 = V2))
-    expect_identical(a, b, label = paste0("binegbin_joint, obs ", i))
+    set.seed(42); a <- posterior_predict_binegbin_cens(i, mk(OLD, vint2 = V2))
+    set.seed(42); b <- posterior_predict_binegbin_cens(i, mk(NEW, vint2 = V2))
+    expect_identical(a, b, label = paste0("binegbin_cens, obs ", i))
   }
 })
 
