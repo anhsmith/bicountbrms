@@ -94,6 +94,11 @@
 #' `shapes`, `lambdatwo`, `shapextwo`, and the shared vessel/trip
 #' random-effect structure.
 #'
+#' [bipois_joint()] is the equidispersed counterpart: the same censoring, with
+#' Poisson rather than Negative-Binomial components. Prefer it where the margins
+#' are not overdispersed, rather than fitting this family with its dispersions
+#' pressed against the Poisson boundary, and compare the two with `loo()`.
+#'
 #' Six dpars: the three rates (`mu` = shared rate, `lambdaone`/`lambdatwo` =
 #' the two source-specific rates) plus three dispersions -- `shapes` for the
 #' shared component and `shapexone`/`shapextwo` for the two source-specific

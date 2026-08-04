@@ -1,11 +1,20 @@
 # ==========================================================================
-# (M, f, delta) <-> native dpar coordinates for binegbin() and bipois()
+# (M, f, delta) <-> native dpar coordinates
 #
-# NOT binegbin_joint(), whose excess dispersion is the per-margin PAIR
-# shapexone/shapextwo since 0.8.0 rather than a single shapex. The RATE half of
-# these converters (mu, lambdaone, lambdatwo) applies to it unchanged -- it is
-# only the dispersion half that differs. See the @details of
-# binegbin_mfd_to_dpars() for how to use these coordinates with that family.
+# THE RATE HALF SERVES ALL FOUR FAMILIES. mu, lambdaone and lambdatwo are the
+# same three rates in bipois(), bipois_joint(), binegbin() and
+# binegbin_joint(), so the (M, f, delta) map below applies to every one of them
+# unchanged. Only the DISPERSION half is family-specific:
+#
+#   bipois(), bipois_joint()   no dispersion at all -- supply no kappa
+#   binegbin()                 one excess dispersion, kappax  -> shapex
+#   binegbin_joint()           one per margin since 0.8.0,
+#                              kappaxone/kappaxtwo -> shapexone/shapextwo
+#
+# The argument names below say binegbin/bipois because those are the families
+# whose full dpar set they cover; see the @details of binegbin_mfd_to_dpars()
+# for the per-margin pair, and test-mfd.R for the check that the rate half
+# feeds bipois_joint()'s likelihood consistently.
 #
 # binegbin()/bipois() are parameterised by three rates -- mu (shared),
 # lambdaone and lambdatwo (the two source-specific excesses) -- because that
@@ -60,9 +69,14 @@
 #'
 #' @description
 #' Maps the interpretable coordinates -- overall level `M`, congruence `f`, and
-#' source bias `delta` -- onto the rate dpars that [binegbin()] and [bipois()]
-#' actually take (`mu`, `lambdaone`, `lambdatwo`), optionally converting
-#' SD-scale dispersions `kappas`/`kappax` to the `shapes`/`shapex` dpars.
+#' source bias `delta` -- onto the rate dpars every family in this package takes
+#' (`mu`, `lambdaone`, `lambdatwo`), optionally converting SD-scale dispersions
+#' `kappas`/`kappax` to the `shapes`/`shapex` dpars.
+#'
+#' The three rates are common to [bipois()], [bipois_joint()], [binegbin()] and
+#' [binegbin_joint()], so this direction serves all four. The dispersions are
+#' where they differ: the Poisson families have none, [binegbin()] has one
+#' excess dispersion, and [binegbin_joint()] has one per margin.
 #'
 #' [binegbin_dpars_to_mfd()] is the exact inverse.
 #'
@@ -76,7 +90,8 @@
 #' @param kappas,kappax Optional SD-scale dispersions for the shared and excess
 #'   components. `0` is the Poisson limit. If supplied, the returned list gains
 #'   `shapes`/`shapex` (`= 1/kappa^2`, so `kappa = 0` gives `Inf`). `kappax` is
-#'   the single excess dispersion of [binegbin()]/[bipois()].
+#'   [binegbin()]'s single excess dispersion. Omit both for [bipois()] and
+#'   [bipois_joint()], which have no dispersion parameters.
 #' @param kappaxone,kappaxtwo Optional per-margin SD-scale excess dispersions,
 #'   for [binegbin_joint()], which carries one per margin rather than one
 #'   shared. If supplied, the returned list gains `shapexone`/`shapextwo`.
@@ -102,6 +117,14 @@
 #' For the symmetric model (one excess dispersion, term for term the pre-0.8.0
 #' likelihood) pass the same value twice: `kappaxone = k, kappaxtwo = k`.
 #'
+#' **Using these coordinates with the Poisson families.** [bipois()] and
+#' [bipois_joint()] take the same three rates and no dispersion, so call this
+#' with `M`, `f` and `delta` alone and pass the result straight through. There
+#' is no `kappa` to supply: the Poisson case is not a dispersion set to a
+#' particular value but the absence of the parameter, which is precisely why
+#' fitting it wants its own family rather than [binegbin()] with `kappa`
+#' driven to `0`.
+#'
 #' @return A named list of `mu`, `lambdaone`, `lambdatwo`, plus `shapes` when
 #'   `kappas` is supplied, `shapex` when `kappax` is, and
 #'   `shapexone`/`shapextwo` when `kappaxone`/`kappaxtwo` are.
@@ -124,7 +147,7 @@
 #' #     lf(eta ~ 1, con ~ 1, methd ~ 1)
 #' # where eta = log M, con = logit f, methd = delta.
 #'
-#' @seealso [binegbin_dpars_to_mfd()], [binegbin()], [bipois()]
+#' @seealso [binegbin_dpars_to_mfd()], [bipois()], [bipois_joint()], [binegbin()], [binegbin_joint()]
 #' @export
 binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL,
                                   kappaxone = NULL, kappaxtwo = NULL) {
@@ -169,11 +192,16 @@ binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL,
 #' congruence `f`, and source bias `delta`, optionally converting
 #' `shapes`/`shapex` back to SD-scale `kappas`/`kappax`.
 #'
+#' As with the forward direction, the three rates are common to [bipois()],
+#' [bipois_joint()], [binegbin()] and [binegbin_joint()], so this serves all
+#' four; only the dispersion arguments are family-specific.
+#'
 #' @param mu Shared-component rate.
 #' @param lambdaone,lambdatwo The two excess rates.
 #' @param shapes,shapex Optional NB2 dispersions. If supplied, the returned list
 #'   gains `kappas`/`kappax` (`= 1/sqrt(shape)`, so `shape = Inf` gives `0`).
-#'   `shapex` is the single excess dispersion of [binegbin()]/[bipois()].
+#'   `shapex` is [binegbin()]'s single excess dispersion. A fit of [bipois()] or
+#'   [bipois_joint()] has neither to pass: read its three rates alone.
 #' @param shapexone,shapextwo Optional per-margin NB2 excess dispersions, as
 #'   carried by [binegbin_joint()]. If supplied, the returned list gains
 #'   `kappaxone`/`kappaxtwo`. Mutually exclusive with `shapex`.
@@ -210,7 +238,7 @@ binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL,
 #' # Perfect congruence: bias is unidentified, reported as NA
 #' binegbin_dpars_to_mfd(mu = 12, lambdaone = 0, lambdatwo = 0)$delta
 #'
-#' @seealso [binegbin_mfd_to_dpars()], [binegbin()], [bipois()]
+#' @seealso [binegbin_mfd_to_dpars()], [bipois()], [bipois_joint()], [binegbin()], [binegbin_joint()]
 #' @export
 binegbin_dpars_to_mfd <- function(mu, lambdaone, lambdatwo,
                                   shapes = NULL, shapex = NULL,

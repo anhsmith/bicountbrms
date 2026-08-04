@@ -28,7 +28,8 @@ and gives the limit where one excess rate is zero.}
 \item{kappas, kappax}{Optional SD-scale dispersions for the shared and excess
 components. `0` is the Poisson limit. If supplied, the returned list gains
 `shapes`/`shapex` (`= 1/kappa^2`, so `kappa = 0` gives `Inf`). `kappax` is
-the single excess dispersion of [binegbin()]/[bipois()].}
+[binegbin()]'s single excess dispersion. Omit both for [bipois()] and
+[bipois_joint()], which have no dispersion parameters.}
 
 \item{kappaxone, kappaxtwo}{Optional per-margin SD-scale excess dispersions,
 for [binegbin_joint()], which carries one per margin rather than one
@@ -42,9 +43,14 @@ A named list of `mu`, `lambdaone`, `lambdatwo`, plus `shapes` when
 }
 \description{
 Maps the interpretable coordinates -- overall level `M`, congruence `f`, and
-source bias `delta` -- onto the rate dpars that [binegbin()] and [bipois()]
-actually take (`mu`, `lambdaone`, `lambdatwo`), optionally converting
-SD-scale dispersions `kappas`/`kappax` to the `shapes`/`shapex` dpars.
+source bias `delta` -- onto the rate dpars every family in this package takes
+(`mu`, `lambdaone`, `lambdatwo`), optionally converting SD-scale dispersions
+`kappas`/`kappax` to the `shapes`/`shapex` dpars.
+
+The three rates are common to [bipois()], [bipois_joint()], [binegbin()] and
+[binegbin_joint()], so this direction serves all four. The dispersions are
+where they differ: the Poisson families have none, [binegbin()] has one
+excess dispersion, and [binegbin_joint()] has one per margin.
 
 [binegbin_dpars_to_mfd()] is the exact inverse.
 }
@@ -67,6 +73,14 @@ and returning both would leave the caller to guess which their family wants.
 
 For the symmetric model (one excess dispersion, term for term the pre-0.8.0
 likelihood) pass the same value twice: `kappaxone = k, kappaxtwo = k`.
+
+**Using these coordinates with the Poisson families.** [bipois()] and
+[bipois_joint()] take the same three rates and no dispersion, so call this
+with `M`, `f` and `delta` alone and pass the result straight through. There
+is no `kappa` to supply: the Poisson case is not a dispersion set to a
+particular value but the absence of the parameter, which is precisely why
+fitting it wants its own family rather than [binegbin()] with `kappa`
+driven to `0`.
 }
 \examples{
 # A moderately congruent pair, source 1 running high
@@ -88,5 +102,5 @@ binegbin_mfd_to_dpars(M = 12, f = 1, delta = 0.5)
 
 }
 \seealso{
-[binegbin_dpars_to_mfd()], [binegbin()], [bipois()]
+[binegbin_dpars_to_mfd()], [bipois()], [bipois_joint()], [binegbin()], [binegbin_joint()]
 }

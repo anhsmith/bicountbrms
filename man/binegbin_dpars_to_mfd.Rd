@@ -21,7 +21,8 @@ binegbin_dpars_to_mfd(
 
 \item{shapes, shapex}{Optional NB2 dispersions. If supplied, the returned list
 gains `kappas`/`kappax` (`= 1/sqrt(shape)`, so `shape = Inf` gives `0`).
-`shapex` is the single excess dispersion of [binegbin()]/[bipois()].}
+`shapex` is [binegbin()]'s single excess dispersion. A fit of [bipois()] or
+[bipois_joint()] has neither to pass: read its three rates alone.}
 
 \item{shapexone, shapextwo}{Optional per-margin NB2 excess dispersions, as
 carried by [binegbin_joint()]. If supplied, the returned list gains
@@ -37,6 +38,10 @@ Exact inverse of [binegbin_mfd_to_dpars()]. Reads the rate dpars `mu`,
 `lambdaone`, `lambdatwo` back into the interpretable overall level `M`,
 congruence `f`, and source bias `delta`, optionally converting
 `shapes`/`shapex` back to SD-scale `kappas`/`kappax`.
+
+As with the forward direction, the three rates are common to [bipois()],
+[bipois_joint()], [binegbin()] and [binegbin_joint()], so this serves all
+four; only the dispersion arguments are family-specific.
 }
 \details{
 Arguments are recycled to a common length, so this vectorises over posterior
@@ -68,5 +73,5 @@ binegbin_dpars_to_mfd(mu = 12, lambdaone = 0, lambdatwo = 0)$delta
 
 }
 \seealso{
-[binegbin_mfd_to_dpars()], [binegbin()], [bipois()]
+[binegbin_mfd_to_dpars()], [bipois()], [bipois_joint()], [binegbin()], [binegbin_joint()]
 }

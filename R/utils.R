@@ -25,7 +25,8 @@
 # satisfies both for free.
 #
 # Hence: resolve the name against the fit, then hand that name to brms.
-# Every rate read in bipois.R/binegbin.R/binegbin_joint.R goes through here,
+# Every rate read in every family goes through here -- bipois.R,
+# bipois_joint.R, binegbin.R and binegbin_joint.R --
 # which is what lets pre-0.7.0 fits keep working with loo(),
 # posterior_predict() and log_lik() without refitting.
 .get_rate <- function(prep, new, old, i = NULL) {

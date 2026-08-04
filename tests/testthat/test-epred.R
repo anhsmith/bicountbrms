@@ -177,7 +177,8 @@ test_that("y2 = 0 leaves the conditional expectation at lambdaone alone", {
                  shapex = rep(SHAPEX, 2L)),
     Y = 0L, vint1 = 0L, vint2 = 1L
   )
-  for (ep in list(posterior_epred_bipois_joint(zero_pois),
+  for (ep in list(posterior_epred_bipois(zero_pois),
+                  posterior_epred_bipois_joint(zero_pois),
                   posterior_epred_binegbin(zero_nb),
                   posterior_epred_binegbin_joint(zero_nb))) {
     expect_equal(unique(as.vector(ep)), LONE, tolerance = 1e-12)
