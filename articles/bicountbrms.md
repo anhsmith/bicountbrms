@@ -14,9 +14,9 @@ that the posterior finds the truth, and then predict and score. The
 other joint families
 ([`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md),
 and the censoring-aware
-[`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)
+[`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
 and
-[`bipois_joint()`](https://anhsmith.github.io/bicountbrms/reference/bipois_joint.md))
+[`bipois_cens()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md))
 follow the same pattern; the README compares them.
 
 Everything here is a brms custom family ([Bürkner
@@ -298,12 +298,12 @@ second source implies about the first.
 For
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
 and
-[`bipois_joint()`](https://anhsmith.github.io/bicountbrms/reference/bipois_joint.md)
+[`bipois_cens()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md)
 it is closed form, because conditioning a sum of independent Poissons on
 its total gives a Binomial split. For
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 and
-[`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)
+[`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
 there is no such shortcut, so the conditional is evaluated over its
 support $`k = 0, \ldots, y_2`$ and summed. All four are exact, and each
 agrees with the mean of its own
@@ -332,7 +332,7 @@ posterior_epred_binegbin(prepare_predictions(fit))
   dpars instead of five. Use it when the margins are not overdispersed;
   compare the two with
   [`loo()`](https://mc-stan.org/loo/reference/loo.html).
-- [`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)
+- [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
   — censoring-aware, for data where one of the two counts is missing on
   some rows. It admits those rows via the integrated-out marginal
   instead of dropping them. It also gives each excess component its own
@@ -356,14 +356,14 @@ posterior_epred_binegbin(prepare_predictions(fit))
   parameterisation has no such nulls. Worked end to end in the article
   [*The anatomy of a paired
   count*](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html).
-- [`bipois_joint()`](https://anhsmith.github.io/bicountbrms/reference/bipois_joint.md)
+- [`bipois_cens()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md)
   — censoring-aware and equidispersed:
-  [`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)’s
+  [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)’s
   Poisson special case. Its integrated-out marginal is closed form,
   $`y_2 \sim \mathrm{Poisson}(\mu + \lambda_2)`$, since a sum of
   independent Poissons is Poisson. Use it when the margins are not
   overdispersed, rather than fitting
-  [`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)
+  [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
   with its dispersions pressed against the Poisson boundary.
 - **Modelling the difference instead.** Where only the disagreement
   $`d = y_1 - y_2`$ is of interest, or where truncation via

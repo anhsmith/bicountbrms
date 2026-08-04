@@ -10,16 +10,16 @@ supplementary integers via \`vint()\`: \`y2\` (the always-observed
 second count) and \`y1_obs\` (a 0/1 flag marking whether \`y1\` was
 observed for that row).
 
-Stands to \[bipois()\] exactly as \[binegbin_joint()\] stands to
+Stands to \[bipois()\] exactly as \[binegbin_cens()\] stands to
 \[binegbin()\], and is the equidispersed special case of
-\[binegbin_joint()\].
+\[binegbin_cens()\].
 
 On \`y1_obs == 1\` (matched) rows the likelihood is the full joint
 \[bipois()\] lpmf on \`(y1, y2)\`. On \`y1_obs == 0\` (\`y2\`-only) rows
 it is the \`y1\`-integrated marginal of that same joint, which for
 Poisson components is available in closed form: a sum of independent
 Poissons is Poisson, so \`y2 ~ Poisson(mu + lambdatwo)\` exactly.
-\[binegbin_joint()\] must evaluate the corresponding convolution as a
+\[binegbin_cens()\] must evaluate the corresponding convolution as a
 sum; this family does not.
 
 Three dpars, the same as \[bipois()\]: \`mu\` (shared rate),
@@ -29,20 +29,20 @@ Three dpars, the same as \[bipois()\]: \`mu\` (shared rate),
 Use in a brm() call as: brm( bf(y1 \| vint(y2, y1_obs) ~ 1, mu ~ 1 + (1
 \| vessel) + (1 \| vessel:trip_id), nlf(lambdaone ~ lamx + methd),
 nlf(lambdatwo ~ lamx - methd), lamx ~ 1, methd ~ 1, nl = TRUE), family =
-bipois_joint(), stanvars = bipois_joint_stanvars(), data = dat )
+bipois_cens(), stanvars = bipois_cens_stanvars(), data = dat )
 
 ## Usage
 
 ``` r
-bipois_joint()
+bipois_cens()
 
-bipois_joint_stanvars()
+bipois_cens_stanvars()
 
-log_lik_bipois_joint(i, prep)
+log_lik_bipois_cens(i, prep)
 
-posterior_predict_bipois_joint(i, prep, ...)
+posterior_predict_bipois_cens(i, prep, ...)
 
-posterior_epred_bipois_joint(prep)
+posterior_epred_bipois_cens(prep)
 ```
 
 ## Value
@@ -51,15 +51,15 @@ A brms custom_family object.
 
 ## Details
 
-\*\*When to use this rather than \[binegbin_joint()\].\*\* This family
+\*\*When to use this rather than \[binegbin_cens()\].\*\* This family
 fixes each latent component's variance equal to its mean. Where the
-counts are genuinely overdispersed relative to that,
-\[binegbin_joint()\] is the correct model and this one will understate
-the marginal variances. Where they are not, \[binegbin_joint()\] can
-only represent the fit by driving its dispersions to their Poisson limit
-(\`shape\` \\\to\infty\\, equivalently \`kappa\` \\\to 0\\), a boundary
-at which sampling degrades; fitting the equidispersed family directly
-avoids it. Compare the two with \`loo()\`.
+counts are genuinely overdispersed relative to that, \[binegbin_cens()\]
+is the correct model and this one will understate the marginal
+variances. Where they are not, \[binegbin_cens()\] can only represent
+the fit by driving its dispersions to their Poisson limit (\`shape\`
+\\\to\infty\\, equivalently \`kappa\` \\\to 0\\), a boundary at which
+sampling degrades; fitting the equidispersed family directly avoids it.
+Compare the two with \`loo()\`.
 
 \*\*What each rate is identified from.\*\* \`lambdatwo\` appears on both
 branches, so every row informs it. \`lambdaone\` appears only on the
@@ -78,9 +78,9 @@ design contains.
 listed in the formula's \`vint()\` term, matching the \`vars\` declared
 here (\`c("vint1\[n\]", "vint2\[n\]")\`): so \`vint(y2, y1_obs)\` binds
 \`vint1 = y2\` and \`vint2 = y1_obs\`. brms generates \`target +=
-bipois_joint_lpmf(Y\[n\] \| mu\[n\], lambdaone\[n\], lambdatwo\[n\],
+bipois_cens_lpmf(Y\[n\] \| mu\[n\], lambdaone\[n\], lambdatwo\[n\],
 vint1\[n\], vint2\[n\])\` – dpars in the order declared here, then the
-two vint args. \`bipois_joint_stan_funs\` declares \`bipois_joint_lpmf\`
+two vint args. \`bipois_cens_stan_funs\` declares \`bipois_cens_lpmf\`
 with exactly this signature; reordering the dpars or the two \`vint()\`
 terms without matching the Stan signature silently swaps which rate
 governs which component or which integer is the branch flag.

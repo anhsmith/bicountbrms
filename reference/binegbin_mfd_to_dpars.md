@@ -6,10 +6,10 @@ this package takes (\`mu\`, \`lambdaone\`, \`lambdatwo\`), optionally
 converting SD-scale dispersions \`kappas\`/\`kappax\` to the
 \`shapes\`/\`shapex\` dpars.
 
-The three rates are common to \[bipois()\], \[bipois_joint()\],
-\[binegbin()\] and \[binegbin_joint()\], so this direction serves all
+The three rates are common to \[bipois()\], \[bipois_cens()\],
+\[binegbin()\] and \[binegbin_cens()\], so this direction serves all
 four. The dispersions are where they differ: the Poisson families have
-none, \[binegbin()\] has one excess dispersion, and \[binegbin_joint()\]
+none, \[binegbin()\] has one excess dispersion, and \[binegbin_cens()\]
 has one per margin.
 
 \[binegbin_dpars_to_mfd()\] is the exact inverse.
@@ -52,13 +52,13 @@ binegbin_mfd_to_dpars(
   \`0\` is the Poisson limit. If supplied, the returned list gains
   \`shapes\`/\`shapex\` (\`= 1/kappa^2\`, so \`kappa = 0\` gives
   \`Inf\`). \`kappax\` is \[binegbin()\]'s single excess dispersion.
-  Omit both for \[bipois()\] and \[bipois_joint()\], which have no
+  Omit both for \[bipois()\] and \[bipois_cens()\], which have no
   dispersion parameters.
 
 - kappaxone, kappaxtwo:
 
   Optional per-margin SD-scale excess dispersions, for
-  \[binegbin_joint()\], which carries one per margin rather than one
+  \[binegbin_cens()\], which carries one per margin rather than one
   shared. If supplied, the returned list gains
   \`shapexone\`/\`shapextwo\`. Mutually exclusive with \`kappax\`.
 
@@ -78,7 +78,7 @@ posterior draws.
 \[binegbin_dpars_to_mfd()\] reports back as \`NA\`. This direction is
 always well defined; only the inverse degenerates.
 
-\*\*Using these coordinates with \[binegbin_joint()\].\*\* The three
+\*\*Using these coordinates with \[binegbin_cens()\].\*\* The three
 rates carry over unchanged. Since 0.8.0 that family's excess dispersion
 is the pair \`shapexone\`/\`shapextwo\` rather than a single \`shapex\`,
 so supply \`kappaxone\`/\`kappaxtwo\` instead of \`kappax\` and the
@@ -92,7 +92,7 @@ pre-0.8.0 likelihood) pass the same value twice: \`kappaxone = k,
 kappaxtwo = k\`.
 
 \*\*Using these coordinates with the Poisson families.\*\* \[bipois()\]
-and \[bipois_joint()\] take the same three rates and no dispersion, so
+and \[bipois_cens()\] take the same three rates and no dispersion, so
 call this with \`M\`, \`f\` and \`delta\` alone and pass the result
 straight through. There is no \`kappa\` to supply: the Poisson case is
 not a dispersion set to a particular value but the absence of the
@@ -101,8 +101,8 @@ than \[binegbin()\] with \`kappa\` driven to \`0\`.
 
 ## See also
 
-\[binegbin_dpars_to_mfd()\], \[bipois()\], \[bipois_joint()\],
-\[binegbin()\], \[binegbin_joint()\]
+\[binegbin_dpars_to_mfd()\], \[bipois()\], \[bipois_cens()\],
+\[binegbin()\], \[binegbin_cens()\]
 
 ## Examples
 

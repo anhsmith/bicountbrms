@@ -12,11 +12,12 @@
   [`skellambrms`](https://github.com/anhsmith/skellambrms), the name
   under which they were originally released.
 
-  **No family, dpar or Stan function name changed**, so no fitted model
-  needs refitting. brms resolves each fit’s `log_lik_*` /
+  **No fitted model needs refitting**, either for the split or for the
+  rename below. brms resolves each fit’s `log_lik_*` /
   `posterior_predict_*` / `posterior_epred_*` methods off the attached
   search path at call time, so a stored fit works as soon as the package
-  holding its family is attached. The only source change required is
+  holding its family is attached. No dpar name changed. The only source
+  change the split itself requires is
   [`library(pairedcountbrms)`](https://github.com/anhsmith/pairedcountbrms)
   → [`library(bicountbrms)`](https://github.com/anhsmith/bicountbrms) or
   [`library(skellambrms)`](https://rdrr.io/r/base/library.html), and any
@@ -37,37 +38,71 @@
   below available for checking first, so that what is archived has been
   exercised rather than merely tested.
 
+- **Renamed:
+  [`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
+  →
+  [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md).**
+  All four families in this package model the two counts jointly, so
+  `_joint` named a property common to all of them. The property that
+  selects this one is that the first margin may be unobserved on some
+  rows, which `_cens` names.
+  [`binegbin_cens_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md),
+  `binegbin_cens_lpmf` (Stan) and the three post-processing methods
+  follow the same rename.
+
+  **Old code and old fits both keep working.**
+  [`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
+  and
+  [`binegbin_joint_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
+  remain as deprecated wrappers that warn once per call and return the
+  new objects. The three post-processing functions
+  [`log_lik_binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md),
+  [`posterior_predict_binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
+  and
+  [`posterior_epred_binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
+  remain as *silent* forwarders, because a fit made before this release
+  stores `family$name == "binegbin_joint"` permanently and brms builds
+  its method names from that stored name — nothing the caller passes to
+  [`loo()`](https://mc-stan.org/loo/reference/loo.html) or
+  [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
+  can route around it. All five are removed in the next major version.
+
+  No dpar name changed, so the forwarding is a straight hand-off, and a
+  five-dpar pre-0.8.0 fit still resolves through both compatibility
+  layers at once (a test pins this).
+
 - **New family:
-  [`bipois_joint()`](https://anhsmith.github.io/bicountbrms/reference/bipois_joint.md)
+  [`bipois_cens()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md)
   /
-  [`bipois_joint_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/bipois_joint.md).**
+  [`bipois_cens_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md).**
   The censoring-aware bivariate Poisson —
-  [`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)’s
+  [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)’s
   equidispersed counterpart, and
   [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)’s
   censoring-aware one. Three log-linked dpars (`mu`, `lambdaone`,
   `lambdatwo`) and two `vint()` integers, `vint(y2, y1_obs)`, exactly as
-  [`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)
-  takes them.
+  [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
+  takes them. It has no deprecated aliases: it was added in this release
+  under its final name.
 
   Its censored branch is closed form. A sum of independent Poissons is
   Poisson, so the `y1`-integrated marginal collapses to
   `poisson_lpmf(y2 | mu + lambdatwo)` — no convolution sum, no cutoff.
-  [`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)
+  [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
   cannot do this (NB2 + NB2 is not NB2 unless the two components share a
   success probability), which is why it evaluates that branch term by
   term.
 
   Two things follow. Users whose counts are equidispersed no longer have
   to fit
-  [`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)
+  [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
   with its dispersions pressed against the Poisson boundary, where
   sampling degrades. And the suite gains an independent analytic
   reference for
-  [`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)’s
+  [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)’s
   censored branch: driving its three dispersions to their Poisson limit
   must reproduce
-  [`bipois_joint()`](https://anhsmith.github.io/bicountbrms/reference/bipois_joint.md),
+  [`bipois_cens()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md),
   checked as a limit — the error must shrink in proportion to `1/phi` —
   rather than at a single tolerance. Previously that branch was pinned
   only by the marginal identity, which compares it against the matched
@@ -101,14 +136,16 @@
   are unaffected; the likelihood has not changed.
 
 - **New:
-  [`posterior_epred_binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md).**
+  [`posterior_epred_binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md).**
   That family previously defined no `posterior_epred` at all, on the
   view that `E[y1]` is ambiguous when `y1` is unobserved. It is not:
   `E[y1 | y2]` is well defined whether or not `y1` was recorded, and it
   is the quantity a user imputing the missing margin wants. It is
   returned for every row, matched and censored alike, matching
-  [`posterior_predict_binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)’s
-  existing convention.
+  [`posterior_predict_binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)’s
+  existing convention. Stored fits reach it through the deprecated
+  [`posterior_epred_binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
+  forwarder, so they gain the method without refitting.
 
 - **All four families now share one `posterior_epred` convention**,
   stated once in `tests/testthat/test-epred.R` and held to one standard:

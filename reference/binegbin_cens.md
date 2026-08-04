@@ -22,7 +22,7 @@ identified only by the matched rows, while the \`y2\`-only rows sharpen
 \`mu\`, \`shapes\`, \`lambdatwo\`, \`shapextwo\`, and the shared
 vessel/trip random-effect structure.
 
-\[bipois_joint()\] is the equidispersed counterpart: the same censoring,
+\[bipois_cens()\] is the equidispersed counterpart: the same censoring,
 with Poisson rather than Negative-Binomial components. Prefer it where
 the margins are not overdispersed, rather than fitting this family with
 its dispersions pressed against the Poisson boundary, and compare the
@@ -41,21 +41,21 @@ methd)\` gives \`lambdaone = exp(lamx + methd)\`.
 Use in a brm() call as: brm( bf(y1 \| vint(y2, y1_obs) ~ 1, mu ~ 1 + (1
 \| vessel) + (1 \| vessel:trip_id), nlf(lambdaone ~ lamx + methd),
 nlf(lambdatwo ~ lamx - methd), lamx ~ 1, methd ~ 1, shapes ~ 1,
-shapexone ~ 1, shapextwo ~ 1, nl = TRUE), family = binegbin_joint(),
-stanvars = binegbin_joint_stanvars(), data = dat )
+shapexone ~ 1, shapextwo ~ 1, nl = TRUE), family = binegbin_cens(),
+stanvars = binegbin_cens_stanvars(), data = dat )
 
 ## Usage
 
 ``` r
-binegbin_joint()
+binegbin_cens()
 
-binegbin_joint_stanvars()
+binegbin_cens_stanvars()
 
-log_lik_binegbin_joint(i, prep)
+log_lik_binegbin_cens(i, prep)
 
-posterior_predict_binegbin_joint(i, prep, ...)
+posterior_predict_binegbin_cens(i, prep, ...)
 
-posterior_epred_binegbin_joint(prep)
+posterior_epred_binegbin_cens(prep)
 ```
 
 ## Value
@@ -90,13 +90,13 @@ correspondingly dominated by its prior.
 listed in the formula's \`vint()\` term, matching the \`vars\` declared
 here (\`c("vint1\[n\]", "vint2\[n\]")\`): so \`vint(y2, y1_obs)\` binds
 \`vint1 = y2\` and \`vint2 = y1_obs\`. brms generates \`target +=
-binegbin_joint_lpmf(Y\[n\] \| mu\[n\], lambdaone\[n\], lambdatwo\[n\],
+binegbin_cens_lpmf(Y\[n\] \| mu\[n\], lambdaone\[n\], lambdatwo\[n\],
 shapes\[n\], shapexone\[n\], shapextwo\[n\], vint1\[n\], vint2\[n\])\` –
 dpars in the order declared here, then the two vint args.
-\`binegbin_joint_stan_funs\` declares \`binegbin_joint_lpmf\` with
-exactly this signature; reordering the dpars or the two \`vint()\` terms
-without matching the Stan signature silently swaps which quantity
-governs which component or which integer is the branch flag.
+\`binegbin_cens_stan_funs\` declares \`binegbin_cens_lpmf\` with exactly
+this signature; reordering the dpars or the two \`vint()\` terms without
+matching the Stan signature silently swaps which quantity governs which
+component or which integer is the branch flag.
 
 \*\*Forced \`mu\` naming, and the second count via \`vint()\`.\*\*
 Identical conventions to \[binegbin()\]/\[bipois()\] – \`mu\` is brms's

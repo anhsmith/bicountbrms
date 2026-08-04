@@ -6,9 +6,9 @@ level \`M\`, congruence \`f\`, and source bias \`delta\`, optionally
 converting \`shapes\`/\`shapex\` back to SD-scale \`kappas\`/\`kappax\`.
 
 As with the forward direction, the three rates are common to
-\[bipois()\], \[bipois_joint()\], \[binegbin()\] and
-\[binegbin_joint()\], so this serves all four; only the dispersion
-arguments are family-specific.
+\[bipois()\], \[bipois_cens()\], \[binegbin()\] and \[binegbin_cens()\],
+so this serves all four; only the dispersion arguments are
+family-specific.
 
 ## Usage
 
@@ -39,13 +39,13 @@ binegbin_dpars_to_mfd(
   Optional NB2 dispersions. If supplied, the returned list gains
   \`kappas\`/\`kappax\` (\`= 1/sqrt(shape)\`, so \`shape = Inf\` gives
   \`0\`). \`shapex\` is \[binegbin()\]'s single excess dispersion. A fit
-  of \[bipois()\] or \[bipois_joint()\] has neither to pass: read its
+  of \[bipois()\] or \[bipois_cens()\] has neither to pass: read its
   three rates alone.
 
 - shapexone, shapextwo:
 
   Optional per-margin NB2 excess dispersions, as carried by
-  \[binegbin_joint()\]. If supplied, the returned list gains
+  \[binegbin_cens()\]. If supplied, the returned list gains
   \`kappaxone\`/\`kappaxtwo\`. Mutually exclusive with \`shapex\`.
 
 ## Value
@@ -78,8 +78,8 @@ forth.
 
 ## See also
 
-\[binegbin_mfd_to_dpars()\], \[bipois()\], \[bipois_joint()\],
-\[binegbin()\], \[binegbin_joint()\]
+\[binegbin_mfd_to_dpars()\], \[bipois()\], \[bipois_cens()\],
+\[binegbin()\], \[binegbin_cens()\]
 
 ## Examples
 

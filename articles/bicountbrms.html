@@ -74,9 +74,9 @@
 <code><a href="../reference/binegbin.html">binegbin()</a></code>: simulate a matched pair of counts from known
 parameters, fit them, check that the posterior finds the truth, and then
 predict and score. The other joint families (<code><a href="../reference/bipois.html">bipois()</a></code>, and
-the censoring-aware <code><a href="../reference/binegbin_joint.html">binegbin_joint()</a></code> and
-<code><a href="../reference/bipois_joint.html">bipois_joint()</a></code>) follow the same pattern; the README
-compares them.</p>
+the censoring-aware <code><a href="../reference/binegbin_cens.html">binegbin_cens()</a></code> and
+<code><a href="../reference/bipois_cens.html">bipois_cens()</a></code>) follow the same pattern; the README compares
+them.</p>
 <p>Everything here is a brms custom family <span class="citation">(<a href="#ref-burkner2017">Bürkner 2017</a>)</span>, so the fitting,
 prediction and model-comparison interfaces are brms’s own. The
 non-linear formula syntax used further down is documented in <span class="citation">Bürkner (<a href="#ref-burkner2018">2018</a>)</span>.</p>
@@ -423,10 +423,10 @@ importance weights are unreliable <span class="citation">(<a href="#ref-vehtari2
 observed</em> — not a marginal expectation. That is the quantity the
 construction makes available and the one worth having: it is what the
 second source implies about the first.</p>
-<p>For <code><a href="../reference/bipois.html">bipois()</a></code> and <code><a href="../reference/bipois_joint.html">bipois_joint()</a></code> it is
-closed form, because conditioning a sum of independent Poissons on its
-total gives a Binomial split. For <code><a href="../reference/binegbin.html">binegbin()</a></code> and
-<code><a href="../reference/binegbin_joint.html">binegbin_joint()</a></code> there is no such shortcut, so the
+<p>For <code><a href="../reference/bipois.html">bipois()</a></code> and <code><a href="../reference/bipois_cens.html">bipois_cens()</a></code> it is closed
+form, because conditioning a sum of independent Poissons on its total
+gives a Binomial split. For <code><a href="../reference/binegbin.html">binegbin()</a></code> and
+<code><a href="../reference/binegbin_cens.html">binegbin_cens()</a></code> there is no such shortcut, so the
 conditional is evaluated over its support
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>0</mn><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">k = 0, \ldots, y_2</annotation></semantics></math>
 and summed. All four are exact, and each agrees with the mean of its own
@@ -451,7 +451,7 @@ dispatches to the family’s method, as do <code><a href="https://rdrr.io/r/stat
 construction, three dpars instead of five. Use it when the margins are
 not overdispersed; compare the two with <code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code>.</li>
 <li>
-<code><a href="../reference/binegbin_joint.html">binegbin_joint()</a></code> — censoring-aware, for data where one
+<code><a href="../reference/binegbin_cens.html">binegbin_cens()</a></code> — censoring-aware, for data where one
 of the two counts is missing on some rows. It admits those rows via the
 integrated-out marginal instead of dropping them. It also gives each
 excess component its own dispersion
@@ -483,12 +483,12 @@ support otherwise; the rate parameterisation has no such nulls. Worked
 end to end in the article <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html"><em>The
 anatomy of a paired count</em></a>.</li>
 <li>
-<code><a href="../reference/bipois_joint.html">bipois_joint()</a></code> — censoring-aware and equidispersed:
-<code><a href="../reference/binegbin_joint.html">binegbin_joint()</a></code>’s Poisson special case. Its integrated-out
+<code><a href="../reference/bipois_cens.html">bipois_cens()</a></code> — censoring-aware and equidispersed:
+<code><a href="../reference/binegbin_cens.html">binegbin_cens()</a></code>’s Poisson special case. Its integrated-out
 marginal is closed form,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mn>2</mn></msub><mo>∼</mo><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">y_2 \sim \mathrm{Poisson}(\mu + \lambda_2)</annotation></semantics></math>,
 since a sum of independent Poissons is Poisson. Use it when the margins
-are not overdispersed, rather than fitting <code><a href="../reference/binegbin_joint.html">binegbin_joint()</a></code>
+are not overdispersed, rather than fitting <code><a href="../reference/binegbin_cens.html">binegbin_cens()</a></code>
 with its dispersions pressed against the Poisson boundary.</li>
 <li>
 <strong>Modelling the difference instead.</strong> Where only the

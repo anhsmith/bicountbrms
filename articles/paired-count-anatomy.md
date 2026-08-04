@@ -4,9 +4,9 @@ Every joint family in this package —
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md),
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md),
 and their censoring-aware counterparts
-[`bipois_joint()`](https://anhsmith.github.io/bicountbrms/reference/bipois_joint.md)
+[`bipois_cens()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md)
 and
-[`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)
+[`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
 — is built by **trivariate reduction** ([Holgate
 1964](#ref-holgate1964); [Karlis and Ntzoufras 2003](#ref-karlis2003)).
 Three independent counts are drawn, and the two observed counts share

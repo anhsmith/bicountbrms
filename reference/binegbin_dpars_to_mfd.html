@@ -4,13 +4,13 @@
 congruence `f`, and source bias `delta`, optionally converting
 `shapes`/`shapex` back to SD-scale `kappas`/`kappax`.
 As with the forward direction, the three rates are common to [bipois()],
-[bipois_joint()], [binegbin()] and [binegbin_joint()], so this serves all
+[bipois_cens()], [binegbin()] and [binegbin_cens()], so this serves all
 four; only the dispersion arguments are family-specific."><meta property="og:description" content="Exact inverse of [binegbin_mfd_to_dpars()]. Reads the rate dpars `mu`,
 `lambdaone`, `lambdatwo` back into the interpretable overall level `M`,
 congruence `f`, and source bias `delta`, optionally converting
 `shapes`/`shapex` back to SD-scale `kappas`/`kappax`.
 As with the forward direction, the three rates are common to [bipois()],
-[bipois_joint()], [binegbin()] and [binegbin_joint()], so this serves all
+[bipois_cens()], [binegbin()] and [binegbin_cens()], so this serves all
 four; only the dispersion arguments are family-specific."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -56,7 +56,7 @@ four; only the dispersion arguments are family-specific."></head><body>
 congruence `f`, and source bias `delta`, optionally converting
 `shapes`/`shapex` back to SD-scale `kappas`/`kappax`.</p>
 <p>As with the forward direction, the three rates are common to [bipois()],
-[bipois_joint()], [binegbin()] and [binegbin_joint()], so this serves all
+[bipois_cens()], [binegbin()] and [binegbin_cens()], so this serves all
 four; only the dispersion arguments are family-specific.</p>
     </div>
 
@@ -89,12 +89,12 @@ four; only the dispersion arguments are family-specific.</p>
 <dd><p>Optional NB2 dispersions. If supplied, the returned list
 gains `kappas`/`kappax` (`= 1/sqrt(shape)`, so `shape = Inf` gives `0`).
 `shapex` is [binegbin()]'s single excess dispersion. A fit of [bipois()] or
-[bipois_joint()] has neither to pass: read its three rates alone.</p></dd>
+[bipois_cens()] has neither to pass: read its three rates alone.</p></dd>
 
 
 <dt id="arg-shapexone-shapextwo">shapexone, shapextwo<a class="anchor" aria-label="anchor" href="#arg-shapexone-shapextwo"></a></dt>
 <dd><p>Optional per-margin NB2 excess dispersions, as
-carried by [binegbin_joint()]. If supplied, the returned list gains
+carried by [binegbin_cens()]. If supplied, the returned list gains
 `kappaxone`/`kappaxtwo`. Mutually exclusive with `shapex`.</p></dd>
 
 </dl></div>
@@ -122,7 +122,7 @@ source of truth rather than repeatedly converting back and forth.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p>[binegbin_mfd_to_dpars()], [bipois()], [bipois_joint()], [binegbin()], [binegbin_joint()]</p></div>
+    <div class="dont-index"><p>[binegbin_mfd_to_dpars()], [bipois()], [bipois_cens()], [binegbin()], [binegbin_cens()]</p></div>
     </div>
 
     <div class="section level2">
