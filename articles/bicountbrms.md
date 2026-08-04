@@ -1,22 +1,23 @@
-# Getting started with pairedcountbrms
+# Getting started with bicountbrms
 
 ``` r
 
 library(brms)
 #> Warning: package 'Rcpp' was built under R version 4.6.1
-library(pairedcountbrms)
+library(bicountbrms)
 ```
 
 This vignette walks the package’s R API end to end on one family,
-[`binegbin()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md):
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md):
 simulate a matched pair of counts from known parameters, fit them, check
 that the posterior finds the truth, and then predict and score. The
-other joint family
-([`bipois()`](https://anhsmith.github.io/pairedcountbrms/reference/bipois.md))
-works identically with two fewer dpars; the difference families
-([`skellam1()`](https://anhsmith.github.io/pairedcountbrms/reference/skellam1.md),
-[`dnorm2()`](https://anhsmith.github.io/pairedcountbrms/reference/dnorm2.md),
-and so on) are shown in the README.
+other joint families
+([`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md),
+and the censoring-aware
+[`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)
+and
+[`bipois_joint()`](https://anhsmith.github.io/bicountbrms/reference/bipois_joint.md))
+follow the same pattern; the README compares them.
 
 Everything here is a brms custom family ([Bürkner
 2017](#ref-burkner2017)), so the fitting, prediction and
@@ -26,7 +27,7 @@ syntax used further down is documented in Bürkner
 
 ## The generative model
 
-[`binegbin()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md)
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 builds a bivariate count pair by **trivariate reduction** ([Holgate
 1964](#ref-holgate1964); [Karlis and Ntzoufras 2003](#ref-karlis2003)).
 Three independent Negative-Binomial counts are drawn, and the two
@@ -122,7 +123,7 @@ declares a single response column, so only `y1` can be the response.
 Stan signature reads it from there.
 
 **`stanvars` is not optional.**
-[`binegbin_stanvars()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md)
+[`binegbin_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 injects the `binegbin_lpmf` Stan function into the model’s `functions`
 block. Without it the generated model will not compile.
 
@@ -163,7 +164,7 @@ prior sits away from all of them: the shared rate’s truth falls near the
 prior mean, the second excess rate’s 1.3 prior SDs below it. Recovery
 here is therefore not on its own evidence that the prior is
 uninfluential. The article [*The anatomy of a paired
-count*](https://anhsmith.github.io/pairedcountbrms/articles/paired-count-anatomy.html)
+count*](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html)
 tests that directly, shifting a prior median sevenfold and moving the
 corresponding posterior median by 0.005.
 
@@ -281,36 +282,57 @@ loo(fit)
 #> See help('pareto-k-diagnostic') for details.
 ```
 
-## One limitation to know about
+## What `posterior_epred()` returns here
 
-[`posterior_epred()`](https://mc-stan.org/rstantools/reference/posterior_epred.html)
-— and its aliases
+Every family in this package answers the same question:
+
+``` math
+\mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_{\text{shared}} \mid y_2] + \lambda_1,
+```
+
+the expected first count *given the second one that was actually
+observed* — not a marginal expectation. That is the quantity the
+construction makes available and the one worth having: it is what the
+second source implies about the first.
+
+For
+[`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
+and
+[`bipois_joint()`](https://anhsmith.github.io/bicountbrms/reference/bipois_joint.md)
+it is closed form, because conditioning a sum of independent Poissons on
+its total gives a Binomial split. For
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
+and
+[`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)
+there is no such shortcut, so the conditional is evaluated over its
+support $`k = 0, \ldots, y_2`$ and summed. All four are exact, and each
+agrees with the mean of its own
+[`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
+draws to within Monte Carlo error.
+
+The censoring-aware families return it for every row, including those
+where $`y_1`$ was never observed — imputing the unobserved margin is the
+point of fitting them.
+
+Call it the ordinary way: `posterior_epred(fit)` dispatches to the
+family’s method, as do
 [`fitted()`](https://rdrr.io/r/stats/fitted.values.html) and
-[`conditional_effects()`](https://paulbuerkner.com/brms/reference/conditional_effects.brmsfit.html)
-— **errors on any truncated custom-family fit** in brms 2.23.0. The
-dispatcher checks for truncation before it checks the family type, and
-the truncated branch has no fallback to `posterior_epred_custom()`. This
-is a brms limitation, not a bug in this package.
-
-On a truncated fit, call the family’s method directly:
+[`conditional_effects()`](https://paulbuerkner.com/brms/reference/conditional_effects.brmsfit.html).
+The equivalent direct call is
 
 ``` r
 
 posterior_epred_binegbin(prepare_predictions(fit))
 ```
 
-[`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
-and [`log_lik()`](https://mc-stan.org/rstantools/reference/log_lik.html)
-are unaffected and work correctly with truncation.
-
 ## Where to go next
 
-- [`bipois()`](https://anhsmith.github.io/pairedcountbrms/reference/bipois.md)
+- [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
   — the non-overdispersed Poisson sibling. Same construction, three
   dpars instead of five. Use it when the margins are not overdispersed;
   compare the two with
   [`loo()`](https://mc-stan.org/loo/reference/loo.html).
-- [`binegbin_joint()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_joint.md)
+- [`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)
   — censoring-aware, for data where one of the two counts is missing on
   some rows. It admits those rows via the integrated-out marginal
   instead of dropping them. It also gives each excess component its own
@@ -325,7 +347,7 @@ are unaffected and work correctly with truncation.
   Poisson limit. It is fitted through
   [`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html)
   rather than a separate family, and
-  [`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_mfd_to_dpars.md)
+  [`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_mfd_to_dpars.md)
   converts between the two. Because $`\delta = 0`$ and $`\kappa = 0`$
   are finite, interpretable nulls, these coordinates admit
   penalised-complexity priors ([Simpson et al.
@@ -333,25 +355,28 @@ are unaffected and work correctly with truncation.
   simpler model unless the data support otherwise; the rate
   parameterisation has no such nulls. Worked end to end in the article
   [*The anatomy of a paired
-  count*](https://anhsmith.github.io/pairedcountbrms/articles/paired-count-anatomy.html).
-- [`skellam1()`](https://anhsmith.github.io/pairedcountbrms/reference/skellam1.md)
-  /
-  [`skellam2()`](https://anhsmith.github.io/pairedcountbrms/reference/skellam2.md),
-  [`dnorm1()`](https://anhsmith.github.io/pairedcountbrms/reference/dnorm1.md)
-  /
-  [`dnorm2()`](https://anhsmith.github.io/pairedcountbrms/reference/dnorm2.md),
-  [`dlaplace1()`](https://anhsmith.github.io/pairedcountbrms/reference/dlaplace1.md)
-  /
-  [`dlaplace2()`](https://anhsmith.github.io/pairedcountbrms/reference/dlaplace2.md)
-  — the difference families, which model `d = y1 - y2` directly. The `1`
-  variants fix the location at zero (does the pair agree on average?);
-  the `2` variants estimate it (by how much do they disagree?). All
-  support truncation through
-  [`resp_trunc()`](https://paulbuerkner.com/brms/reference/addition-terms.html).
-  The difference of two independent Poisson counts is
+  count*](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html).
+- [`bipois_joint()`](https://anhsmith.github.io/bicountbrms/reference/bipois_joint.md)
+  — censoring-aware and equidispersed:
+  [`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)’s
+  Poisson special case. Its integrated-out marginal is closed form,
+  $`y_2 \sim \mathrm{Poisson}(\mu + \lambda_2)`$, since a sum of
+  independent Poissons is Poisson. Use it when the margins are not
+  overdispersed, rather than fitting
+  [`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)
+  with its dispersions pressed against the Poisson boundary.
+- **Modelling the difference instead.** Where only the disagreement
+  $`d = y_1 - y_2`$ is of interest, or where truncation via
+  [`resp_trunc()`](https://paulbuerkner.com/brms/reference/addition-terms.html)
+  is required, the Skellam and discrete Laplace/normal families in the
+  companion package
+  [`skellambrms`](https://github.com/anhsmith/skellambrms) model $`d`$
+  directly. The difference of two independent Poisson counts is
   Skellam-distributed ([Skellam 1946](#ref-skellam1946)); for the
   Bayesian treatment of count differences generally, see Karlis and
-  Ntzoufras ([2006](#ref-karlis2006)).
+  Ntzoufras ([2006](#ref-karlis2006)). Note what that reduction
+  discards: the shared component cancels out of $`d`$, so the level and
+  the congruence are no longer estimable.
 
 ## References
 

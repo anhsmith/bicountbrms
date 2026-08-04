@@ -2,9 +2,9 @@ pandoc: 3.8.3
 pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
+  bicountbrms: bicountbrms.html
   articles/paired-count-anatomy: paired-count-anatomy.html
-  pairedcountbrms: pairedcountbrms.html
-last_built: 2026-08-03T09:09Z
+last_built: 2026-08-04T09:27Z
 urls:
-  reference: https://anhsmith.github.io/pairedcountbrms/reference
-  article: https://anhsmith.github.io/pairedcountbrms/articles
+  reference: https://anhsmith.github.io/bicountbrms/reference
+  article: https://anhsmith.github.io/bicountbrms/articles

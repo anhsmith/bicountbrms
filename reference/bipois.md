@@ -37,15 +37,14 @@ A brms custom_family object.
 
 ## Details
 
-\*\*Naming note.\*\* Same forced naming as
-\`skellam1()\`/\`dlaplace1()\`/ \`dnorm1()\`: \`brms::custom_family()\`
-requires a dpar literally named \`"mu"\` (\`stop2("All families must
-have a 'mu' parameter.")\`, unconditional). Here it is bound to
-\`lambda_shared\`, the rate of the component shared between \`y1\` and
-\`y2\` – not a mean of either response individually. \`lambdaone\`
-(source-1-only rate) and \`lambdatwo\` (source-2-only rate) are the
-other two dpars, plainly named (no forced reinterpretation needed for
-those two).
+\*\*Naming note.\*\* \`brms::custom_family()\` requires a dpar literally
+named \`"mu"\` (\`stop2("All families must have a 'mu' parameter.")\`,
+unconditional), whatever the family actually calls that quantity. Here
+it is bound to \`lambda_shared\`, the rate of the component shared
+between \`y1\` and \`y2\` – not a mean of either response individually.
+\`lambdaone\` (source-1-only rate) and \`lambdatwo\` (source-2-only
+rate) are the other two dpars, plainly named (no forced reinterpretation
+needed for those two).
 
 \*\*Why \`lambdaone\`, not \`lambda1\`.\*\* \`custom_family()\` rejects
 dpar names ending in a digit (\`stop2("'dpars' should not end with a

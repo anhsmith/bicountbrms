@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Getting started with pairedcountbrms • pairedcountbrms</title>
+<title>Getting started with bicountbrms • bicountbrms</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Getting started with pairedcountbrms">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Getting started with bicountbrms">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -18,9 +18,9 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="../index.html">pairedcountbrms</a>
+    <a class="navbar-brand me-2" href="../index.html">bicountbrms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,7 +29,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="active nav-item"><a class="nav-link" href="../articles/pairedcountbrms.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../articles/bicountbrms.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
@@ -43,7 +43,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/anhsmith/pairedcountbrms/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/anhsmith/bicountbrms/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -57,11 +57,11 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Getting started with pairedcountbrms</h1>
+      <h1>Getting started with bicountbrms</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/anhsmith/pairedcountbrms/blob/master/vignettes/pairedcountbrms.Rmd" class="external-link"><code>vignettes/pairedcountbrms.Rmd</code></a></small>
-      <div class="d-none name"><code>pairedcountbrms.Rmd</code></div>
+      <small class="dont-index">Source: <a href="https://github.com/anhsmith/bicountbrms/blob/master/vignettes/bicountbrms.Rmd" class="external-link"><code>vignettes/bicountbrms.Rmd</code></a></small>
+      <div class="d-none name"><code>bicountbrms.Rmd</code></div>
     </div>
 
     
@@ -69,14 +69,14 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paul-buerkner/brms" class="external-link">brms</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: package 'Rcpp' was built under R version 4.6.1</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/anhsmith/pairedcountbrms" class="external-link">pairedcountbrms</a></span><span class="op">)</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/anhsmith/bicountbrms" class="external-link">bicountbrms</a></span><span class="op">)</span></span></code></pre></div>
 <p>This vignette walks the package’s R API end to end on one family,
 <code><a href="../reference/binegbin.html">binegbin()</a></code>: simulate a matched pair of counts from known
 parameters, fit them, check that the posterior finds the truth, and then
-predict and score. The other joint family (<code><a href="../reference/bipois.html">bipois()</a></code>) works
-identically with two fewer dpars; the difference families
-(<code><a href="../reference/skellam1.html">skellam1()</a></code>, <code><a href="../reference/dnorm2.html">dnorm2()</a></code>, and so on) are shown in
-the README.</p>
+predict and score. The other joint families (<code><a href="../reference/bipois.html">bipois()</a></code>, and
+the censoring-aware <code><a href="../reference/binegbin_joint.html">binegbin_joint()</a></code> and
+<code><a href="../reference/bipois_joint.html">bipois_joint()</a></code>) follow the same pattern; the README
+compares them.</p>
 <p>Everything here is a brms custom family <span class="citation">(<a href="#ref-burkner2017">Bürkner 2017</a>)</span>, so the fitting,
 prediction and model-comparison interfaces are brms’s own. The
 non-linear formula syntax used further down is documented in <span class="citation">Bürkner (<a href="#ref-burkner2018">2018</a>)</span>.</p>
@@ -240,7 +240,7 @@ roughly <code>[1, 52]</code>.</p>
 log scale, so no single prior sits away from all of them: the shared
 rate’s truth falls near the prior mean, the second excess rate’s 1.3
 prior SDs below it. Recovery here is therefore not on its own evidence
-that the prior is uninfluential. The article <a href="https://anhsmith.github.io/pairedcountbrms/articles/paired-count-anatomy.html"><em>The
+that the prior is uninfluential. The article <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html"><em>The
 anatomy of a paired count</em></a> tests that directly, shifting a prior
 median sevenfold and moving the corresponding posterior median by
 0.005.</p>
@@ -413,20 +413,34 @@ importance weights are unreliable <span class="citation">(<a href="#ref-vehtari2
 <span><span class="co">#&gt; See help('pareto-k-diagnostic') for details.</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="one-limitation-to-know-about">One limitation to know about<a class="anchor" aria-label="anchor" href="#one-limitation-to-know-about"></a>
+<h2 id="what-posterior_epred-returns-here">What <code>posterior_epred()</code> returns here<a class="anchor" aria-label="anchor" href="#what-posterior_epred-returns-here"></a>
 </h2>
-<p><code><a href="https://mc-stan.org/rstantools/reference/posterior_epred.html" class="external-link">posterior_epred()</a></code> — and its aliases
-<code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code> and <code><a href="https://paulbuerkner.com/brms/reference/conditional_effects.brmsfit.html" class="external-link">conditional_effects()</a></code> —
-<strong>errors on any truncated custom-family fit</strong> in brms
-2.23.0. The dispatcher checks for truncation before it checks the family
-type, and the truncated branch has no fallback to
-<code>posterior_epred_custom()</code>. This is a brms limitation, not a
-bug in this package.</p>
-<p>On a truncated fit, call the family’s method directly:</p>
+<p>Every family in this package answers the same question:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>y</mi><mn>1</mn></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>+</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_{\text{shared}} \mid y_2] + \lambda_1,
+</annotation></semantics></math></p>
+<p>the expected first count <em>given the second one that was actually
+observed</em> — not a marginal expectation. That is the quantity the
+construction makes available and the one worth having: it is what the
+second source implies about the first.</p>
+<p>For <code><a href="../reference/bipois.html">bipois()</a></code> and <code><a href="../reference/bipois_joint.html">bipois_joint()</a></code> it is
+closed form, because conditioning a sum of independent Poissons on its
+total gives a Binomial split. For <code><a href="../reference/binegbin.html">binegbin()</a></code> and
+<code><a href="../reference/binegbin_joint.html">binegbin_joint()</a></code> there is no such shortcut, so the
+conditional is evaluated over its support
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>0</mn><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">k = 0, \ldots, y_2</annotation></semantics></math>
+and summed. All four are exact, and each agrees with the mean of its own
+<code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> draws to within Monte Carlo error.</p>
+<p>The censoring-aware families return it for every row, including those
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math>
+was never observed — imputing the unobserved margin is the point of
+fitting them.</p>
+<p>Call it the ordinary way: <code>posterior_epred(fit)</code>
+dispatches to the family’s method, as do <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code> and
+<code><a href="https://paulbuerkner.com/brms/reference/conditional_effects.brmsfit.html" class="external-link">conditional_effects()</a></code>. The equivalent direct call is</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/binegbin.html">posterior_epred_binegbin</a></span><span class="op">(</span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/prepare_predictions.html" class="external-link">prepare_predictions</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> and <code><a href="https://mc-stan.org/rstantools/reference/log_lik.html" class="external-link">log_lik()</a></code> are
-unaffected and work correctly with truncation.</p>
 </div>
 <div class="section level2">
 <h2 id="where-to-go-next">Where to go next<a class="anchor" aria-label="anchor" href="#where-to-go-next"></a>
@@ -466,18 +480,31 @@ are finite, interpretable nulls, these coordinates admit
 penalised-complexity priors <span class="citation">(<a href="#ref-simpsonPenalisingModelComponent2017">Simpson et al.
 2017</a>)</span>, which shrink to the simpler model unless the data
 support otherwise; the rate parameterisation has no such nulls. Worked
-end to end in the article <a href="https://anhsmith.github.io/pairedcountbrms/articles/paired-count-anatomy.html"><em>The
+end to end in the article <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html"><em>The
 anatomy of a paired count</em></a>.</li>
 <li>
-<code><a href="../reference/skellam1.html">skellam1()</a></code> / <code><a href="../reference/skellam2.html">skellam2()</a></code>,
-<code><a href="../reference/dnorm1.html">dnorm1()</a></code> / <code><a href="../reference/dnorm2.html">dnorm2()</a></code>, <code><a href="../reference/dlaplace1.html">dlaplace1()</a></code>
-/ <code><a href="../reference/dlaplace2.html">dlaplace2()</a></code> — the difference families, which model
-<code>d = y1 - y2</code> directly. The <code>1</code> variants fix the
-location at zero (does the pair agree on average?); the <code>2</code>
-variants estimate it (by how much do they disagree?). All support
-truncation through <code><a href="https://paulbuerkner.com/brms/reference/addition-terms.html" class="external-link">resp_trunc()</a></code>. The difference of two
-independent Poisson counts is Skellam-distributed <span class="citation">(<a href="#ref-skellam1946">Skellam 1946</a>)</span>;
-for the Bayesian treatment of count differences generally, see <span class="citation">Karlis and Ntzoufras (<a href="#ref-karlis2006">2006</a>)</span>.</li>
+<code><a href="../reference/bipois_joint.html">bipois_joint()</a></code> — censoring-aware and equidispersed:
+<code><a href="../reference/binegbin_joint.html">binegbin_joint()</a></code>’s Poisson special case. Its integrated-out
+marginal is closed form,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mn>2</mn></msub><mo>∼</mo><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">y_2 \sim \mathrm{Poisson}(\mu + \lambda_2)</annotation></semantics></math>,
+since a sum of independent Poissons is Poisson. Use it when the margins
+are not overdispersed, rather than fitting <code><a href="../reference/binegbin_joint.html">binegbin_joint()</a></code>
+with its dispersions pressed against the Poisson boundary.</li>
+<li>
+<strong>Modelling the difference instead.</strong> Where only the
+disagreement
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><msub><mi>y</mi><mn>1</mn></msub><mo>−</mo><msub><mi>y</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">d = y_1 - y_2</annotation></semantics></math>
+is of interest, or where truncation via <code><a href="https://paulbuerkner.com/brms/reference/addition-terms.html" class="external-link">resp_trunc()</a></code> is
+required, the Skellam and discrete Laplace/normal families in the
+companion package <a href="https://github.com/anhsmith/skellambrms" class="external-link"><code>skellambrms</code></a>
+model
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
+directly. The difference of two independent Poisson counts is
+Skellam-distributed <span class="citation">(<a href="#ref-skellam1946">Skellam 1946</a>)</span>; for the Bayesian
+treatment of count differences generally, see <span class="citation">Karlis and Ntzoufras (<a href="#ref-karlis2006">2006</a>)</span>. Note what that reduction
+discards: the shared component cancels out of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>,
+so the level and the congruence are no longer estimable.</li>
 </ul>
 </div>
 <div class="section level2">

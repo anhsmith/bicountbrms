@@ -1,4 +1,4 @@
 # License
 
     YEAR: 2026
-    COPYRIGHT HOLDER: pairedcountbrms authors
+    COPYRIGHT HOLDER: bicountbrms authors

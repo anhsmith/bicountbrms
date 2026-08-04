@@ -1,9 +1,9 @@
 # The anatomy of a paired count
 
 Every joint family in this package —
-[`bipois()`](https://anhsmith.github.io/pairedcountbrms/reference/bipois.md),
-[`binegbin()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin.md),
-[`binegbin_joint()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_joint.md)
+[`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md),
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md),
+[`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint.md)
 — is built by **trivariate reduction** ([Holgate
 1964](#ref-holgate1964); [Karlis and Ntzoufras 2003](#ref-karlis2003)).
 Three independent counts are drawn, and the two observed counts share
@@ -92,7 +92,7 @@ and it is what the JavaScript above is checked against:
 
 ``` r
 
-library(pairedcountbrms)
+library(bicountbrms)
 
 # The widget's defaults
 binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = atanh(0), kappas = 0.6, kappax = 1.0)
@@ -284,7 +284,7 @@ Simulate a pair of counts from known coordinates:
 ``` r
 
 library(brms)
-library(pairedcountbrms)
+library(bicountbrms)
 
 set.seed(20260731)
 
@@ -383,7 +383,7 @@ knitr::kable(
 
 Because the map is a bijection, the same posterior can be read in native
 dpars without refitting — push the draws back through
-\[[`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/pairedcountbrms/reference/binegbin_mfd_to_dpars.md)\]\[binegbin_mfd_to_dpars\]:
+\[[`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_mfd_to_dpars.md)\]\[binegbin_mfd_to_dpars\]:
 
 ``` r
 

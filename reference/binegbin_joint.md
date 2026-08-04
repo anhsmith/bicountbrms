@@ -48,6 +48,8 @@ binegbin_joint_stanvars()
 log_lik_binegbin_joint(i, prep)
 
 posterior_predict_binegbin_joint(i, prep, ...)
+
+posterior_epred_binegbin_joint(prep)
 ```
 
 ## Value
