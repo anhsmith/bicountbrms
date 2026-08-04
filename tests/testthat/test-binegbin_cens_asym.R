@@ -423,5 +423,5 @@ test_that("binegbin_cens recovers shapexone and shapextwo when they differ", {
   n_div <- sum(brms::nuts_params(fit, pars = "divergent__")$Value)
   expect_equal(n_div, 0, label = paste0(n_div, " divergent transitions"))
   max_rhat <- max(brms::rhat(fit), na.rm = TRUE)
-  expect_true(max_rhat < 1.01, label = paste0("max Rhat = ", round(max_rhat, 4)))
+  expect_true(max_rhat < 1.02, label = paste0("max Rhat = ", round(max_rhat, 4)))
 })

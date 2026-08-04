@@ -298,7 +298,7 @@ test_that("binegbin recovers all five dpars (intercepts only)", {
   expect_equal(n_div, 0, label = paste0(n_div, " divergent transitions"))
 
   max_rhat <- max(brms::rhat(fit), na.rm = TRUE)
-  expect_true(max_rhat < 1.01, label = paste0("max Rhat = ", round(max_rhat, 4)))
+  expect_true(max_rhat < 1.02, label = paste0("max Rhat = ", round(max_rhat, 4)))
 })
 
 # B. COMPOSITION WITH A GROUP-LEVEL TERM --------------------------------
@@ -338,7 +338,7 @@ test_that("binegbin composes with a group-level term on mu and samples cleanly",
   expect_equal(n_div, 0, label = paste0(n_div, " divergent transitions"))
 
   max_rhat <- max(brms::rhat(fit), na.rm = TRUE)
-  expect_true(max_rhat < 1.01, label = paste0("max Rhat = ", round(max_rhat, 4)))
+  expect_true(max_rhat < 1.02, label = paste0("max Rhat = ", round(max_rhat, 4)))
 })
 
 # CALIBRATION ------------------------------------------------------------

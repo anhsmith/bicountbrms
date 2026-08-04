@@ -25,6 +25,41 @@
 #                           what a recovery claim actually asserts. Gated behind
 #                           an explicit environment variable because it costs
 #                           minutes, not seconds.
+#
+# THE Rhat GATE IS 1.02, NOT 1.01, FOR THE SAME REASON. Each fitting test ends
+# with `expect_true(max_rhat < 1.02)`. Vehtari et al. (2021) recommend 1.01 for
+# inference, and this suite used it until 0.9.0. It is too tight for a gate on
+# a 4-chain 1000-draw fit: max Rhat at that sample size moves by more than the
+# gate's own margin for reasons unrelated to convergence. Two observations,
+# both on the bipois_cens censored-design fit and both with zero divergences
+# and every recovery assertion passing:
+#
+#   * 1.008 locally, 1.012 on Linux CI -- the same code, seed and data, differing
+#     only in the floating-point trajectory the platform produces.
+#   * 1.0056 without priors, 1.0117 with weak priors that shifted the posterior
+#     mean of lamx by 0.01. A perturbation that changes the answer negligibly
+#     moved max Rhat by three times the amount CI failed by.
+#
+# Varying only the Stan seed on that fit, data held fixed, gives max Rhat
+# 1.0023 1.0079 1.0055 1.0032 1.0023 -- a span of 0.006 with zero divergences
+# throughout. A platform change is a larger perturbation than a seed change:
+# CI's 1.012 sits above every one of those. test-binegbin.R records an earlier
+# near-miss at 1.0101.
+#
+# MORE DRAWS IS NOT THE FIX EITHER. At iter = 6000, warmup = 2000 the same five
+# seeds give 1.0016-1.0029, tighter as expected -- but produce 5 divergent
+# transitions where warmup = 1000 produced none, because the longer warmup
+# adapts to a different step size. That trades a gate this suite tolerates for
+# one it asserts at exactly zero.
+#
+# A gate that fires on platform noise reports nothing about the package, and
+# retuning the model to clear it -- priors, adapt_delta, more draws -- is
+# fitting the diagnostic rather than fixing anything. 1.02 clears the worst
+# observation (1.012) by 0.008, and is still far below the 1.05 at which brms
+# itself warns, so gross sampling failure is still caught. Divergent
+# transitions, asserted separately at exactly zero, are the sharper instrument
+# here in any case. If 1.02 ever fires on noise too, raise it to 1.05 rather
+# than tuning the models.
 
 # --------------------------------------------------------------------------
 # Smoke gate
