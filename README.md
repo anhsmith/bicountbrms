@@ -64,6 +64,13 @@ non-negative response, and cannot take a jointly-modelled pair.
 
 This package supplies four families with likelihood $P(y_1, y_2)$.
 
+The `_cens` families admit rows on which $y_1$ was not observed. On those rows
+the likelihood is the same joint with $y_1$ integrated out, so they still inform
+the shared component and the second source's rate rather than being dropped.
+After fitting, `posterior_predict()` returns a posterior distribution for $y_1$
+on every row, conditional on that row's observed $y_2$ — including the rows
+where $y_1$ was never recorded.
+
 For the bivariate Poisson the difference $y_1 - y_2$ is exactly
 Skellam-distributed (Skellam 1946), so `bipois()` induces the Skellam as its
 difference model.
