@@ -1,5 +1,10 @@
 # Version and year are taken from DESCRIPTION so there is one source of truth;
 # bumping Version/Date is enough to keep citation() current.
+#
+# DOI. Add the Zenodo DOI to `doi` and `textVersion` below once 1.0.0 has been
+# archived; 0.9.0 is deliberately not archived. Until then this entry cites the
+# repository, which is not a persistent identifier -- a manuscript should wait
+# for the DOI rather than cite the URL.
 year <- if (!is.null(meta$Date)) {
   format(as.Date(meta$Date), "%Y")
 } else {
@@ -8,26 +13,25 @@ year <- if (!is.null(meta$Date)) {
 version <- meta$Version
 
 citHeader(
-  "To cite pairedcountbrms in publications, cite the package itself and, ",
+  "To cite bicountbrms in publications, cite the package itself and, ",
   "because every family here is a brms custom family, brms as well ",
   "(citation(\"brms\")). If you use a specific family, please also cite the ",
   "distribution it implements -- see the References section of the package ",
-  "README for Skellam (1946), Holgate (1964) and Karlis & Ntzoufras (2003, ",
-  "2006)."
+  "README for Holgate (1964) and Karlis & Ntzoufras (2003, 2006)."
 )
 
 bibentry(
   bibtype  = "Manual",
-  title    = "{pairedcountbrms}: Skellam, Discrete-Difference, and Joint Bivariate-Count {brms} Custom Families",
+  title    = "{bicountbrms}: Joint Bivariate-Count {brms} Custom Families for Paired Counts",
   author   = person("Adam N. H.", "Smith"),
   year     = year,
   note     = paste("R package version", version),
-  url      = "https://github.com/anhsmith/pairedcountbrms",
+  url      = "https://github.com/anhsmith/bicountbrms",
   header   = "Package citation:",
   textVersion = paste0(
-    "Smith, A. N. H. (", year, "). pairedcountbrms: Skellam, ",
-    "Discrete-Difference, and Joint Bivariate-Count brms Custom Families. ",
+    "Smith, A. N. H. (", year, "). bicountbrms: Joint Bivariate-Count brms ",
+    "Custom Families for Paired Counts. ",
     "R package version ", version, ". ",
-    "https://github.com/anhsmith/pairedcountbrms"
+    "https://github.com/anhsmith/bicountbrms"
   )
 )

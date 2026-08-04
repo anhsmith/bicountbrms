@@ -6,8 +6,10 @@
 # log-rate/`poisson_log_lpmf` parameterisation to the natural-scale-rate
 # parameterisation this package's dpars use post-link.)
 #
-# Unlike skellam1/2, dlaplace1/2, dnorm1/2 (all of which model a single
-# *difference* response, y1 - y2), bipois models the *joint* pair (y1, y2)
+# Unlike a difference family -- the Skellam, discrete Laplace and discrete
+# normal families in the companion package skellambrms
+# (https://github.com/anhsmith/skellambrms), all of which model a single
+# response d = y1 - y2 -- bipois models the *joint* pair (y1, y2)
 # directly. That avoids regressing the difference on one of its own
 # components (a `d ~ y2` design), which induces regression to the mean: y2
 # appears on both sides, so the fitted slope is biased towards -1 by the
@@ -56,10 +58,10 @@
 #'   )
 #'
 #' @details
-#' **Naming note.** Same forced naming as `skellam1()`/`dlaplace1()`/
-#' `dnorm1()`: `brms::custom_family()` requires a dpar literally named
+#' **Naming note.** `brms::custom_family()` requires a dpar literally named
 #' `"mu"` (`stop2("All families must have a 'mu' parameter.")`,
-#' unconditional). Here it is bound to `lambda_shared`, the rate of the
+#' unconditional), whatever the family actually calls that quantity. Here it is
+#' bound to `lambda_shared`, the rate of the
 #' component shared between `y1` and `y2` -- not a mean of either
 #' response individually. `lambdaone` (source-1-only rate) and `lambdatwo`
 #' (source-2-only rate) are the other two dpars, plainly named (no forced
@@ -120,8 +122,8 @@ bipois_stanvars <- function() {
 # (the cited stan-users thread works in log-rates via poisson_log_lpmf;
 # translated here since this package's dpars are already inv-link-
 # transformed to natural scale by the time they reach the lpmf, the same
-# convention as every other family in this package -- see skellam1_lpmf,
-# which likewise takes `sigma`, not `log(sigma)`).
+# convention as every other family in this package: binegbin_lpmf likewise
+# takes `mu`, not `log(mu)`).
 #
 # Write lambda_shared = mu, and let term(k) = P(N_shared=k) P(N1=r-k)
 # P(N2=s-k) for r = y1, s = y2, m = min(r,s). Then:
@@ -148,16 +150,17 @@ bipois_stanvars <- function() {
 # translating directly to `log(mu) - log(lambdaone) - log(lambdatwo)` once
 # mu1, mu2, mu3 are read as log-rates). Each term is accumulated into the
 # running total via log_sum_exp -- no separate normalising-constant term is
-# needed (unlike skellam1_lccdf_stan's tail sum), since this sum is finite
-# (m+1 terms) and exactly equals the marginalised joint log-likelihood, not
-# a survival function.
+# needed, since this sum is finite (m+1 terms) and exactly equals the
+# marginalised joint log-likelihood, not a survival function.
 #
-# No large-argument blowup risk analogous to skellam1/skellam2's Bessel
-# function: m = min(y1, y2) is bounded by the data itself (a few tens of
-# terms at most for counts of the size these families are built for), and
-# every term here is a sum/difference of ordinary
-# Poisson log-densities, not a Bessel function of large order. No
-# iteration cap or normal-approximation branch is needed for that reason.
+# No large-argument blowup risk: m = min(y1, y2) is bounded by the data itself
+# (a few tens of terms at most for counts of the size these families are built
+# for), and every term here is a sum/difference of ordinary Poisson
+# log-densities, evaluated at arguments the data bounds. No iteration cap or
+# normal-approximation branch is needed for that reason -- in contrast to the
+# Bessel-function evaluation a Skellam log-CCDF requires, where the argument is
+# unbounded during warmup and a fallback branch is unavoidable (see
+# skellambrms).
 bipois_stan_funs <- "
   real bipois_lpmf(int y1, real mu, real lambdaone, real lambdatwo, int y2) {
     int m = min(y1, y2);
@@ -185,8 +188,8 @@ bipois_stan_funs <- "
 # recurrence above and to power log_lik_bipois()/posterior_epred_bipois()
 # (evaluated post-hoc, not inside the sampler's hot loop, so there is no
 # reason to use the recurrence's algebraic shortcuts here). Not exported:
-# internal reference only, exactly the role skellam1_lpmf_r/dlaplace1_lpmf_r
-# etc. play in truncation.R for their families.
+# internal reference only, exactly the role binegbin_lpmf_r plays for its own
+# family.
 bipois_lpmf_r <- function(y1, y2, mu, lambdaone, lambdatwo) {
   n <- max(length(y1), length(y2), length(mu), length(lambdaone), length(lambdatwo))
   y1        <- rep_len(y1, n)

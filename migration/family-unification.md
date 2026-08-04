@@ -1,9 +1,16 @@
 # Unifying the symmetric and asymmetric joint families
 
-**pairedcountbrms 0.8.0.** This note records why `binegbin_joint()` was
-generalised to six distributional parameters rather than joined by a second
-family, what was measured to establish that the change is safe, and what the
-Belize EM project (`tnc001-belize-em`) must do to adopt it.
+**Written for pairedcountbrms 0.8.0; the package is now bicountbrms 0.9.0.**
+This note records why `binegbin_joint()` was generalised to six distributional
+parameters rather than joined by a second family, what was measured to establish
+that the change is safe, and what the Belize EM project (`tnc001-belize-em`)
+must do to adopt it.
+
+The generalisation itself is unchanged by the 0.9.0 rename and split, and the
+measurements below stand as recorded — they were made under the name
+`pairedcountbrms`, and are left saying so. Only the forward-looking adoption
+steps in §5 have been updated to the current package name; install
+`bicountbrms` where they say to install the package.
 
 ---
 
@@ -288,8 +295,10 @@ Not performed here — this is the other session's work. In order:
 
 1. **Delete nothing yet.** Keep `R/binegbin_joint_ax.R` on disk until step 5.
 
-2. **Install pairedcountbrms 0.8.0** and attach it where the local family was
-   sourced.
+2. **Install bicountbrms** (0.9.0 or later) and attach it where the local family
+   was sourced. The family, its dpars and its likelihood are unchanged from the
+   `pairedcountbrms` 0.8.0 under which the checks below were run; only the
+   package name differs.
 
 3. **Rewrite the `nlf()` left-hand sides** in the model-building code:
 
@@ -339,9 +348,9 @@ Not performed here — this is the other session's work. In order:
 
      ```r
      log_lik_binegbin_joint_ax <-
-       function(i, prep) pairedcountbrms::log_lik_binegbin_joint(i, prep)
+       function(i, prep) bicountbrms::log_lik_binegbin_joint(i, prep)
      posterior_predict_binegbin_joint_ax <-
-       function(i, prep, ...) pairedcountbrms::posterior_predict_binegbin_joint(i, prep, ...)
+       function(i, prep, ...) bicountbrms::posterior_predict_binegbin_joint(i, prep, ...)
      ```
 
      These work because the packaged functions resolve `lambdaem`/`lambdalb`/

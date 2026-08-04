@@ -45,10 +45,10 @@ Use in a brm() call as:
   )
 }
 \details{
-**Naming note.** Same forced naming as `skellam1()`/`dlaplace1()`/
-`dnorm1()`: `brms::custom_family()` requires a dpar literally named
+**Naming note.** `brms::custom_family()` requires a dpar literally named
 `"mu"` (`stop2("All families must have a 'mu' parameter.")`,
-unconditional). Here it is bound to `lambda_shared`, the rate of the
+unconditional), whatever the family actually calls that quantity. Here it is
+bound to `lambda_shared`, the rate of the
 component shared between `y1` and `y2` -- not a mean of either
 response individually. `lambdaone` (source-1-only rate) and `lambdatwo`
 (source-2-only rate) are the other two dpars, plainly named (no forced

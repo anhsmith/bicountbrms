@@ -1,7 +1,7 @@
 # Builds a minimal synthetic brms "prep"-like list sufficient for
 # posterior_predict_<family>()/posterior_epred_<family>() to run without a
 # full brmsfit -- avoids the Stan-compilation dependency the rest of this
-# package's Stan-side tests already gate behind stan_ready/lccdf_ready.
+# package's Stan-side tests already gate behind stan_ready.
 # Confirmed sufficient directly against the installed brms package: with
 # class(prep) <- "brmsprep", brms::is.brmsprep() (inherits(x, "brmsprep"))
 # and brms::get_dpar() (which reads prep$dpars[[name]] and, for a plain

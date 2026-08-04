@@ -54,10 +54,17 @@ jobs:
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
 
+      # `clean: true`, not false. build_site_github_pages() writes the COMPLETE
+      # site into docs/ every run, so nothing on the branch needs preserving,
+      # and not cleaning means a page for a removed topic stays served for ever
+      # at its old URL. The 0.9.0 split made that concrete: the inherited
+      # gh-pages branch carried 50 files documenting the difference families
+      # after they moved to skellambrms, and no check in this repository would
+      # ever have noticed them.
       - name: Deploy to GitHub pages 🚀
         if: github.event_name != 'pull_request'
         uses: JamesIves/github-pages-deploy-action@v4.8.0
         with:
-          clean: false
+          clean: true
           branch: gh-pages
           folder: docs

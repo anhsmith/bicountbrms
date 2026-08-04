@@ -31,6 +31,10 @@ test_that("R brute-force lpmf reproduces Poisson(mu+lambdaone) marginal for y1",
 })
 
 test_that("N_shared cancels: d = y1 - y2 marginal matches Skellam(lambdaone, lambdatwo)", {
+  # `skellam` is a Suggests, not an Imports, since 0.9.0 -- no function in R/
+  # calls it. It is still the right independent reference for this identity,
+  # so the test guards rather than dropping it.
+  skip_if_not_installed("skellam")
   mu <- 4; lambdaone <- 2; lambdatwo <- 3
   K <- 60
   ys <- 0:K
@@ -177,8 +181,8 @@ test_that("bipois parameter recovery from simulated vessel-level data", {
   # brms treats "mu" as the family's canonical/default dpar and drops its
   # infix from generated column names (b_Intercept, sd_vessel__Intercept),
   # unlike the other two, plainly-named dpars (b_lambdaone_Intercept, etc.)
-  # -- same convention already relied on in test-recovery.R's skellam1
-  # check, where "mu" likewise stands in for a non-mean quantity.
+  # -- so "mu" here reads as b_Intercept even though it stands in for the
+  # shared rate rather than any mean.
   expect_true(check_recovery(true_log_mu_int,       "b_Intercept"))
   expect_true(check_recovery(true_log_lambdaone_int, "b_lambdaone_Intercept"))
   expect_true(check_recovery(true_log_lambdatwo_int, "b_lambdatwo_Intercept"))

@@ -207,3 +207,25 @@ test_that("the map agrees with the trivariate-reduction moment identities", {
   expect_equal((e_em + e_lb) / 2, 12)
   expect_equal(e_em - e_lb, d$lambdaone - d$lambdatwo)
 })
+
+test_that("the rate half of the map serves bipois_joint unchanged", {
+  # bipois_joint takes the same three rates and no dispersion, so only the rate
+  # half of the converters applies to it -- there is no kappa to supply. Rather
+  # than assert that in prose, feed the converted rates to the family's censored
+  # branch and check the resulting distribution has the mean the map predicts:
+  # that branch is Poisson(mu + lambdatwo), so its mean must be E[y2] = mu +
+  # lambdatwo, which by the identity above is M(1 - (1 - f) * tanh(delta)).
+  d <- binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = 0.3)
+
+  ys <- 0:400
+  lp <- bipois_joint_lpmf_r(0L, ys, 0L, d$mu, d$lambdaone, d$lambdatwo)
+  expect_equal(sum(exp(lp)), 1, tolerance = 1e-10)
+  expect_equal(sum(ys * exp(lp)), d$mu + d$lambdatwo, tolerance = 1e-8)
+  expect_equal(d$mu + d$lambdatwo, 12 * (1 - (1 - 0.67) * tanh(0.3)))
+
+  # Supplying a dispersion is what distinguishes the negative-binomial
+  # families; asking for one here would be a caller error, and there is no
+  # bipois-flavoured spelling that would let it through.
+  expect_named(binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = 0.3),
+               c("mu", "lambdaone", "lambdatwo"))
+})

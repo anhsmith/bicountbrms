@@ -46,20 +46,20 @@ recovery_ok <- function(draws, true_val, draws_col, level = 0.99) {
 
 # The full coverage assessment is minutes of sampling per family. Opt in with
 #
-#   PAIREDCOUNTBRMS_COVERAGE=true
+#   BICOUNTBRMS_COVERAGE=true
 #
 # Run it before a release, or when changing a likelihood, a link, or a
 # parameterisation -- not on every save. Using a named variable rather than
 # leaning on skip_on_cran() means "this did not run" is a deliberate,
 # inspectable state instead of the default nobody notices.
 coverage_enabled <- function() {
-  isTRUE(as.logical(Sys.getenv("PAIREDCOUNTBRMS_COVERAGE", "false")))
+  isTRUE(as.logical(Sys.getenv("BICOUNTBRMS_COVERAGE", "false")))
 }
 
 skip_unless_coverage <- function() {
   testthat::skip_if_not(
     coverage_enabled(),
-    "set PAIREDCOUNTBRMS_COVERAGE=true to run the coverage assessment"
+    "set BICOUNTBRMS_COVERAGE=true to run the coverage assessment"
   )
 }
 

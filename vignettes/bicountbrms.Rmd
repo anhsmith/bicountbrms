@@ -1,10 +1,10 @@
 ---
-title: "Getting started with pairedcountbrms"
+title: "Getting started with bicountbrms"
 output: rmarkdown::html_vignette
 bibliography: references.bib
 link-citations: true
 vignette: >
-  %\VignetteIndexEntry{Getting started with pairedcountbrms}
+  %\VignetteIndexEntry{Getting started with bicountbrms}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -15,14 +15,14 @@ vignette: >
 ``` r
 library(brms)
 #> Warning: package 'Rcpp' was built under R version 4.6.1
-library(pairedcountbrms)
+library(bicountbrms)
 ```
 
 This vignette walks the package's R API end to end on one family, `binegbin()`:
 simulate a matched pair of counts from known parameters, fit them, check that
 the posterior finds the truth, and then predict and score. The other joint
-family (`bipois()`) works identically with two fewer dpars; the difference
-families (`skellam1()`, `dnorm2()`, and so on) are shown in the README.
+families (`bipois()`, and the censoring-aware `binegbin_joint()` and
+`bipois_joint()`) follow the same pattern; the README compares them.
 
 Everything here is a brms custom family [@burkner2017], so the fitting,
 prediction and model-comparison interfaces are brms's own. The non-linear
@@ -161,7 +161,7 @@ its own evidence that the prior is uninfluential. The article
 [*The anatomy of a paired count*][anatomy] tests that directly, shifting a prior
 median sevenfold and moving the corresponding posterior median by 0.005.
 
-[anatomy]: https://anhsmith.github.io/pairedcountbrms/articles/paired-count-anatomy.html
+[anatomy]: https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html
 
 To adapt these priors, shift the **mean** to the scale of the counts rather than
 increasing the SD. All five dpars are log-linked, so a normal prior is lognormal
@@ -279,23 +279,38 @@ loo(fit)
 #> See help('pareto-k-diagnostic') for details.
 ```
 
-## One limitation to know about
+## What `posterior_epred()` returns here
 
-`posterior_epred()` — and its aliases `fitted()` and `conditional_effects()` —
-**errors on any truncated custom-family fit** in brms 2.23.0. The dispatcher
-checks for truncation before it checks the family type, and the truncated branch
-has no fallback to `posterior_epred_custom()`. This is a brms limitation, not a
-bug in this package.
+Every family in this package answers the same question:
 
-On a truncated fit, call the family's method directly:
+$$
+\mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_{\text{shared}} \mid y_2] + \lambda_1,
+$$
+
+the expected first count *given the second one that was actually observed* —
+not a marginal expectation. That is the quantity the construction makes
+available and the one worth having: it is what the second source implies about
+the first.
+
+For `bipois()` and `bipois_joint()` it is closed form, because conditioning a
+sum of independent Poissons on its total gives a Binomial split. For
+`binegbin()` and `binegbin_joint()` there is no such shortcut, so the
+conditional is evaluated over its support $k = 0, \ldots, y_2$ and summed. All
+four are exact, and each agrees with the mean of its own `posterior_predict()`
+draws to within Monte Carlo error.
+
+The censoring-aware families return it for every row, including those where
+$y_1$ was never observed — imputing the unobserved margin is the point of
+fitting them.
+
+Call it the ordinary way: `posterior_epred(fit)` dispatches to the family's
+method, as do `fitted()` and `conditional_effects()`. The equivalent direct
+call is
 
 
 ``` r
 posterior_epred_binegbin(prepare_predictions(fit))
 ```
-
-`posterior_predict()` and `log_lik()` are unaffected and work correctly with
-truncation.
 
 ## Where to go next
 
@@ -319,13 +334,21 @@ truncation.
   unless the data support otherwise; the rate parameterisation has no such
   nulls. Worked end to end in the article
   [*The anatomy of a paired count*][anatomy].
-- `skellam1()` / `skellam2()`, `dnorm1()` / `dnorm2()`, `dlaplace1()` /
-  `dlaplace2()` — the difference families, which model `d = y1 - y2`
-  directly. The `1` variants fix the location at zero (does the pair agree on
-  average?); the `2` variants estimate it (by how much do they disagree?). All
-  support truncation through `resp_trunc()`. The difference of two independent
-  Poisson counts is Skellam-distributed [@skellam1946]; for the Bayesian
-  treatment of count differences generally, see @karlis2006.
+- `bipois_joint()` — censoring-aware and equidispersed: `binegbin_joint()`'s
+  Poisson special case. Its integrated-out marginal is closed form,
+  $y_2 \sim \mathrm{Poisson}(\mu + \lambda_2)$, since a sum of independent
+  Poissons is Poisson. Use it when the margins are not overdispersed, rather
+  than fitting `binegbin_joint()` with its dispersions pressed against the
+  Poisson boundary.
+- **Modelling the difference instead.** Where only the disagreement
+  $d = y_1 - y_2$ is of interest, or where truncation via `resp_trunc()` is
+  required, the Skellam and discrete Laplace/normal families in the companion
+  package [`skellambrms`](https://github.com/anhsmith/skellambrms) model $d$
+  directly. The difference of two independent Poisson counts is
+  Skellam-distributed [@skellam1946]; for the Bayesian treatment of count
+  differences generally, see @karlis2006. Note what that reduction discards:
+  the shared component cancels out of $d$, so the level and the congruence are
+  no longer estimable.
 
 ## References
 

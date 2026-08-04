@@ -1,6 +1,6 @@
 # Precompile the vignette and the pkgdown articles that fit models.
 #
-# Both vignettes/pairedcountbrms.Rmd and
+# Both vignettes/bicountbrms.Rmd and
 # vignettes/articles/paired-count-anatomy.Rmd fit real brms models. Building
 # those on every R CMD check and every CI run would need a full Stan toolchain
 # plus minutes of compilation, so they are precompiled instead: each .Rmd.orig
@@ -36,7 +36,7 @@ stopifnot(
 # input/output are relative to the directory each pair lives in, so knitr
 # resolves any relative paths inside the document the same way a build would.
 targets <- list(
-  list(dir = "vignettes",          stem = "pairedcountbrms"),
+  list(dir = "vignettes",          stem = "bicountbrms"),
   list(dir = "vignettes/articles", stem = "paired-count-anatomy")
 )
 

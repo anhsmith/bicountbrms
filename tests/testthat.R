@@ -1,3 +1,3 @@
 library(testthat)
-library(pairedcountbrms)
-test_check("pairedcountbrms")
+library(bicountbrms)
+test_check("bicountbrms")

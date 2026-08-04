@@ -69,3 +69,64 @@
     call. = FALSE
   )
 }
+
+# --------------------------------------------------------------------------
+# E[N_shared | y2] for the negative-binomial joint families
+# --------------------------------------------------------------------------
+#
+# Every joint family's conditional expectation has the same shape,
+#
+#   E[y1 | y2] = E[N_shared | y2] + lambdaone,
+#
+# and the families differ only in the first term. For bipois()/bipois_joint()
+# it is closed form -- conditioning a sum of independent Poissons on its total
+# gives a Binomial, so E[N_shared | y2] = y2 * mu/(mu + lambdatwo) -- and those
+# families compute it inline. A sum of independent negative binomials admits no
+# such shortcut, so binegbin()/binegbin_joint() need the conditional evaluated
+# directly:
+#
+#   P(N_shared = k | y2) proportional to
+#     NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapex2),  k = 0..y2
+#
+#   E[N_shared | y2] = sum_k k P(N_shared = k | y2)
+#
+# These are the same weights posterior_predict_binegbin() and
+# posterior_predict_binegbin_joint() already build; this helper sums them
+# instead of sampling from them. That makes the epred exact rather than an
+# approximation, and makes it consistent with the predictions by construction
+# -- the two now differ only by Monte Carlo error, which is what a test can
+# check.
+#
+# Until 0.9.0 posterior_epred_binegbin() substituted the MARGINAL shared
+# fraction mu/(mu + lambdatwo) -- the bipois answer -- for the conditional one,
+# and posterior_epred_binegbin_joint() did not exist. The substitution is exact
+# only in the Poisson limit and biased otherwise, in the direction set by which
+# component carries more dispersion. See NEWS for the size of the change.
+#
+# `shapex2` is the dispersion of the SECOND margin's excess component
+# (`shapex` for binegbin(), `shapextwo` for binegbin_joint()) -- the y2
+# marginal is what is being conditioned on, so the first margin's dispersion
+# does not enter.
+#
+# Arguments are ndraws x nobs matrices except `y2`, a length-nobs integer
+# vector. Returns an ndraws x nobs matrix. The loop is over observations and
+# over the support 0..y2, vectorised across draws within each, so its cost
+# matches posterior_predict's; both are paid post-hoc, never inside the
+# sampler.
+.e_shared_given_y2_nb <- function(mu, lambdatwo, shapes, shapex2, y2) {
+  out <- matrix(0, nrow = nrow(mu), ncol = ncol(mu))
+  for (j in seq_along(y2)) {
+    yj <- y2[[j]]
+    if (yj == 0L) next            # N_shared | y2 = 0 is degenerate at 0
+    k <- 0:yj
+    # log-weights: ndraws x (yj + 1), one column per k.
+    lw <- vapply(k, function(kk) {
+      stats::dnbinom(kk,      size = shapes[, j],  mu = mu[, j],        log = TRUE) +
+        stats::dnbinom(yj - kk, size = shapex2[, j], mu = lambdatwo[, j], log = TRUE)
+    }, numeric(nrow(mu)))
+    if (!is.matrix(lw)) lw <- matrix(lw, nrow = nrow(mu))
+    w <- exp(lw - apply(lw, 1, max))
+    out[, j] <- (w %*% k) / rowSums(w)
+  }
+  out
+}

@@ -1,4 +1,4 @@
-url: https://anhsmith.github.io/pairedcountbrms/
+url: https://anhsmith.github.io/bicountbrms/
 
 template:
   bootstrap: 5
@@ -8,42 +8,26 @@ reference:
   desc: >
     Model the matched pair jointly via trivariate reduction, capturing its
     correlation, marginal overdispersion, and difference together rather than
-    the difference alone.
+    the difference alone. Both counts must be observed on every row.
   contents:
   - bipois
   - binegbin
+
+- title: Censoring-aware families
+  desc: >
+    The same two models, extended to rows on which the first count is
+    unobserved, through the integrated-out marginal of the same joint. For
+    Poisson components that marginal is closed form; for Negative-Binomial
+    components it is a convolution, and the two source-specific components may
+    differ in overdispersion.
+  contents:
+  - bipois_joint
   - binegbin_joint
-
-- title: Difference families
-  desc: >
-    Model the difference `d = y1 - y2` directly. The `1` variants fix the
-    location at zero (do the two sources agree on average?); the `2` variants
-    estimate it (by how much do they disagree?).
-  contents:
-  - skellam1
-  - skellam2
-  - dnorm1
-  - dnorm2
-  - dlaplace1
-  - dlaplace2
-
-- title: Truncation support
-  desc: >
-    Stan `lccdf` functions injected as stanvars so the difference families
-    normalise correctly under `resp_trunc()`.
-  contents:
-  - skellam1_lccdf_stanvars
-  - skellam2_lccdf_stanvars
-  - dnorm1_lccdf_stanvars
-  - dnorm2_lccdf_stanvars
-  - dlaplace1_lccdf_stanvars
-  - dlaplace2_lccdf_stanvars
 
 - title: Parameterisation helpers
   desc: >
-    Convert between the dpars a family takes and more interpretable
-    coordinates.
+    Convert between the dpars a family takes and the interpretable coordinates
+    of overall level, congruence, and source bias.
   contents:
-  - skellam2_dpars
   - binegbin_mfd_to_dpars
   - binegbin_dpars_to_mfd

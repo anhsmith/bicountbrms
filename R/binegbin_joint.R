@@ -329,3 +329,31 @@ posterior_predict_binegbin_joint <- function(i, prep, ...) {
   }
   out
 }
+
+#' @rdname binegbin_joint
+#' @export
+#' @keywords internal
+posterior_epred_binegbin_joint <- function(prep) {
+  mu        <- brms::get_dpar(prep, "mu")        # lambda_shared
+  lambdaone <- .get_rate(prep, "lambdaone", "lambdaem")
+  lambdatwo <- .get_rate(prep, "lambdatwo", "lambdalb")
+  shapes    <- brms::get_dpar(prep, "shapes")
+  shapextwo <- .get_dpar_any(prep, .SHAPEXTWO_NAMES)
+  y2 <- prep$data$vint1
+  # E[y1 | y2] = E[N_shared | y2] + lambdaone, the expectation of exactly what
+  # posterior_predict_binegbin_joint() simulates. `shapextwo` and not
+  # `shapexone`: the quantity conditioned on is y2, so it is the SECOND
+  # margin's excess dispersion that enters the conditional weights. See
+  # .e_shared_given_y2_nb() in utils.R.
+  #
+  # y1_obs is ignored, as it is in posterior_predict_binegbin_joint(): the
+  # conditional expectation of the first margin is defined on censored rows too,
+  # and imputing it there is the point of having the family. Returning it for
+  # every row keeps epred and posterior_predict comparable row by row.
+  #
+  # This family had no posterior_epred before 0.9.0, on the view that E[y1] is
+  # ambiguous when y1 is unobserved. It is not: E[y1 | y2] is well defined
+  # whether or not y1 was recorded, and it is the quantity a user imputing the
+  # missing margin wants.
+  .e_shared_given_y2_nb(mu, lambdatwo, shapes, shapextwo, y2) + lambdaone
+}

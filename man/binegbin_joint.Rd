@@ -5,6 +5,7 @@
 \alias{binegbin_joint_stanvars}
 \alias{log_lik_binegbin_joint}
 \alias{posterior_predict_binegbin_joint}
+\alias{posterior_epred_binegbin_joint}
 \title{Censoring-aware joint bivariate-Negative-Binomial family for brms}
 \usage{
 binegbin_joint()
@@ -14,6 +15,8 @@ binegbin_joint_stanvars()
 log_lik_binegbin_joint(i, prep)
 
 posterior_predict_binegbin_joint(i, prep, ...)
+
+posterior_epred_binegbin_joint(prep)
 }
 \value{
 A brms custom_family object.

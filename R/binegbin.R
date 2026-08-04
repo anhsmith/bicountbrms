@@ -239,13 +239,19 @@ posterior_epred_binegbin <- function(prep) {
   mu        <- brms::get_dpar(prep, "mu")        # lambda_shared
   lambdaone <- .get_rate(prep, "lambdaone", "lambdaem")
   lambdatwo <- .get_rate(prep, "lambdatwo", "lambdalb")
+  shapes    <- brms::get_dpar(prep, "shapes")
+  shapex    <- brms::get_dpar(prep, "shapex")
   y2 <- prep$data$vint1
-  # E[y1 | y2] = E[N_shared | y2] + lambdaone. For binegbin there is no
-  # closed-form E[N_shared | y2] as clean as bipois's y2 * mu/(mu+lambdatwo);
-  # this returns the analogous point approximation using the marginal shared
-  # fraction mu/(mu+lambdatwo), adequate for epred display (posterior_predict
-  # uses the exact discrete conditional).
-  y2_mat <- matrix(y2, nrow = nrow(mu), ncol = ncol(mu), byrow = TRUE)
-  p_shared <- mu / (mu + lambdatwo)
-  y2_mat * p_shared + lambdaone
+  # E[y1 | y2] = E[N_shared | y2] + lambdaone, exact. A sum of independent
+  # negative binomials conditioned on its total is not Binomial, so
+  # E[N_shared | y2] has no closed form as clean as bipois's
+  # y2 * mu/(mu+lambdatwo); it is the mean of the discrete conditional over
+  # k = 0..y2 -- the same weights posterior_predict_binegbin() samples from,
+  # summed rather than sampled. See .e_shared_given_y2_nb() in utils.R.
+  #
+  # Before 0.9.0 this substituted the MARGINAL shared fraction
+  # mu/(mu+lambdatwo), which is bipois's answer and exact only in the Poisson
+  # limit, so the epred and posterior_predict disagreed by more than Monte
+  # Carlo error. They now agree by construction.
+  .e_shared_given_y2_nb(mu, lambdatwo, shapes, shapex, y2) + lambdaone
 }

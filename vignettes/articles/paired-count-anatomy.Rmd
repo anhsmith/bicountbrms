@@ -457,7 +457,7 @@ the JavaScript above is checked against:
 
 
 ``` r
-library(pairedcountbrms)
+library(bicountbrms)
 
 # The widget's defaults
 binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = atanh(0), kappas = 0.6, kappax = 1.0)
@@ -635,7 +635,7 @@ Simulate a pair of counts from known coordinates:
 
 ``` r
 library(brms)
-library(pairedcountbrms)
+library(bicountbrms)
 
 set.seed(20260731)
 

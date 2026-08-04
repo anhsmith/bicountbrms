@@ -9,12 +9,12 @@
 # and no BH, so `brm()` reaches `rstan::stan_model()` and fails with
 # "Boost not found" rather than skipping.
 #
-# That is exactly what happened on the first CI run of this package: the
-# difference-family fitting tests skipped cleanly because they guard on a
-# file-local `stan_ready`, while the joint-family ones and test-recovery.R had
-# only skip_on_cran() + skip_if_not_installed("brms") and errored. Note also
-# that r-lib/actions/check-r-package sets NOT_CRAN=true, so skip_on_cran() does
-# NOT fire in that workflow.
+# That is exactly what happened on the first CI run of this code, when it was
+# part of pairedcountbrms: some fitting tests skipped cleanly because they guard
+# on a file-local `stan_ready`, while the joint-family ones had only
+# skip_on_cran() + skip_if_not_installed("brms") and errored. Note also that
+# r-lib/actions/check-r-package sets NOT_CRAN=true, so skip_on_cran() does NOT
+# fire in that workflow.
 #
 # The check below compiles the smallest possible Stan program, which is the only
 # way to establish that compilation actually works rather than that rstan is

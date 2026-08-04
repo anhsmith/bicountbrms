@@ -78,6 +78,16 @@ test_that("posterior_epred is identical under old and new rate-dpar names", {
     posterior_epred_bipois(mk(OLD, five = FALSE)),
     posterior_epred_bipois(mk(NEW, five = FALSE))
   )
+  # binegbin_joint gained a posterior_epred at 0.9.0, so a pre-existing fit is
+  # post-processed by code it never ran under. It resolves both rates through
+  # .get_rate() and its excess dispersion through .SHAPEXTWO_NAMES, whose last
+  # candidate is the five-dpar `shapex` supplied by mk() -- the same fallback
+  # log_lik and posterior_predict already rely on. bipois_joint is not tested
+  # here: it is new at 0.9.0, so no fit can carry the old spellings.
+  expect_equal(
+    posterior_epred_binegbin_joint(mk(OLD, vint2 = V2)),
+    posterior_epred_binegbin_joint(mk(NEW, vint2 = V2))
+  )
 })
 
 test_that("posterior_predict is identical under old and new rate-dpar names", {

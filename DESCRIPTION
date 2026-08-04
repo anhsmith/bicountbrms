@@ -1,43 +1,38 @@
-Package: pairedcountbrms
-Title: Joint Bivariate-Count and Discrete-Difference brms Custom
-    Families for Paired Counts
-Version: 0.8.0
-Date: 2026-08-03
+Package: bicountbrms
+Title: Joint Bivariate-Count brms Custom Families for Paired Counts
+Version: 0.9.0
+Date: 2026-08-04
 Authors@R: person("Adam N. H.", "Smith", , "anhsmith@gmail.com", role = c("aut", "cre"))
 Description: Provides custom brms families for comparing two paired count
-    sources. The principal families model the pair jointly, via trivariate
-    reduction: a bivariate Poisson (bipois), its overdispersed bivariate
-    Negative-Binomial sibling (binegbin), and a censoring-aware extension
-    (binegbin_joint) that admits rows on which one of the two counts is
-    unobserved, through its integrated-out marginal, and lets the two
-    source-specific components differ in overdispersion. Modelling the pair
-    rather than its difference captures the overall level, the correlation between
-    sources, and marginal overdispersion alongside the disagreement, and
-    supports simulating one count conditional on the other. An interpretable
+    sources, modelling the pair jointly via trivariate reduction rather than
+    reducing it to a difference. Four families are supplied: a bivariate
+    Poisson (bipois), its overdispersed bivariate Negative-Binomial sibling
+    (binegbin), and a censoring-aware extension of each (bipois_joint,
+    binegbin_joint) that admits rows on which one of the two counts is
+    unobserved, through the integrated-out marginal of the same joint model.
+    Modelling the pair rather than its difference captures the overall level,
+    the correlation between sources, and marginal overdispersion alongside the
+    disagreement, and supports simulating one count conditional on the other,
+    including on rows where it was never recorded. An interpretable
     reparameterisation separates overall level, congruence, and source bias,
     giving each a finite null and so admitting penalised-complexity priors.
-    Also provided are families that model the difference directly, for when
-    only the disagreement is of interest or truncation via brms's resp_trunc()
-    is required: the symmetric and asymmetric Skellam distributions (the
-    distribution of the difference of two Poisson random variables), and
-    discrete Laplace and discrete normal distributions discretised via CDF
-    differencing, each with location fixed at zero or free, all sampled on a
-    common SD-scale spread parameter.
+    The Negative-Binomial families let the two source-specific components
+    differ in overdispersion.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Imports:
-    brms,
-    skellam
+    brms
 Suggests:
     cmdstanr,
     knitr,
     rmarkdown,
     rstan,
+    skellam,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Additional_repositories: https://stan-dev.r-universe.dev
 Config/testthat/edition: 3
-URL: https://github.com/anhsmith/pairedcountbrms,
-    https://anhsmith.github.io/pairedcountbrms/
-BugReports: https://github.com/anhsmith/pairedcountbrms/issues
+URL: https://github.com/anhsmith/bicountbrms,
+    https://anhsmith.github.io/bicountbrms/
+BugReports: https://github.com/anhsmith/bicountbrms/issues
 Config/roxygen2/version: 8.0.0

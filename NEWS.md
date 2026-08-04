@@ -1,3 +1,114 @@
+# bicountbrms 0.9.0
+
+* **The package has been split, and renamed.** `pairedcountbrms` carried two
+  unrelated suites: families that model a count pair jointly, and families that
+  model its difference. They shared no code — not a helper, not a Stan block,
+  not a dependency. This release separates them. The joint families are
+  `bicountbrms`; the difference families (`skellam1`/`skellam2`,
+  `dnorm1`/`dnorm2`, `dlaplace1`/`dlaplace2`) have returned to
+  [`skellambrms`](https://github.com/anhsmith/skellambrms), the name under which
+  they were originally released.
+
+  **No family, dpar or Stan function name changed**, so no fitted model needs
+  refitting. brms resolves each fit's `log_lik_*` / `posterior_predict_*` /
+  `posterior_epred_*` methods off the attached search path at call time, so a
+  stored fit works as soon as the package holding its family is attached. The
+  only source change required is `library(pairedcountbrms)` →
+  `library(bicountbrms)` or `library(skellambrms)`, and any
+  `pairedcountbrms::` prefix.
+
+  The GitHub repository is renamed to `anhsmith/bicountbrms`, and GitHub serves
+  a permanent redirect from `anhsmith/pairedcountbrms` for both web and git, so
+  existing clones and `pak::pak("anhsmith/pairedcountbrms")` keep working. The
+  redirect from `anhsmith/skellambrms` no longer applies: that name is now an
+  independent repository holding the difference families, which is what a user
+  who installed `skellambrms` was asking for.
+
+  The timing is deliberate. A forthcoming 1.0.0 will be archived and assigned a
+  DOI, and cited from a methods article describing the joint families; the
+  citable artefact should therefore describe one thing rather than half of two.
+  This 0.9.0 makes the split and the additions below available for checking
+  first, so that what is archived has been exercised rather than merely tested.
+
+* **New family: `bipois_joint()` / `bipois_joint_stanvars()`.** The
+  censoring-aware bivariate Poisson — `binegbin_joint()`'s equidispersed
+  counterpart, and `bipois()`'s censoring-aware one. Three log-linked dpars
+  (`mu`, `lambdaone`, `lambdatwo`) and two `vint()` integers,
+  `vint(y2, y1_obs)`, exactly as `binegbin_joint()` takes them.
+
+  Its censored branch is closed form. A sum of independent Poissons is Poisson,
+  so the `y1`-integrated marginal collapses to `poisson_lpmf(y2 | mu +
+  lambdatwo)` — no convolution sum, no cutoff. `binegbin_joint()` cannot do this
+  (NB2 + NB2 is not NB2 unless the two components share a success probability),
+  which is why it evaluates that branch term by term.
+
+  Two things follow. Users whose counts are equidispersed no longer have to fit
+  `binegbin_joint()` with its dispersions pressed against the Poisson boundary,
+  where sampling degrades. And the suite gains an independent analytic reference
+  for `binegbin_joint()`'s censored branch: driving its three dispersions to
+  their Poisson limit must reproduce `bipois_joint()`, checked as a limit — the
+  error must shrink in proportion to `1/phi` — rather than at a single
+  tolerance. Previously that branch was pinned only by the marginal identity,
+  which compares it against the matched branch of the same code and so shares
+  any error common to both sums.
+
+* **Breaking (numerical): `posterior_epred_binegbin()` is now exact.** It
+  previously substituted the *marginal* shared fraction `mu/(mu + lambdatwo)`
+  for the *conditional* one — the `bipois()` answer, which is exact only in the
+  Poisson limit — and its docstring described this as a point approximation
+  adequate for display. It is not adequate. Over a grid of plausible rates and
+  dispersions, with `y2` within one standard deviation of its mean, the
+  substitution was in error by more than 5% in about half the settings and more
+  than 20% in a third, in either direction depending on which component carried
+  the greater dispersion.
+
+  `E[N_shared | y2]` is now evaluated as the mean of the discrete conditional
+  over `k = 0..y2` — the same weights `posterior_predict_binegbin()` already
+  samples from, summed rather than sampled — so the expectation and the
+  predictions agree by construction rather than approximately.
+
+  Numbers produced by an earlier version's `posterior_epred_binegbin()` should
+  be recomputed. `log_lik()`, `loo()` and `posterior_predict()` are unaffected;
+  the likelihood has not changed.
+
+* **New: `posterior_epred_binegbin_joint()`.** That family previously defined no
+  `posterior_epred` at all, on the view that `E[y1]` is ambiguous when `y1` is
+  unobserved. It is not: `E[y1 | y2]` is well defined whether or not `y1` was
+  recorded, and it is the quantity a user imputing the missing margin wants. It
+  is returned for every row, matched and censored alike, matching
+  `posterior_predict_binegbin_joint()`'s existing convention.
+
+* **All four families now share one `posterior_epred` convention**, stated once
+  in `tests/testthat/test-epred.R` and held to one standard: the expectation
+  must equal the mean of that family's own `posterior_predict` draws to within
+  Monte Carlo error. Before this release the three families answered three
+  different ways — exactly, approximately, and not at all.
+
+* `skellam` moves from **Imports to Suggests**. No function in `R/` calls it now
+  that the Skellam families have left; `tests/testthat/test-bipois.R` still uses
+  `skellam::dskellam()` as the independent reference for the induced difference
+  distribution, which is worth keeping.
+
+* The coverage gate's environment variable is renamed
+  `PAIREDCOUNTBRMS_COVERAGE` → `BICOUNTBRMS_COVERAGE`.
+
+* The README and the getting-started vignette are rewritten around the four
+  joint families, and the vignette's "one limitation to know about" section —
+  which described brms's `posterior_epred()` failure on *truncated* custom-family
+  fits — is replaced by a statement of the epred convention above. That
+  limitation cannot arise here: these families do not support `resp_trunc()`. It
+  applies to the difference families and now lives in `skellambrms`.
+
+---
+
+Entries below record this code's history under its former names. It was
+`skellambrms` through 0.5.0 and `pairedcountbrms` from 0.6.0 to 0.8.0, and those
+packages contained the difference families as well, so some entries describe
+families that are no longer here. They are left as written rather than
+retrospectively edited. Releases before 0.4.0, which predate the joint families
+entirely, are recorded in
+[`skellambrms`'s NEWS](https://github.com/anhsmith/skellambrms/blob/master/NEWS.md).
+
 # pairedcountbrms 0.8.0
 
 * **Breaking (dpar split): `binegbin_joint()`'s single excess dispersion
@@ -112,7 +223,7 @@
   false-failure rate at *R* = 10, against 10% per assertion previously).
 
   The coverage assessment costs minutes and is opt-in via
-  `PAIREDCOUNTBRMS_COVERAGE=true`, a named gate rather than a silent default. It
+  `BICOUNTBRMS_COVERAGE=true` (then `PAIREDCOUNTBRMS_COVERAGE`), a named gate rather than a silent default. It
   compiles the model once and reuses it through `update(recompile = FALSE)`,
   which keeps 10 replicates to approximately 3.5 minutes. Shared helpers are in
   `tests/testthat/helper-coverage.R`.
@@ -330,129 +441,3 @@
   not applicable to these joint families and no `_lccdf_stanvars()` is
   provided.
 
-# skellambrms 0.3.2
-
-* Fixed a silent `ifelse()` length-collapse bug in `log_lik_dlaplace1()`:
-  `ifelse(test, yes, no)` takes its output length from `test`, not from
-  the (vectorised) `yes`/`no` branches. Because `dlaplace1()` has no free
-  mean, the CDF-differencing argument built from the observation `z` is a
-  scalar, while `sigma` (and the derived `b`) varies across posterior
-  draws — so the `ifelse()` test was evaluated at length 1 and the whole
-  per-observation log-likelihood silently collapsed to length 1 instead of
-  `ndraws`. This broke `brms::add_criterion(fit, "loo")` for every
-  `dlaplace1()` fit (`is.matrix(unnormalized_log_weights) is not TRUE`),
-  while sampling, `posterior_predict()`, and truncation were entirely
-  unaffected — confirmed isolated to this one function's R-side length
-  handling, not a data or convergence issue.
-* Applied the same fix pre-emptively to five more internal R-side helpers
-  sharing the identical `ifelse()` shape — `dlaplace1_lpmf_r()`,
-  `dlaplace1_lccdf_r()`, `dlaplace2_lccdf_r()`, `dnorm1_lpmf_r()`, and
-  `dnorm2_lpmf_r()` in `R/truncation.R`. None were triggering the bug at
-  their current call sites (which happen to keep argument lengths
-  matched), but all shared the same landmine.
-
-# skellambrms 0.3.1
-
-* Fixed `posterior_predict_<family>()` for all six families: previously
-  ignored `trunc()`/`resp_trunc()` bounds entirely, drawing from the
-  untruncated distribution and returning it verbatim (confirmed to produce
-  out-of-bound draws, e.g. `posterior_predict_dnorm2()` returning values
-  well below a `lb = -14` bound). Now performs correct inverse-CDF sampling
-  within the truncation bounds, reusing each family's already-validated
-  log-CCDF math (transcribed to R in the new internal `R/truncation.R`)
-  rather than rejection sampling, which was confirmed empirically
-  slow/low-acceptance for tight bounds — especially costly for
-  `skellam2()`, whose per-evaluation cost (an iterative Bessel-function
-  tail-sum) is comparatively high.
-* Fixed `posterior_epred_<family>()` for all six families: previously
-  returned the untruncated mean (`mu`, or `0` for `skellam1()`/
-  `dlaplace1()`/`dnorm1()`) even when a truncation bound was tight enough
-  to meaningfully shift the conditional expectation, with no warning. Now
-  computes the correct truncated conditional expectation via deterministic
-  numerical summation of the truncated PMF — not Monte Carlo, so the
-  result is exact to a documented tolerance and fully reproducible.
-* **Known limitation surfaced (not introduced) by this fix:**
-  `brms::posterior_epred()` — and anything built on it, including
-  `fitted()` and `conditional_effects()` — errors on any truncated fit of
-  a custom family, for all six families here, under the currently
-  installed `brms`. This is a `brms` limitation: its internal dispatcher
-  checks whether a fit is truncated *before* checking whether the family
-  is a custom one, and has no fallback to a custom family's own
-  `posterior_epred_<family>()` on the truncated branch. Call
-  `posterior_epred_<family>(brms::prepare_predictions(fit))` directly as a
-  workaround. `brms::posterior_predict()` is unaffected and works
-  correctly for truncated fits of every family. See the README's
-  "Limitations" section for details.
-
-# skellambrms 0.3.0
-
-* **Breaking change:** `skellam1()` now samples on `sigma`, the SD of the
-  difference (log-linked), rather than the underlying Skellam rate
-  directly. `mu_skellam = sigma^2 / 2` is derived internally; the
-  Bessel-sum likelihood itself is unchanged. A prior previously stated on
-  `log(mu_skellam)` translates as
-  `log(sigma) = 0.5*log(2) + 0.5*log(mu_skellam)` — e.g. an old
-  `normal(1, 1.5)` becomes `normal(0.847, 0.75)`. This reparameterisation
-  establishes a common (mean, SD-scale) convention shared by every family
-  below.
-* Added `skellam2()` / `skellam2_stanvars()` / `skellam2_lccdf_stanvars()`:
-  the asymmetric Skellam (Koopman parameterisation), with a free mean
-  (`mu`) and a free `sigmaexcess` (so that
-  `sigma^2 = |mu| + sigmaexcess^2`, guaranteeing Skellam validity for
-  every `mu` and `sigmaexcess >= 0` — a corrected constraint relative to
-  the originally-specified `sigma = sqrt(mu^2 + sigmaexcess^2)`, which
-  only guarantees the weaker `sigma >= |mu|` and admits invalid
-  (negative-rate) parameter combinations for `|mu| < 1`). Reduces exactly
-  to `skellam1()` at `mu = 0`.
-* Added `dlaplace1()` / `dlaplace1_stanvars()` / `dlaplace1_lccdf_stanvars()`:
-  a discrete Laplace distribution (location fixed at 0, free `sigma`),
-  discretised from the continuous Laplace via CDF differencing.
-* Added `dlaplace2()` / `dlaplace2_stanvars()` / `dlaplace2_lccdf_stanvars()`:
-  the free-location/free-scale discrete Laplace, with no constraint
-  coupling `mu` and `sigma` — a deliberate structural contrast with
-  `skellam2()`, for comparing models where bias and spread are
-  structurally coupled against ones where they vary independently.
-* Added `dnorm1()` / `dnorm1_stanvars()` / `dnorm1_lccdf_stanvars()`: a
-  discrete normal distribution (location fixed at 0, free `sigma`), via
-  the same CDF-differencing pattern as `dlaplace1()`.
-* Added `dnorm2()` / `dnorm2_stanvars()` / `dnorm2_lccdf_stanvars()`: the
-  free-location/free-scale discrete normal, structurally analogous to
-  `dlaplace2()`.
-* Fixed a numerical-stability issue affecting `skellam1_lccdf_stanvars()`
-  and `skellam2_lccdf_stanvars()`'s normal-approximation branch, and
-  `dnorm1`/`dnorm2`'s `_lpmf`/`_lccdf`: Stan's built-in `normal_lccdf` is
-  not safe to call directly in this context. This is a documented Stan
-  limitation, not a guess — the Stan Functions Reference states
-  `normal_lccdf` underflows to `-inf` for `(y-mu)/sigma > ~8.25`, and
-  [stan-dev/math#1985](https://github.com/stan-dev/math/issues/1985)
-  confirms `normal_lccdf` (unlike `normal_lcdf`) was never updated with
-  the more accurate Mills-ratio approximation. Fixed via an exact
-  `erfc()`-based closed form throughout, confirmed to match a trusted R
-  reference to machine precision out to 30+ SDs.
-* Fixed a Stan-compiler portability bug: `skellam2_lpmf`/`skellam2_lccdf`
-  used `fabs()`, which compiles under `rstan`'s bundled Stan version but
-  is not a valid identifier under `cmdstanr`'s (use `abs()`, which is
-  type-generic and already used elsewhere in the same functions).
-* Added `cmdstanr` to `Suggests` (previously only `rstan` was declared,
-  so `R CMD check`'s isolated test environment could not see an
-  already-installed `cmdstanr`).
-
-# skellambrms 0.2.0
-
-* Added `skellam1_lccdf_stanvars()`, providing the log-CCDF of the
-  symmetric Skellam(mu, mu) distribution so that brms's `resp_trunc()`
-  can be used with `skellam1()`, including row-varying truncation
-  bounds. Still the symmetric Skellam(mu, mu) case only — this adds
-  truncation support to the existing family, not a new family or the
-  asymmetric case.
-* The exact log-CCDF (an iterative Bessel-sum tail) switches to a normal
-  approximation above a configurable `normal_approx_threshold` (default
-  `100`), guarding against a confirmed `std::bad_alloc` crash and a
-  confirmed multi-GB memory blowup when an unadapted HMC proposal pushes
-  `mu` to an extreme value during warmup. See `?skellam1_lccdf_stanvars`
-  for guidance on choosing this threshold for your own data.
-
-# skellambrms 0.1.0
-
-* Initial release: `skellam1()` and `skellam1_stanvars()`, a brms custom
-  family for the symmetric Skellam(mu, mu) distribution.
