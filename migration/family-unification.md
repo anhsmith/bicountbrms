@@ -1,6 +1,6 @@
 # Unifying the symmetric and asymmetric joint families
 
-**Written for pairedcountbrms 0.8.0; the package is now bicountbrms 0.9.0.**
+**Written for pairedcountbrms 0.8.0; the package is now bicountbrms 0.9.x.**
 This note records why `binegbin_joint()` was generalised to six distributional
 parameters rather than joined by a second family, what was measured to establish
 that the change is safe, and what the Belize EM project (`tnc001-belize-em`)
