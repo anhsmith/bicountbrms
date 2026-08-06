@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bicountbrms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,6 +38,15 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.9.1" id="bicountbrms-091">bicountbrms 0.9.1<a class="anchor" aria-label="anchor" href="#bicountbrms-091"></a></h2>
+<ul><li><p><strong>No behaviour change.</strong> Nothing in the four families’ likelihoods, predictions or expectations differs from 0.9.0. This release adds test coverage that was missing and corrects a claim in the README the suite did not support. No fitted model is affected and no code needs changing.</p></li>
+<li>
+<p><strong>New tests: prediction on censored rows, with the two excess dispersions distinct</strong> (<code>tests/testthat/test-cens-predict.R</code>). The <code>_cens</code> families exist to impute the first margin on rows where it was never observed, and that row class had no correctness test. The Monte Carlo check validating <code>posterior_predict</code> against the exact conditional <code>P(y1 | y2)</code> ran at <code>y1_obs == 1</code> in both <code>test-binegbin_cens.R</code> and <code>test-bipois_cens.R</code> — matched rows, the one class where it cannot fail. Every prediction test also built its prep from a single five-dpar <code>shapex</code>, which <code>.SHAPEXONE_NAMES</code> and <code>.SHAPEXTWO_NAMES</code> both resolve to, so the two dispersions were never distinguished from each other.</p>
+<p>That combination left a specific defect invisible. In <code><a href="../reference/binegbin_cens.html">posterior_predict_binegbin_cens()</a></code> the conditional split of <code>N_shared | y2</code> is weighted by <code>shapextwo</code> while the fresh <code>N1</code> added on top carries <code>shapexone</code>; exchanging them passed 412 assertions across six test files with no failures. The new file fails on it four times. It also pins that <code>y1_obs</code> does not change the draws — the flag selects a likelihood branch, not a prediction — and that <code>y2 = 0</code> leaves <code>posterior_predict</code> drawing <code>NB2(lambdaone, shapexone)</code> alone, which is the short-circuit keeping <code><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample()</a></code> from being handed an empty support.</p>
+</li>
+<li><p><strong>README: the conditional-prediction identity is now claimed accurately.</strong> The Testing section asserted it for the <code>_cens</code> families without qualification while the suite checked it on matched rows only. It now states that it holds on matched <em>and</em> censored rows and with the two excess dispersions distinct, which is what the tests above pin.</p></li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.9.0" id="bicountbrms-090">bicountbrms 0.9.0<a class="anchor" aria-label="anchor" href="#bicountbrms-090"></a></h2>
 <ul><li>
 <p><strong>The package has been split, and renamed.</strong> <code>pairedcountbrms</code> carried two unrelated suites: families that model a count pair jointly, and families that model its difference. They shared no code — not a helper, not a Stan block, not a dependency. This release separates them. The joint families are <code>bicountbrms</code>; the difference families (<code>skellam1</code>/<code>skellam2</code>, <code>dnorm1</code>/<code>dnorm2</code>, <code>dlaplace1</code>/<code>dlaplace2</code>) have returned to <a href="https://github.com/anhsmith/skellambrms" class="external-link"><code>skellambrms</code></a>, the name under which they were originally released.</p>
@@ -67,7 +76,8 @@
 <li><p>The README and the getting-started vignette are rewritten around the four joint families, and the vignette’s “one limitation to know about” section — which described brms’s <code><a href="https://mc-stan.org/rstantools/reference/posterior_epred.html" class="external-link">posterior_epred()</a></code> failure on <em>truncated</em> custom-family fits — is replaced by a statement of the epred convention above. That limitation cannot arise here: these families do not support <code><a href="https://paulbuerkner.com/brms/reference/addition-terms.html" class="external-link">resp_trunc()</a></code>. It applies to the difference families and now lives in <code>skellambrms</code>.</p></li>
 </ul><hr><p>Entries below record this code’s history under its former names. It was <code>skellambrms</code> through 0.5.0 and <code>pairedcountbrms</code> from 0.6.0 to 0.8.0, and those packages contained the difference families as well, so some entries describe families that are no longer here. They are left as written rather than retrospectively edited. Releases before 0.4.0, which predate the joint families entirely, are recorded in <a href="https://github.com/anhsmith/skellambrms/blob/master/NEWS.md" class="external-link"><code>skellambrms</code>’s NEWS</a>.</p>
 </div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

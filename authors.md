@@ -10,13 +10,13 @@ Source:
 [`inst/CITATION`](https://github.com/anhsmith/bicountbrms/blob/master/inst/CITATION)
 
 Smith, A. N. H. (2026). bicountbrms: Joint Bivariate-Count brms Custom
-Families for Paired Counts. R package version 0.9.0.
+Families for Paired Counts. R package version 0.9.1.
 https://github.com/anhsmith/bicountbrms
 
     @Manual{,
       title = {{bicountbrms}: Joint Bivariate-Count {brms} Custom Families for Paired Counts},
       author = {Adam N. H. Smith},
       year = {2026},
-      note = {R package version 0.9.0},
+      note = {R package version 0.9.1},
       url = {https://github.com/anhsmith/bicountbrms},
     }

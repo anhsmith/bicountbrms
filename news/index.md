@@ -1,5 +1,44 @@
 # Changelog
 
+## bicountbrms 0.9.1
+
+- **No behaviour change.** Nothing in the four families’ likelihoods,
+  predictions or expectations differs from 0.9.0. This release adds test
+  coverage that was missing and corrects a claim in the README the suite
+  did not support. No fitted model is affected and no code needs
+  changing.
+
+- **New tests: prediction on censored rows, with the two excess
+  dispersions distinct** (`tests/testthat/test-cens-predict.R`). The
+  `_cens` families exist to impute the first margin on rows where it was
+  never observed, and that row class had no correctness test. The Monte
+  Carlo check validating `posterior_predict` against the exact
+  conditional `P(y1 | y2)` ran at `y1_obs == 1` in both
+  `test-binegbin_cens.R` and `test-bipois_cens.R` — matched rows, the
+  one class where it cannot fail. Every prediction test also built its
+  prep from a single five-dpar `shapex`, which `.SHAPEXONE_NAMES` and
+  `.SHAPEXTWO_NAMES` both resolve to, so the two dispersions were never
+  distinguished from each other.
+
+  That combination left a specific defect invisible. In
+  [`posterior_predict_binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
+  the conditional split of `N_shared | y2` is weighted by `shapextwo`
+  while the fresh `N1` added on top carries `shapexone`; exchanging them
+  passed 412 assertions across six test files with no failures. The new
+  file fails on it four times. It also pins that `y1_obs` does not
+  change the draws — the flag selects a likelihood branch, not a
+  prediction — and that `y2 = 0` leaves `posterior_predict` drawing
+  `NB2(lambdaone, shapexone)` alone, which is the short-circuit keeping
+  [`sample()`](https://rdrr.io/r/base/sample.html) from being handed an
+  empty support.
+
+- **README: the conditional-prediction identity is now claimed
+  accurately.** The Testing section asserted it for the `_cens` families
+  without qualification while the suite checked it on matched rows only.
+  It now states that it holds on matched *and* censored rows and with
+  the two excess dispersions distinct, which is what the tests above
+  pin.
+
 ## bicountbrms 0.9.0
 
 - **The package has been split, and renamed.** `pairedcountbrms` carried

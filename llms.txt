@@ -695,7 +695,8 @@ For the `_cens` families it additionally pins the **marginal identity**
 ($`\sum_{y_1}`$ of the matched branch equals the $`y_2`$-only branch),
 the **equivalence** to the corresponding non-censoring family on
 `y1_obs == 1` rows (R and Stan), the **conditional-prediction identity**
-(`posterior_predict` draws match joint/marginal), and — for
+(`posterior_predict` draws match joint/marginal) on matched **and
+censored** rows and with the two excess dispersions distinct, and — for
 `bipois_cens` — that the closed-form censored branch equals the
 brute-force convolution, which is what licenses using the closed form at
 all.
@@ -703,6 +704,14 @@ all.
 `test-epred.R` states the `posterior_epred` convention once for all four
 families and holds each to the same standard: the expectation must equal
 the mean of that family’s own `posterior_predict` draws.
+
+`test-cens-predict.R` covers the `_cens` families’ prediction path on
+**censored** rows with `shapexone` and `shapextwo` distinct — the
+combination under which exchanging the two inside
+[`posterior_predict_binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
+passed every other test in the suite. Its closing comment records what
+is still not covered, and why one candidate check is deliberately absent
+rather than overlooked.
 
 ### Running the tests
 
@@ -712,7 +721,7 @@ every file-level compilation behind `stan_tests_enabled()`, so a plain
 fit and every compile**. To include them:
 
 ``` bash
-NOT_CRAN=true R CMD check --no-manual bicountbrms_0.9.0.tar.gz
+NOT_CRAN=true R CMD check --no-manual bicountbrms_0.9.1.tar.gz
 ```
 
 The recovery tests distinguish two questions.
