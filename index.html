@@ -13,6 +13,7 @@
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Joint Bivariate-Count brms Custom Families for Paired Counts">
 <meta name="description" content="Provides custom brms families for comparing two paired count sources, modelling the pair jointly via trivariate reduction rather than reducing it to a difference. Four families are supplied: a bivariate Poisson (bipois), its overdispersed bivariate Negative-Binomial sibling (binegbin), and a censoring-aware extension of each (bipois_cens, binegbin_cens) that admits rows on which one of the two counts is unobserved, through the integrated-out marginal of the same joint model. Modelling the pair rather than its difference captures the overall level, the correlation between sources, and marginal overdispersion alongside the disagreement, and supports simulating one count conditional on the other, including on rows where it was never recorded. An interpretable reparameterisation separates overall level, congruence, and source bias, giving each a finite null and so admitting penalised-complexity priors. The Negative-Binomial families let the two source-specific components differ in overdispersion.">
 <meta property="og:description" content="Provides custom brms families for comparing two paired count sources, modelling the pair jointly via trivariate reduction rather than reducing it to a difference. Four families are supplied: a bivariate Poisson (bipois), its overdispersed bivariate Negative-Binomial sibling (binegbin), and a censoring-aware extension of each (bipois_cens, binegbin_cens) that admits rows on which one of the two counts is unobserved, through the integrated-out marginal of the same joint model. Modelling the pair rather than its difference captures the overall level, the correlation between sources, and marginal overdispersion alongside the disagreement, and supports simulating one count conditional on the other, including on rows where it was never recorded. An interpretable reparameterisation separates overall level, congruence, and source bias, giving each a finite null and so admitting penalised-complexity priors. The Negative-Binomial families let the two source-specific components differ in overdispersion.">
+<meta property="og:image" content="https://anhsmith.github.io/bicountbrms/logo.svg">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -54,8 +55,10 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="bicountbrms">bicountbrms<a class="anchor" aria-label="anchor" href="#bicountbrms"></a>
-</h1></div>
+<div class="page-header">
+<img src="logo.svg" class="logo" alt=""><h1 id="bicountbrms-">bicountbrms <a class="anchor" aria-label="anchor" href="#bicountbrms-"></a>
+</h1>
+</div>
 <!-- badges: start -->
 
 <p>Custom <a href="https://paulbuerkner.com/brms/" class="external-link">brms</a> families (Bürkner 2017) for modelling a <strong>pair of counts</strong> from two sources that are meant to measure the same thing — two observers, two instruments, two reporting channels — where the question is how much, and how systematically, they disagree.</p>
@@ -625,7 +628,7 @@ y_2 \sim \mathrm{Poisson}(\mu + \lambda_2),
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Adam N. H. Smith <br><small class="roles"> Author, maintainer </small>   </li>
+<li>Adam N. H. Smith <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-0059-6206" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>
 

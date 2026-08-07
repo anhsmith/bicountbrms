@@ -3,6 +3,7 @@
 ## Authors
 
 - **Adam N. H. Smith**. Author, maintainer.
+  [](https://orcid.org/0000-0003-0059-6206)
 
 ## Citation
 
