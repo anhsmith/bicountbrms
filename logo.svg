@@ -30,11 +30,7 @@
     <rect x="391.80" y="296.00" width="40" height="40" rx="7" fill="#B4AA98"/>
     <rect x="391.80" y="247.00" width="40" height="40" rx="7" fill="#E28A45"/>
     <rect x="391.80" y="198.00" width="40" height="40" rx="7" fill="#E28A45"/>
-    <line x1="81.80" y1="340.50" x2="181.80" y2="340.50" stroke="#9A9A9A" stroke-width="6" stroke-linecap="round"/>
-    <line x1="209.80" y1="193.50" x2="309.80" y2="193.50" stroke="#9A9A9A" stroke-width="6" stroke-linecap="round"/>
-    <line x1="337.80" y1="291.50" x2="437.80" y2="291.50" stroke="#9A9A9A" stroke-width="6" stroke-linecap="round"/>
-    <line x1="65.80" y1="400.00" x2="453.80" y2="400.00" stroke="#9A9A9A" stroke-width="7" stroke-linecap="round"/>
-    <text x="259.80" y="462" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="58" font-weight="600" letter-spacing="0.5" fill="#2F5F7A">bicountbrms</text>
+    <text x="259.80" y="450" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="58" font-weight="600" letter-spacing="0.5" fill="#2F5F7A">bicountbrms</text>
   </g>
   <polygon points="259.80,0.00 519.60,150.00 519.60,450.00 259.80,600.00 0.00,450.00 0.00,150.00" fill="none" stroke="#2F5F7A" stroke-width="20" clip-path="url(#hex)"/>
 </svg>
