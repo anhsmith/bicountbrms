@@ -3,9 +3,9 @@
 #
 # The motif is the model itself. Counts come in pairs. Within a pair the grey
 # blocks are the shared latent component -- equal in both columns by
-# construction, and capped by a rule at the shared level. Above that rule sit
-# the two private components, blue for the first source and orange for the
-# second; their difference is the disagreement the families estimate.
+# construction. Above them sit the two private components, blue for the first
+# source and orange for the second; their difference is the disagreement the
+# families estimate.
 
 W <- 519.6   # hex width  (1.732 : 2, the hexb.in ratio)
 H <- 600     # hex height
@@ -13,7 +13,6 @@ H <- 600     # hex height
 col_shared <- "#B4AA98"  # warm grey -- shared latent component
 col_src1   <- "#5BA5C7"  # blue      -- source 1, private
 col_src2   <- "#E28A45"  # orange    -- source 2, private
-col_rule   <- "#9A9A9A"
 col_ink    <- "#2F5F7A"
 col_bg     <- "#FCFAF6"
 
@@ -48,7 +47,6 @@ span   <- length(pairs) * pair_w + (length(pairs) - 1) * gap_out
 x0     <- (W - span) / 2
 
 blocks <- character(0)
-rules  <- character(0)
 
 blk <- function(x, i, fill) {
   sprintf(
@@ -71,20 +69,7 @@ for (p in seq_along(pairs)) {
       blocks <- c(blocks, blk(x, s[["shared"]] + i, if (m == 0) col_src1 else col_src2))
     }
   }
-
-  # the rule capping the shared blocks, centred in the gap above them and
-  # overhanging the pair symmetrically
-  y_shared <- base_y - s[["shared"]] * pitch_y + gap_y - gap_y / 2
-  rules <- c(rules, sprintf(
-    '    <line x1="%.2f" y1="%.2f" x2="%.2f" y2="%.2f" stroke="%s" stroke-width="6" stroke-linecap="round"/>',
-    xp - 6, y_shared, xp + pair_w + 6, y_shared, col_rule
-  ))
 }
-
-axis <- sprintf(
-  '    <line x1="%.2f" y1="%.2f" x2="%.2f" y2="%.2f" stroke="%s" stroke-width="7" stroke-linecap="round"/>',
-  x0 - 22, base_y + 15, x0 + span + 22, base_y + 15, col_rule
-)
 
 # ---- assemble ---------------------------------------------------------------
 
@@ -99,10 +84,8 @@ svg <- c(
   sprintf('  <polygon points="%s" fill="%s"/>', hex_pts, col_bg),
   '  <g clip-path="url(#hex)">',
   blocks,
-  rules,
-  axis,
   sprintf(
-    '    <text x="%.2f" y="462" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="58" font-weight="600" letter-spacing="0.5" fill="%s">bicountbrms</text>',
+    '    <text x="%.2f" y="450" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="58" font-weight="600" letter-spacing="0.5" fill="%s">bicountbrms</text>',
     W / 2, col_ink
   ),
   '  </g>',
