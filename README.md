@@ -1,4 +1,4 @@
-# bicountbrms
+# bicountbrms <img src="man/figures/logo.png" align="right" height="139" alt="bicountbrms logo" />
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/anhsmith/bicountbrms/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/anhsmith/bicountbrms/actions/workflows/R-CMD-check.yaml)
