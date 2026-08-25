@@ -567,7 +567,7 @@ difference $`d = y_1 - y_2`$ directly. At 0.9.0 the two were separated:
 the joint families are this package, and the difference families
 returned to [`skellambrms`](https://github.com/anhsmith/skellambrms).
 The split itself renamed nothing, so
-[`library(pairedcountbrms)`](https://github.com/anhsmith/pairedcountbrms)
+[`library(pairedcountbrms)`](https://rdrr.io/r/base/library.html)
 becomes
 [`library(bicountbrms)`](https://github.com/anhsmith/bicountbrms) or
 [`library(skellambrms)`](https://rdrr.io/r/base/library.html) and that

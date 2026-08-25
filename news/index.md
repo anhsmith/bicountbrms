@@ -57,8 +57,8 @@
   search path at call time, so a stored fit works as soon as the package
   holding its family is attached. No dpar name changed. The only source
   change the split itself requires is
-  [`library(pairedcountbrms)`](https://github.com/anhsmith/pairedcountbrms)
-  → [`library(bicountbrms)`](https://github.com/anhsmith/bicountbrms) or
+  [`library(pairedcountbrms)`](https://rdrr.io/r/base/library.html) →
+  [`library(bicountbrms)`](https://github.com/anhsmith/bicountbrms) or
   [`library(skellambrms)`](https://rdrr.io/r/base/library.html), and any
   `pairedcountbrms::` prefix.
 
