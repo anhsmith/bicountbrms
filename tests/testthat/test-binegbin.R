@@ -1,4 +1,23 @@
 # tests/testthat/test-binegbin.R
+#
+# The fully paired constructor: likelihood, Stan-vs-R agreement, and end-to-end
+# recovery.
+#
+# THE FITS HERE TIE THE TWO EXCESS DISPERSIONS. binegbin() has carried
+# shapexone and shapextwo separately since 0.10.0, but the generative truth
+# below is symmetric, so the models fitted here impose shapexone == shapextwo
+# through one non-linear parameter:
+#
+#   nlf(shapexone ~ shapexx), nlf(shapextwo ~ shapexx), shapexx ~ 1
+#
+# That is the documented recipe for the symmetric special case, and it keeps
+# these fits term-for-term the ones 0.9.1 ran, so the recovery numbers below
+# remain a non-regression rather than a fresh claim. Recovery of two GENUINELY
+# DIFFERENT dispersions -- the capability 0.10.0 adds to this constructor --
+# is tested in test-binegbin-dispersions.R, where the asymmetric fixtures live.
+#
+# The Stan grid checks below do pass shapexone and shapextwo separately, since
+# the Stan signature takes both whatever the formula does with them.
 
 # -----------------------------------------------------------------------
 # R-side tests -- no Stan compilation required
@@ -81,7 +100,7 @@ test_that("Stan binegbin_lpmf matches R brute-force reference across a grid", {
     means <- c(mu + lone, mu + ltwo)
     ys <- unique(pmax(c(0L, 1L, round(means), round(means) + 4L), 0L))
     yg <- expand.grid(y1 = ys, y2 = ys)
-    stan_vals <- mapply(function(r, s) binegbin_lpmf(r, mu, lone, ltwo, ss, sx, s),
+    stan_vals <- mapply(function(r, s) binegbin_lpmf(r, mu, lone, ltwo, ss, sx, sx, s, 1L),
                         yg$y1, yg$y2)
     r_vals <- binegbin_lpmf_r(yg$y1, yg$y2, mu, lone, ltwo, ss, sx)
     max(abs(stan_vals - r_vals))
@@ -105,7 +124,7 @@ test_that("Stan binegbin_lpmf is numerically stable at extreme rates and shapes"
     ys <- 0:5
     yg <- expand.grid(y1 = ys, y2 = ys)
     stan_vals <- mapply(
-      function(r, s) binegbin_lpmf(r, ec[["mu"]], ec[["lone"]], ec[["ltwo"]], ec[["ss"]], ec[["sx"]], s),
+      function(r, s) binegbin_lpmf(r, ec[["mu"]], ec[["lone"]], ec[["ltwo"]], ec[["ss"]], ec[["sx"]], ec[["sx"]], s, 1L),
       yg$y1, yg$y2)
     r_vals <- binegbin_lpmf_r(yg$y1, yg$y2, ec[["mu"]], ec[["lone"]], ec[["ltwo"]], ec[["ss"]], ec[["sx"]])
     expect_false(any(!is.finite(stan_vals)), label = paste(ec, collapse = ","))
@@ -161,13 +180,16 @@ BINEGBIN_TRUTH <- list(
   shapex     = 3
 )
 
-# shapes/shapex are log-linked, so brms reports them as b_<dpar>_Intercept.
-# "mu" is the family's canonical dpar, so brms drops its infix (b_Intercept).
+# shapes is log-linked, so brms reports it as b_<dpar>_Intercept. "mu" is the
+# family's canonical dpar, so brms drops its infix (b_Intercept). The excess
+# dispersion arrives through the non-linear parameter `shapexx` (see the fit
+# below), so it is b_shapexx_Intercept rather than b_shapex_Intercept -- the
+# spelling changed at 0.10.0 when `shapex` stopped being a dpar.
 BINEGBIN_DRAWS_TRUTH <- c(
-  b_Intercept        = BINEGBIN_TRUTH$log_mu_int,
-  b_lamx_Intercept   = log(BINEGBIN_TRUTH$lone),
-  b_shapes_Intercept = log(BINEGBIN_TRUTH$shapes),
-  b_shapex_Intercept = log(BINEGBIN_TRUTH$shapex)
+  b_Intercept         = BINEGBIN_TRUTH$log_mu_int,
+  b_lamx_Intercept    = log(BINEGBIN_TRUTH$lone),
+  b_shapes_Intercept  = log(BINEGBIN_TRUTH$shapes),
+  b_shapexx_Intercept = log(BINEGBIN_TRUTH$shapex)
 )
 
 # Intercepts-only generative draw, shared by the recovery test and the coverage
@@ -210,7 +232,9 @@ binegbin_fit <- function(dat, mu_re = FALSE, ...) {
       mu ~ 1 + (1 | vessel),
       brms::nlf(lambdaone ~ lamx),
       brms::nlf(lambdatwo ~ lamx),
-      lamx ~ 1, shapes ~ 1, shapex ~ 1, nl = TRUE
+      brms::nlf(shapexone ~ shapexx),
+      brms::nlf(shapextwo ~ shapexx),
+      lamx ~ 1, shapes ~ 1, shapexx ~ 1, nl = TRUE
     )
   } else {
     brms::bf(
@@ -218,11 +242,13 @@ binegbin_fit <- function(dat, mu_re = FALSE, ...) {
       mu ~ 1,
       brms::nlf(lambdaone ~ lamx),
       brms::nlf(lambdatwo ~ lamx),
-      lamx ~ 1, shapes ~ 1, shapex ~ 1, nl = TRUE
+      brms::nlf(shapexone ~ shapexx),
+      brms::nlf(shapextwo ~ shapexx),
+      lamx ~ 1, shapes ~ 1, shapexx ~ 1, nl = TRUE
     )
   }
   # PRIORS MATTER HERE. get_prior() on this model shows brms's defaults leave
-  # `lamx`, `shapes` and `shapex` with FLAT IMPROPER priors -- only mu gets a
+  # `lamx`, `shapes` and `shapexx` with FLAT IMPROPER priors -- only mu gets a
   # student_t. Those three are the weakly-identified ones, so unregularised they
   # let the chains wander into the flat tail: without these priors this fit
   # produced a divergent transition and max Rhat 1.0101 (against a 1.01 gate),
@@ -239,7 +265,7 @@ binegbin_fit <- function(dat, mu_re = FALSE, ...) {
     brms::prior(normal(0, 3), class = "Intercept"),
     brms::prior(normal(0, 3), class = "b", nlpar = "lamx"),
     brms::prior(normal(0, 2), class = "Intercept", dpar = "shapes"),
-    brms::prior(normal(0, 2), class = "Intercept", dpar = "shapex")
+    brms::prior(normal(0, 2), class = "b", nlpar = "shapexx")
   )
 
   suppressMessages(brms::brm(

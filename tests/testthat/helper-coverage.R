@@ -31,7 +31,7 @@
 # inference, and this suite used it until 0.9.0. It is too tight for a gate on
 # a 4-chain 1000-draw fit: max Rhat at that sample size moves by more than the
 # gate's own margin for reasons unrelated to convergence. Two observations,
-# both on the bipois_cens censored-design fit and both with zero divergences
+# both on the bipois_partialobs partially observed fit and both with zero divergences
 # and every recovery assertion passing:
 #
 #   * 1.008 locally, 1.012 on Linux CI -- the same code, seed and data, differing
@@ -67,7 +67,7 @@
 
 # Shared replacement for the three near-identical local check_recovery()
 # definitions that used to live in test-bipois.R, test-binegbin.R and
-# test-binegbin_cens.R. `level` is wide on purpose: see above.
+# test-binegbin-partialobs.R. `level` is wide on purpose: see above.
 recovery_ok <- function(draws, true_val, draws_col, level = 0.99) {
   stopifnot(draws_col %in% names(draws))
   a <- (1 - level) / 2

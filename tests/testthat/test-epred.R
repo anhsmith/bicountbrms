@@ -1,16 +1,18 @@
 # tests/testthat/test-epred.R
 #
-# THE EPRED CONVENTION, STATED ONCE FOR ALL FOUR FAMILIES.
+# THE EPRED CONVENTION, STATED ONCE FOR BOTH FAMILIES.
 #
 # Every joint family returns the same quantity from posterior_epred_<family>():
 #
 #   E[y1 | y2] = E[N_shared | y2] + lambdaone
 #
 # -- the conditional expectation of the first margin given the observed second
-# one, exactly, for every row including the censored ones. Before 0.9.0 the
-# three families answered three different ways: bipois exactly, binegbin with
-# the marginal shared fraction substituted for the conditional one, and
-# binegbin_cens not at all. This file pins the convention so they cannot drift
+# one, exactly, for every row including those whose first count was never
+# recorded. Before 0.9.0 the
+# three families then shipping answered three different ways: bipois exactly,
+# binegbin with
+# the marginal shared fraction substituted for the conditional one, and the
+# partially observed one not at all. This file pins the convention so they cannot drift
 # apart again.
 #
 # The standard applied to each is the same and does not depend on knowing the
@@ -44,48 +46,62 @@ nb_prep <- function(vint2 = NULL, shapex = SHAPEX) {
 }
 
 # ---------------------------------------------------------------------------
-# Every family has one
+# Both families have one
 # ---------------------------------------------------------------------------
 
-test_that("all four joint families export a posterior_epred method", {
+test_that("both joint families export a posterior_epred method", {
   # brms locates these by name convention, so their existence IS the interface.
   # A family without one silently falls back to brms's own dispatch and errors
   # at call time rather than at load time, which is why this is asserted
   # directly rather than left to the end-to-end tests.
-  for (fam in c("bipois", "bipois_cens", "binegbin", "binegbin_cens")) {
+  #
+  # There are two names, not four: from 0.10.0 each component distribution has
+  # one custom_family name and two constructors sharing it, so a partially
+  # observed fit dispatches to exactly these.
+  for (fam in c("bipois", "binegbin")) {
     expect_true(
       is.function(get0(paste0("posterior_epred_", fam),
                        envir = asNamespace("bicountbrms"))),
       label = paste0("posterior_epred_", fam)
     )
   }
+
+  # And the _partialobs constructors really do route here, rather than to a
+  # method of their own that no longer exists.
+  expect_identical(bipois_partialobs()$name,   "bipois")
+  expect_identical(binegbin_partialobs()$name, "binegbin")
+  for (fam in c("bipois_cens", "binegbin_cens", "binegbin_joint")) {
+    expect_null(get0(paste0("posterior_epred_", fam),
+                     envir = asNamespace("bicountbrms")),
+                label = paste0("posterior_epred_", fam, " is gone"))
+  }
 })
 
 # ---------------------------------------------------------------------------
-# The Poisson families: exact, and equal to the closed form
+# bipois: exact, and equal to the closed form
 # ---------------------------------------------------------------------------
 
-test_that("bipois and bipois_cens epreds equal the Binomial-split closed form", {
+test_that("the bipois epred equals the Binomial-split closed form, either prep shape", {
   # Conditioning a sum of independent Poissons on its total gives a Binomial,
   # so E[N_shared | y2] = y2 * mu/(mu + lambdatwo) with no sum to evaluate.
   closed <- Y2 * MU / (MU + LTWO) + LONE
 
   expect_equal(unique(as.vector(posterior_epred_bipois(pois_prep()))),
                closed, tolerance = 1e-12)
-  expect_equal(unique(as.vector(posterior_epred_bipois_cens(pois_prep(1L)))),
+  expect_equal(unique(as.vector(posterior_epred_bipois(pois_prep(1L)))),
                closed, tolerance = 1e-12)
 
-  # And the two agree with each other, matched branch or censored: bipois_cens
-  # is bipois with the censoring flag attached, and the conditional expectation
+  # And the three prep shapes agree with each other: bipois_partialobs
+  # is bipois with the observation flag attached, and the conditional expectation
   # does not depend on that flag.
-  expect_equal(posterior_epred_bipois_cens(pois_prep(1L)),
-               posterior_epred_bipois_cens(pois_prep(0L)))
+  expect_equal(posterior_epred_bipois(pois_prep(1L)),
+               posterior_epred_bipois(pois_prep(0L)))
   expect_equal(posterior_epred_bipois(pois_prep()),
-               posterior_epred_bipois_cens(pois_prep(1L)))
+               posterior_epred_bipois(pois_prep(1L)))
 })
 
 # ---------------------------------------------------------------------------
-# The negative-binomial families: exact, checked against their own predictions
+# binegbin: exact, checked against its own predictions
 # ---------------------------------------------------------------------------
 
 test_that("binegbin epred equals the mean of its posterior_predict draws", {
@@ -107,35 +123,35 @@ test_that("binegbin epred equals the mean of its posterior_predict draws", {
   expect_gt(abs(approx - ep), 0.01)
 })
 
-test_that("binegbin_cens epred equals the mean of its posterior_predict draws", {
+test_that("the binegbin epred equals the mean of its draws on a two-vint prep", {
   set.seed(20260804)
-  draws <- posterior_predict_binegbin_cens(1, nb_prep(vint2 = 1L))
-  ep    <- unique(as.vector(posterior_epred_binegbin_cens(nb_prep(vint2 = 1L))))
+  draws <- posterior_predict_binegbin(1, nb_prep(vint2 = 1L))
+  ep    <- unique(as.vector(posterior_epred_binegbin(nb_prep(vint2 = 1L))))
   expect_length(ep, 1L)
   expect_equal(mean(draws), ep, tolerance = 0.1)
 })
 
-test_that("the censoring flag does not change either joint family's epred", {
-  # posterior_predict imputes y1 on every row, censored included; epred must
+test_that("the observation flag does not change either family's epred", {
+  # posterior_predict imputes y1 on every row, unmatched included; epred must
   # match that convention, or the two become incomparable row by row exactly
   # where imputation matters.
-  expect_equal(posterior_epred_binegbin_cens(nb_prep(vint2 = 1L)),
-               posterior_epred_binegbin_cens(nb_prep(vint2 = 0L)))
-  expect_equal(posterior_epred_bipois_cens(pois_prep(1L)),
-               posterior_epred_bipois_cens(pois_prep(0L)))
+  expect_equal(posterior_epred_binegbin(nb_prep(vint2 = 1L)),
+               posterior_epred_binegbin(nb_prep(vint2 = 0L)))
+  expect_equal(posterior_epred_bipois(pois_prep(1L)),
+               posterior_epred_bipois(pois_prep(0L)))
 })
 
-test_that("binegbin epred equals binegbin_cens epred on a matched row", {
+test_that("the binegbin epred is the same with and without the flag on a matched row", {
   # The families share a matched-branch likelihood, so they must share a
-  # conditional expectation. binegbin_cens resolves its second-margin
+  # conditional expectation. binegbin_partialobs resolves its second-margin
   # dispersion through .SHAPEXTWO_NAMES, whose `shapex` fallback is what makes
   # the five-dpar prep here serve both.
   expect_equal(posterior_epred_binegbin(nb_prep()),
-               posterior_epred_binegbin_cens(nb_prep(vint2 = 1L)))
+               posterior_epred_binegbin(nb_prep(vint2 = 1L)))
 })
 
 # ---------------------------------------------------------------------------
-# The families agree in the limit where they should
+# The two families agree in the limit where they should
 # ---------------------------------------------------------------------------
 
 test_that("the negative-binomial epreds reduce to the Poisson ones as shapes grow", {
@@ -178,9 +194,9 @@ test_that("y2 = 0 leaves the conditional expectation at lambdaone alone", {
     Y = 0L, vint1 = 0L, vint2 = 1L
   )
   for (ep in list(posterior_epred_bipois(zero_pois),
-                  posterior_epred_bipois_cens(zero_pois),
+                  posterior_epred_bipois(zero_pois),
                   posterior_epred_binegbin(zero_nb),
-                  posterior_epred_binegbin_cens(zero_nb))) {
+                  posterior_epred_binegbin(zero_nb))) {
     expect_equal(unique(as.vector(ep)), LONE, tolerance = 1e-12)
   }
 })

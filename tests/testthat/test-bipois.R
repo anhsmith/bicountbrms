@@ -77,7 +77,7 @@ test_that("Stan bipois_lpmf matches R brute-force reference across a grid", {
     means <- c(mu + lambdaone, mu + lambdatwo)
     ys <- unique(pmax(c(0L, 1L, round(means), round(means) + 5L), 0L))
     yg <- expand.grid(y1 = ys, y2 = ys)
-    stan_vals <- mapply(function(r, s) bipois_lpmf(r, mu, lambdaone, lambdatwo, s),
+    stan_vals <- mapply(function(r, s) bipois_lpmf(r, mu, lambdaone, lambdatwo, s, 1L),
                          yg$y1, yg$y2)
     r_vals <- bipois_lpmf_r(yg$y1, yg$y2, mu, lambdaone, lambdatwo)
     max(abs(stan_vals - r_vals))
@@ -100,7 +100,7 @@ test_that("Stan bipois_lpmf is numerically stable at near-zero and large rates",
   for (ec in edge_cases) {
     ys <- 0:5
     yg <- expand.grid(y1 = ys, y2 = ys)
-    stan_vals <- mapply(function(r, s) bipois_lpmf(r, ec[["mu"]], ec[["lambdaone"]], ec[["lambdatwo"]], s),
+    stan_vals <- mapply(function(r, s) bipois_lpmf(r, ec[["mu"]], ec[["lambdaone"]], ec[["lambdatwo"]], s, 1L),
                          yg$y1, yg$y2)
     r_vals <- bipois_lpmf_r(yg$y1, yg$y2, ec[["mu"]], ec[["lambdaone"]], ec[["lambdatwo"]])
     expect_false(any(!is.finite(stan_vals)), label = paste(ec, collapse = ","))

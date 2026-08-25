@@ -1,26 +1,27 @@
 Package: bicountbrms
 Title: Joint Bivariate-Count brms Custom Families for Paired Counts
-Version: 0.9.1
-Date: 2026-08-06
+Version: 0.10.0
+Date: 2026-08-25
 Authors@R:
     person("Adam N. H.", "Smith", , "anhsmith@gmail.com",
            role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-0059-6206"))
 Description: Provides custom brms families for comparing two paired count
     sources, modelling the pair jointly via trivariate reduction rather than
-    reducing it to a difference. Four families are supplied: a bivariate
-    Poisson (bipois), its overdispersed bivariate Negative-Binomial sibling
-    (binegbin), and a censoring-aware extension of each (bipois_cens,
-    binegbin_cens) that admits rows on which one of the two counts is
-    unobserved, through the integrated-out marginal of the same joint model.
-    Modelling the pair rather than its difference captures the overall level,
-    the correlation between sources, and marginal overdispersion alongside the
-    disagreement, and supports simulating one count conditional on the other,
-    including on rows where it was never recorded. An interpretable
-    reparameterisation separates overall level, congruence, and source bias,
-    giving each a finite null and so admitting penalised-complexity priors.
-    The Negative-Binomial families let the two source-specific components
-    differ in overdispersion.
+    reducing it to a difference. Two families are supplied: a bivariate
+    Poisson (bipois) and its overdispersed bivariate Negative-Binomial sibling
+    (binegbin). Each has a second constructor (bipois_partialobs,
+    binegbin_partialobs) that admits rows on which the first count was never
+    recorded, scoring them by the integrated-out marginal of the same joint
+    model, so those rows still inform the shared component and the second
+    source. Modelling the pair rather than its difference captures the overall
+    level, the correlation between sources, and marginal overdispersion
+    alongside the disagreement, and supports simulating one count conditional
+    on the other, including on rows where it was never recorded. An
+    interpretable reparameterisation separates overall level, congruence, and
+    source bias, giving each a finite null and so admitting
+    penalised-complexity priors. The Negative-Binomial family lets the two
+    source-specific components differ in overdispersion.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Imports:

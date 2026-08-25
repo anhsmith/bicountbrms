@@ -21,12 +21,15 @@ binegbin_dpars_to_mfd(
 
 \item{shapes, shapex}{Optional NB2 dispersions. If supplied, the returned list
 gains `kappas`/`kappax` (`= 1/sqrt(shape)`, so `shape = Inf` gives `0`).
-`shapex` is [binegbin()]'s single excess dispersion. A fit of [bipois()] or
-[bipois_cens()] has neither to pass: read its three rates alone.}
+`shapex` is the single excess dispersion carried by a `binegbin` fit made
+before 0.10.0, when one dpar governed both margins; no shipping family
+takes it now. A fit of [bipois()] or [bipois_partialobs()] has no
+dispersion to pass: read its three rates alone.}
 
 \item{shapexone, shapextwo}{Optional per-margin NB2 excess dispersions, as
-carried by [binegbin_cens()]. If supplied, the returned list gains
-`kappaxone`/`kappaxtwo`. Mutually exclusive with `shapex`.}
+carried by both negative-binomial constructors since 0.10.0. If supplied,
+the returned list gains `kappaxone`/`kappaxtwo`. Mutually exclusive with
+`shapex`, which is the same quantity under its older name.}
 }
 \value{
 A named list of `M`, `f`, `delta`, plus `beta` (the bounded bias
@@ -34,14 +37,19 @@ A named list of `M`, `f`, `delta`, plus `beta` (the bounded bias
   `kappaxone`/`kappaxtwo` when `shapexone`/`shapextwo` are.
 }
 \description{
-Exact inverse of [binegbin_mfd_to_dpars()]. Reads the rate dpars `mu`,
+Inverse of [binegbin_mfd_to_dpars()]. Reads the rate dpars `mu`,
 `lambdaone`, `lambdatwo` back into the interpretable overall level `M`,
-congruence `f`, and source bias `delta`, optionally converting
-`shapes`/`shapex` back to SD-scale `kappas`/`kappax`.
+congruence `f`, and source bias `delta`, optionally converting NB2
+dispersions back to the SD scale.
 
 As with the forward direction, the three rates are common to [bipois()],
-[bipois_cens()], [binegbin()] and [binegbin_cens()], so this serves all
-four; only the dispersion arguments are family-specific.
+[bipois_partialobs()], [binegbin()] and [binegbin_partialobs()], so this
+serves all four constructors; only the dispersion arguments differ.
+
+This direction reads a *stored fit*, so it accepts `shapex` -- the single
+excess dispersion every `binegbin` fit made before 0.10.0 carries -- as well
+as the current `shapexone`/`shapextwo`. The forward direction writes only
+current names; see its documentation for why the two differ.
 }
 \details{
 Arguments are recycled to a common length, so this vectorises over posterior
@@ -73,5 +81,6 @@ binegbin_dpars_to_mfd(mu = 12, lambdaone = 0, lambdatwo = 0)$delta
 
 }
 \seealso{
-[binegbin_mfd_to_dpars()], [bipois()], [bipois_cens()], [binegbin()], [binegbin_cens()]
+[binegbin_mfd_to_dpars()], [bipois()], [bipois_partialobs()],
+  [binegbin()], [binegbin_partialobs()]
 }

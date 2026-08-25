@@ -3,8 +3,8 @@
 # 0.7.0 renamed the joint families' excess-rate dpars lambdaem/lambdalb to
 # lambdaone/lambdatwo. A brmsfit stores its OWN family object, so
 # prepare_predictions() on a fit made before the rename hands post-processing a
-# prep whose dpars carry the old names. Every rate read in bipois/bipois_cens/
-# binegbin/binegbin_cens therefore goes through .get_rate(), which resolves the name
+# prep whose dpars carry the old names. Every rate read in bipois/bipois_partialobs/
+# binegbin/binegbin_partialobs therefore goes through .get_rate(), which resolves the name
 # against the fit rather than assuming the current spelling.
 #
 # What these tests pin: identical inputs under either spelling produce
@@ -53,9 +53,9 @@ test_that("log_lik is identical under old and new rate-dpar names", {
       label = paste0("bipois, obs ", i)
     )
     expect_equal(
-      log_lik_binegbin_cens(i, mk(OLD, vint2 = V2)),
-      log_lik_binegbin_cens(i, mk(NEW, vint2 = V2)),
-      label = paste0("binegbin_cens, obs ", i)
+      log_lik_binegbin(i, mk(OLD, vint2 = V2)),
+      log_lik_binegbin(i, mk(NEW, vint2 = V2)),
+      label = paste0("binegbin_partialobs, obs ", i)
     )
   }
 })
@@ -78,15 +78,15 @@ test_that("posterior_epred is identical under old and new rate-dpar names", {
     posterior_epred_bipois(mk(OLD, five = FALSE)),
     posterior_epred_bipois(mk(NEW, five = FALSE))
   )
-  # binegbin_cens gained a posterior_epred at 0.9.0, so a pre-existing fit is
+  # binegbin_partialobs gained a posterior_epred at 0.9.0, so a pre-existing fit is
   # post-processed by code it never ran under. It resolves both rates through
   # .get_rate() and its excess dispersion through .SHAPEXTWO_NAMES, whose last
   # candidate is the five-dpar `shapex` supplied by mk() -- the same fallback
-  # log_lik and posterior_predict already rely on. bipois_cens is not tested
+  # log_lik and posterior_predict already rely on. bipois_partialobs is not tested
   # here: it is new at 0.9.0, so no fit can carry the old spellings.
   expect_equal(
-    posterior_epred_binegbin_cens(mk(OLD, vint2 = V2)),
-    posterior_epred_binegbin_cens(mk(NEW, vint2 = V2))
+    posterior_epred_binegbin(mk(OLD, vint2 = V2)),
+    posterior_epred_binegbin(mk(NEW, vint2 = V2))
   )
 })
 
@@ -102,9 +102,9 @@ test_that("posterior_predict is identical under old and new rate-dpar names", {
     set.seed(42); b <- posterior_predict_bipois(i, mk(NEW, five = FALSE))
     expect_identical(a, b, label = paste0("bipois, obs ", i))
 
-    set.seed(42); a <- posterior_predict_binegbin_cens(i, mk(OLD, vint2 = V2))
-    set.seed(42); b <- posterior_predict_binegbin_cens(i, mk(NEW, vint2 = V2))
-    expect_identical(a, b, label = paste0("binegbin_cens, obs ", i))
+    set.seed(42); a <- posterior_predict_binegbin(i, mk(OLD, vint2 = V2))
+    set.seed(42); b <- posterior_predict_binegbin(i, mk(NEW, vint2 = V2))
+    expect_identical(a, b, label = paste0("binegbin_partialobs, obs ", i))
   }
 })
 
@@ -118,4 +118,87 @@ test_that("a prep with neither rate-dpar spelling errors informatively", {
   expect_error(log_lik_binegbin(1, bad), "lambdaem")
   # The message should list what the fit actually has, so the user can see why.
   expect_error(log_lik_binegbin(1, bad), "lambdaX")
+})
+
+# ---------------------------------------------------------------------------
+# The shape a stored plain-binegbin fit actually has
+# ---------------------------------------------------------------------------
+#
+# 0.10.0 keeps the name `binegbin` and changes what it means: five dpars with a
+# single `shapex` become six with shapexone/shapextwo. A fit stored under the
+# old meaning therefore lands on the NEW post-processing methods no matter what
+# anyone pins, because brms resolves log_lik_<name> off the attached search
+# path using the name the fit stored.
+#
+# Such fits exist. Scanning tnc001-belize-em/fits at 0.9.1 found 103 with
+# family$name == "binegbin", and every one of them carries
+#
+#   mu, lambdaem, lambdalb, shapes, shapex          (vint1 only, no vint2)
+#
+# -- pre-0.7.0 RATE names as well as the single dispersion. Three independent
+# fallbacks have to line up for those to keep working:
+#
+#   1. .get_rate() resolves lambdaem/lambdalb to the one/two positions;
+#   2. .SHAPEXONE_NAMES and .SHAPEXTWO_NAMES both list `shapex` last, so both
+#      per-margin dispersions resolve to the one the fit has;
+#   3. an absent vint2 selects the matched branch.
+#
+# mk(OLD) is that prep exactly. The blocks above already pin (1); these pin
+# (2) and (3), and pin the composition -- which is the part that holds only
+# because three separate mechanisms happen to agree.
+
+test_that("a stored five-dpar binegbin prep post-processes without error", {
+  # Pins the shape itself, independently of what it is compared against.
+  stored <- mk(OLD)
+  expect_null(stored$data$vint2)
+  expect_true("shapex" %in% names(stored$dpars))
+  expect_false("shapexone" %in% names(stored$dpars))
+
+  ll <- vapply(seq_along(Y), function(i) log_lik_binegbin(i, stored), numeric(3))
+  expect_true(all(is.finite(ll)))
+
+  ep <- posterior_epred_binegbin(stored)
+  expect_true(all(is.finite(ep)))
+  expect_gt(length(unique(as.vector(ep))), 1)
+
+  set.seed(7)
+  pp <- vapply(seq_along(Y), function(i) posterior_predict_binegbin(i, stored), numeric(3))
+  expect_true(all(pp >= 0))
+})
+
+test_that("the stored five-dpar answer equals the six-dpar answer with dispersions tied", {
+  # The composition test. A single `shapex` must mean exactly what supplying
+  # shapexone == shapextwo == shapex means, in all three methods. If either
+  # .SHAPEX*_NAMES vector stopped falling through to `shapex`, or fell through
+  # to a different dpar, this is what would catch it.
+  stored <- mk(OLD)
+  tied <- make_synthetic_prep(
+    dpars = list(mu = v$mu, lambdaone = v$one, lambdatwo = v$two,
+                 shapes = v$shapes, shapexone = v$shapex, shapextwo = v$shapex),
+    Y = Y, vint1 = V1
+  )
+
+  for (i in seq_along(Y)) {
+    expect_equal(log_lik_binegbin(i, stored), log_lik_binegbin(i, tied),
+                 label = paste0("log_lik, obs ", i))
+    set.seed(42); a <- posterior_predict_binegbin(i, stored)
+    set.seed(42); b <- posterior_predict_binegbin(i, tied)
+    expect_identical(a, b, label = paste0("posterior_predict, obs ", i))
+  }
+  expect_equal(posterior_epred_binegbin(stored), posterior_epred_binegbin(tied))
+
+  # Not vacuous: untying the two dispersions changes both. shapextwo is taken
+  # two orders below shapex rather than a small multiple above it -- at these
+  # rates the likelihood is nearly flat in the direction of LESS
+  # overdispersion (shapex = 5 is already close to the Poisson limit for a
+  # mean of 2), so an 8x increase moves log_lik by only ~4e-4 and would make
+  # this assertion a coin toss.
+  untied <- make_synthetic_prep(
+    dpars = list(mu = v$mu, lambdaone = v$one, lambdatwo = v$two,
+                 shapes = v$shapes, shapexone = v$shapex,
+                 shapextwo = rep(0.05, length(v$shapex))),
+    Y = Y, vint1 = V1
+  )
+  expect_gt(abs(log_lik_binegbin(1, untied)[1] - log_lik_binegbin(1, tied)[1]), 0.1)
+  expect_gt(max(abs(posterior_epred_binegbin(untied) - posterior_epred_binegbin(tied))), 0.1)
 })

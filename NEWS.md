@@ -1,3 +1,131 @@
+# bicountbrms 0.10.0
+
+* **Breaking: four families become two, with two constructors each.** The
+  package now supplies `bipois()` and `binegbin()`, each with a
+  `_partialobs()` sibling:
+
+  |  | fully paired | first count missing on some rows |
+  |---|---|---|
+  | Poisson | `bipois()` | `bipois_partialobs()` |
+  | Negative-Binomial | `binegbin()` | `binegbin_partialobs()` |
+
+  Both constructors of a pair return the *same* `custom_family` name, so there
+  is one Stan `_lpmf` and one set of `log_lik_*` / `posterior_predict_*` /
+  `posterior_epred_*` methods per component distribution. They differ only in
+  whether the observation flag reaches the likelihood as data or as a constant.
+  A user fitting fully paired data never has to supply the flag, or know it
+  exists.
+
+  `bipois_cens()`, `binegbin_cens()` and the five `binegbin_joint` names are
+  **removed outright**. There is no deprecation layer and nothing left to
+  remove at a later version — see the last bullet for what to do if you hold a
+  fit made under those names.
+
+* **`binegbin()` now carries six dpars, not five.** `shapex` is gone; both
+  excess components have their own dispersion, `shapexone` and `shapextwo`, as
+  `binegbin_cens()` has had since 0.8.0. This is the change the release exists
+  for. The capability was on the wrong family: in a partially paired design
+  the unmatched rows inform only `shapextwo`, so `shapexone` rests on the
+  matched rows alone, whereas in a fully paired design every row informs both
+  and they are as easy to identify as they ever get.
+
+  The symmetric model is a formula constraint, exactly as it has been for the
+  partially observed family since 0.8.0:
+
+  ```r
+  bf(y1 | vint(y2) ~ 1,
+     nlf(shapexone ~ shapexx), nlf(shapextwo ~ shapexx),
+     shapexx ~ 1, ..., nl = TRUE)
+  ```
+
+  Set priors on it with `nlpar = "shapexx"` rather than `dpar = "shapex"`.
+
+* **`_cens` was the wrong word, and wrong inside brms specifically.** Censoring
+  means a value is known to lie in a set. On these rows the first count is not
+  observed at all and the likelihood marginalises over its whole support. brms
+  already uses `cens()` as an addition term meaning exactly the bounded thing —
+  `left`, `right`, `interval`, with no code for "not observed" — so a brms user
+  met a familiar word attached to an incompatible mechanism. `partialobs` names
+  what is actually partial: the *pair*, which is a property of the data.
+  `unobs` and `unmatched` name only the minority row class, and `partial` alone
+  collides with partial likelihood and partial pooling.
+
+* **How the two constructors share one Stan function, and why there is no Stan
+  version floor.** brms builds the generated lpmf call by pasting each entry of
+  `family$vars` in verbatim, and validates those entries no further than
+  `as.character()`. The plain constructors exploit that: they declare
+  `vars = c("vint1[n]", "1")`, so a fully paired model calls the same function
+  with `y1_obs` fixed at the literal `1`.
+
+  ```
+  binegbin()             target += binegbin_lpmf(Y[n] | ..., vint1[n], 1);
+  binegbin_partialobs()  target += binegbin_lpmf(Y[n] | ..., vint1[n], vint2[n]);
+  ```
+
+  The alternative — two Stan functions of the same name and different arity —
+  needs user-defined function overloading, which arrived in Stan 2.29
+  (February 2022). Taking it would have obliged `DESCRIPTION` to declare floors
+  on rstan and cmdstanr, whose absence would otherwise surface as an opaque
+  compile error. This design needs none, and none has been added.
+
+  That pasting behaviour is not a documented brms guarantee, so
+  `tests/testthat/test-stancode-shape.R` pins it: it asserts the exact call
+  each constructor generates and that the one-`vint` `standata()` carries no
+  `vint2`. It needs brms but no Stan toolchain, so it runs in the fast suite.
+
+* **New tests, and the one-`vint` path is now covered at all.** Most users take
+  the fully paired path and, before this release, nothing tested its
+  prediction, expectation or dispersion routing — with a single `shapex` there
+  was nothing to get wrong.
+
+  - `tests/testthat/test-partialobs-predict.R` replaces `test-cens-predict.R`.
+    It keeps all five of that file's blocks and adds a one-`vint` mirror of
+    each: the same fixtures with `shapexone` and `shapextwo` an order of
+    magnitude apart, on a prep with no `vint2`.
+  - `tests/testthat/test-unified-vint.R` pins the release criterion that the
+    two shapes agree — for each of `log_lik`, `posterior_predict` and
+    `posterior_epred`, the one-`vint` path on matched data equals the
+    two-`vint` path with the flag set to 1. `log_lik` is the only method that
+    reads the flag, so its non-vacuity partner asserts the flag-0 answer
+    *differs*; the other two ignore the flag by design, and that is asserted
+    rather than left implicit.
+  - `tests/testthat/test-dpar-compat.R` gains the stored-fit shape (below).
+
+* **Stored `binegbin` fits keep working, and this is now tested rather than
+  assumed.** A fit stores its own family object, and brms resolves
+  post-processing from the name it stored, so a five-dpar `binegbin` fit lands
+  on the new six-dpar methods however this package is pinned. Three independent
+  fallbacks have to line up for that to work: `.get_rate()` resolves pre-0.7.0
+  `lambdaem`/`lambdalb`; `.SHAPEXONE_NAMES` and `.SHAPEXTWO_NAMES` both list
+  `shapex` last, so both per-margin dispersions resolve to the one such a fit
+  has; and an absent `vint2` selects the matched branch. Scanning the sibling
+  project's fit directory found 103 stored `binegbin` fits, every one of them
+  carrying the pre-0.7.0 rate names *and* the single `shapex`, so all three
+  paths are exercised in practice. `test-dpar-compat.R` now builds that exact
+  prep and asserts all three methods agree with the six-dpar answer with the
+  dispersions tied.
+
+* **`binegbin_mfd_to_dpars()` no longer emits `shapex`.** Supplying `kappax`
+  now writes `shapexone` and `shapextwo` at that common value — the tied,
+  symmetric model — rather than a single `shapex`, which is no longer a dpar of
+  anything and so could not be passed to `brm()`. `kappax` survives as the
+  shorthand it always was; only the output naming changed.
+
+  `binegbin_dpars_to_mfd()` still *accepts* `shapex`, because its input is a
+  stored fit and that is the genuine dpar name on any `binegbin` fit made
+  before this release. The two directions differ deliberately: the forward one
+  writes the current vocabulary, the inverse reads the old one, which is the
+  same principle `.get_dpar_any()` applies.
+
+* **If you hold a fit made with `bipois_cens()`, `binegbin_cens()` or
+  `binegbin_joint()`**, install the last version that defined them — 0.9.1 —
+  and keep it on the search path for that fit. brms resolves post-processing
+  late, by looking up `log_lik_<name>` from the stored family name at call
+  time, so `loo()` and `posterior_predict()` need the methods of the version
+  the fit was made under. No argument to those calls can route around it, and
+  0.10.0 deliberately ships no shim: pinning the whole package is a stronger
+  guarantee than a hand-picked subset of forwarders, and the one project with
+  such fits already pins 0.9.1 in its own `renv.lock`.
 # bicountbrms 0.9.1
 
 * **No behaviour change.** Nothing in the four families' likelihoods,
@@ -80,6 +208,14 @@
   permanently and brms builds its method names from that stored name — nothing
   the caller passes to `loo()` or `posterior_predict()` can route around it. All
   five are removed in the next major version.
+
+  <!-- Amended at 0.10.0: all five were removed there, which is not a major
+  version. While the major version is 0 the API is not held out as stable, and
+  the only consumer with stored fits pins 0.9.1 in its own renv.lock, which
+  freezes the whole package rather than a hand-picked subset of forwarders.
+  The sentence above is left as written because this file is a record of what
+  each release said at the time. -->
+
 
   No dpar name changed, so the forwarding is a straight hand-off, and a
   five-dpar pre-0.8.0 fit still resolves through both compatibility layers at

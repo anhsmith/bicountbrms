@@ -36,7 +36,7 @@ make_synthetic_prep <- function(dpars, Y, lb = NULL, ub = NULL,
   if (!is.null(ub)) data$ub <- ub
   # Supplementary integer data threaded through brms's vint() addition term;
   # the joint families read these as prep$data$vint1/vint2 (e.g. y2 and the
-  # y1_obs branch flag for binegbin_cens), row-indexed exactly like Y.
+  # y1_obs branch flag for binegbin_partialobs), row-indexed exactly like Y.
   if (!is.null(vint1)) data$vint1 <- vint1
   if (!is.null(vint2)) data$vint2 <- vint2
 

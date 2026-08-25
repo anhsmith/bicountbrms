@@ -277,3 +277,56 @@ proven itself, tracked in `tnc001-belize-em/docs/bicountbrms-release-checklist.m
 
 If something here turns out to be wrong about the code, or a decision looks mistaken once
 you are inside it, say so rather than working around it.
+
+---
+
+## 7. Outcome, recorded 25 August 2026
+
+Added after the release was built. §6 asks for anything that turned out wrong
+about the code to be said rather than worked around; this is that.
+
+**The literal in `vars` works, so delegation was not needed.** §2 asked for it
+to be tested before committing to Stan function overloading. It was, and it
+holds: `brms:::stan_log_lik_custom()` is the only consumer of `family$vars`,
+`custom_family()` validates the entries no further than `as.character()`, and a
+non-variable entry is pasted into the generated call verbatim. `binegbin()`
+declares `vars = c("vint1[n]", "1")` and reaches the same `binegbin_lpmf` with
+the flag fixed at `1`; `standata()` carries no `vint2`. **No floor on the Stan
+version was added, and none is needed.** Because that pasting is not a
+documented brms guarantee, `tests/testthat/test-stancode-shape.R` pins the
+generated call for all four constructors and runs in the fast suite.
+
+**Stored plain `binegbin` fits exist, and they are older than §3 assumes.** §3
+asks whether any do, and notes that `fits/final` is entirely `binegbin_cens` —
+correct, all ten of them. But elsewhere under `tnc001-belize-em/fits/` there
+are **103** fits with `family$name == "binegbin"`, and every one carries
+pre-0.7.0 rate names (`lambdaem`/`lambdalb`) *as well as* the single `shapex`.
+So the compatibility path is three independent mechanisms lining up, not the
+two §3 describes: `.get_rate()` on the rates, `.SHAPEX*_NAMES` falling through
+to `shapex`, and an absent `vint2` selecting the matched branch. All three are
+now pinned in `test-dpar-compat.R`, and one real fit
+(`fits/fit_alb_binegbin.rds`) was post-processed under 0.10.0 as a check:
+`log_lik()`, `posterior_epred()`, `posterior_predict()` and `loo()` all return
+finite, sensible values. Nothing was regenerated.
+
+**One thing §5 does not mention needed a code change.**
+`binegbin_mfd_to_dpars()` emitted a dpar named `shapex` when given `kappax`.
+After unification no family accepts that name, so the converter's output could
+no longer be passed to `brm()` — a functional defect, not a stale sentence.
+`kappax` now writes `shapexone` and `shapextwo` at a common value. The inverse
+still *accepts* `shapex`, because its input is a stored fit and that is the
+genuine dpar name on all 103 of them.
+
+**The Stan-side blind spot §3 warns about was still open, and is now closed.**
+Unification made the Stan-vs-Stan equivalence checks vacuous — they compared a
+function to itself. Deleting them would have left the Stan lpmf's dispersion
+routing tested only by a grid that passes the *same* value for both
+dispersions, which a swap cannot disturb: injecting one into
+`binegbin_stan_funs` leaves that grid byte-identical. They were replaced by
+asymmetric routing checks, which catch the same swap by 45 log units. All five
+mutation sites — the three R methods, the R reference and the Stan lpmf — are
+now caught.
+
+The `_partialobs` naming, the removal of every `_cens`/`_joint` name with no
+deprecation layer, and the decision not to regenerate the Belize fits were all
+adopted as written.

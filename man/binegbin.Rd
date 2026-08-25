@@ -26,17 +26,22 @@ Overdispersed sibling of [bipois()]. Returns a brms custom family for the
 joint distribution of a matched count pair `(y1, y2)` via trivariate
 reduction with Negative-Binomial (rather than Poisson) latent components:
 `y1 = N_shared + N1`, `y2 = N_shared + N2`, with
-`N_shared ~ NB2(mu, shapes)`, `N1 ~ NB2(lambdaone, shapex)`,
-`N2 ~ NB2(lambdatwo, shapex)` mutually independent given their rates.
+`N_shared ~ NB2(mu, shapes)`, `N1 ~ NB2(lambdaone, shapexone)`,
+`N2 ~ NB2(lambdatwo, shapextwo)` mutually independent given their rates.
 `NB2(m, phi)` has mean `m` and variance `m + m^2/phi` (Stan
 `neg_binomial_2`; R `dnbinom(size = phi, mu = m)`).
 
-Five dpars: the three rates (`mu` = shared rate, `lambdaone`/`lambdatwo` =
-the two source-specific rates) plus two dispersions -- `shapes` for the
-shared component and `shapex` shared across the two excess components. All
-five use `link = "log"`. Supply the excess rates through a non-linear
-formula without an explicit `exp()` (the log link applies it):
-`nlf(lambdaone ~ lamx)` gives `lambdaone = exp(lamx)`.
+Use this when both counts were recorded on every row. If the first count is
+missing on some rows, use [binegbin_partialobs()], which is the same family
+with an observation flag -- same `name`, same six dpars, same likelihood,
+same post-processing.
+
+Six dpars: the three rates (`mu` = shared rate, `lambdaone`/`lambdatwo` =
+the two source-specific rates) plus three dispersions -- `shapes` for the
+shared component and `shapexone`/`shapextwo` for the two source-specific
+excess components. All six use `link = "log"`. Supply the excess rates
+through a non-linear formula without an explicit `exp()` (the log link
+applies it): `nlf(lambdaone ~ lamx)` gives `lambdaone = exp(lamx)`.
 
 See the `binegbin.R` file header for why Negative-Binomial components are
 used instead of an observation-level random effect on [bipois()] -- briefly,
@@ -49,13 +54,33 @@ Use in a brm() call as:
     bf(y1 | vint(y2) ~ 1,
        mu ~ 1 + (1 | vessel),
        nlf(lambdaone ~ lamx), nlf(lambdatwo ~ lamx), lamx ~ 1,
-       shapes ~ 1, shapex ~ 1, nl = TRUE),
+       shapes ~ 1, shapexone ~ 1, shapextwo ~ 1, nl = TRUE),
     family   = binegbin(),
     stanvars = binegbin_stanvars(),
     data     = dat
   )
 }
 \details{
+**Two excess dispersions, and the symmetric special case.** Up to 0.9.1
+this family carried a single `shapex` shared by both excess components,
+imposing `shapexone == shapextwo`. That is a modelling choice rather than a
+property of the construction, and 0.10.0 frees it. To recover the
+constraint, route both through one non-linear parameter:
+
+```
+bf(y1 | vint(y2) ~ 1,
+   mu ~ 1 + (1 | vessel),
+   nlf(shapexone ~ shapexx),
+   nlf(shapextwo ~ shapexx),
+   shapexx ~ 1, ..., nl = TRUE)
+```
+
+The resulting likelihood is term-for-term the pre-0.10.0 five-dpar one, and
+a package test pins that. Stored five-dpar fits keep working unchanged:
+their single `shapex` resolves to both `shapexone` and `shapextwo` when
+post-processed. Set a prior with `nlpar = "shapexx"` rather than
+`dpar = "shapex"`.
+
 **Forced `mu` naming, and `y2` via `vint()`.** Identical conventions to
 [bipois()] -- `mu` is brms's mandatory dpar name, here bound to the shared
 component's rate (`lambda_shared`), not a mean of either response; `y2`
@@ -67,9 +92,15 @@ the full explanation, including why the rates are spelled `lambdaone`/
 
 **Order of dpars matters for the generated Stan call.** brms generates
 `target += binegbin_lpmf(Y[n] | mu[n], lambdaone[n], lambdatwo[n],
-shapes[n], shapex[n], vint1[n])` -- dpars in the order declared here, then
-vint args. `binegbin_stan_funs` declares `binegbin_lpmf` with exactly this
-signature; reordering one without the other silently swaps which rate or
-dispersion governs which component.
+shapes[n], shapexone[n], shapextwo[n], vint1[n], 1)` -- dpars in the order
+declared here, then the two `vars` entries. `binegbin_stan_funs` declares
+`binegbin_lpmf` with exactly this signature; reordering one without the
+other silently swaps which rate or dispersion governs which component.
+The trailing `1` is the observation flag, supplied as a literal because
+every row of a fully paired design has both counts.
+}
+\seealso{
+[binegbin_partialobs()] for partially observed pairs; [bipois()]
+  for the equidispersed Poisson counterpart.
 }
 \keyword{internal}

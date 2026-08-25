@@ -25,8 +25,8 @@
 # satisfies both for free.
 #
 # Hence: resolve the name against the fit, then hand that name to brms.
-# Every rate read in every family goes through here -- bipois.R,
-# bipois_cens.R, binegbin.R and binegbin_cens.R --
+# Every rate read in every family goes through here -- bipois.R and
+# binegbin.R, under both of each file's constructors --
 # which is what lets pre-0.7.0 fits keep working with loo(),
 # posterior_predict() and log_lik() without refitting.
 .get_rate <- function(prep, new, old, i = NULL) {
@@ -38,13 +38,15 @@
 # --------------------------------------------------------------------------
 #
 # The generalisation of .get_rate() to an ordered list of candidate names,
-# needed once 0.8.0 split binegbin_cens's single excess dispersion `shapex`
-# into the per-margin pair `shapexone`/`shapextwo` (see NEWS). A stored fit
+# needed once 0.8.0 split the partially observed family's single excess
+# dispersion `shapex` into the per-margin pair `shapexone`/`shapextwo`, and
+# again once 0.10.0 did the same for the fully paired one (see NEWS). A stored fit
 # may spell that dispersion any of three ways, and which one it uses is a
 # property of the fit, not of the attached package:
 #
 #   shapexone <- "shapexone" (0.8.0+) | "shapexem" (project-local ax family)
-#                | "shapex"   (<= 0.7.0 symmetric fits, where one dispersion
+#                | "shapex"   (any pre-0.10.0 binegbin fit, and pre-0.8.0
+#                              binegbin_cens fits, where one dispersion
 #                              served both margins)
 #
 # Falling back to `shapex` LAST is what makes the symmetric special case work
@@ -79,11 +81,12 @@
 #
 #   E[y1 | y2] = E[N_shared | y2] + lambdaone,
 #
-# and the families differ only in the first term. For bipois()/bipois_cens()
+# and the families differ only in the first term. For bipois() and
+# bipois_partialobs()
 # it is closed form -- conditioning a sum of independent Poissons on its total
 # gives a Binomial, so E[N_shared | y2] = y2 * mu/(mu + lambdatwo) -- and those
-# families compute it inline. A sum of independent negative binomials admits no
-# such shortcut, so binegbin()/binegbin_cens() need the conditional evaluated
+# it is computed inline. A sum of independent negative binomials admits no
+# such shortcut, so binegbin() needs the conditional evaluated
 # directly:
 #
 #   P(N_shared = k | y2) proportional to
@@ -91,8 +94,8 @@
 #
 #   E[N_shared | y2] = sum_k k P(N_shared = k | y2)
 #
-# These are the same weights posterior_predict_binegbin() and
-# posterior_predict_binegbin_cens() already build; this helper sums them
+# These are the same weights posterior_predict_binegbin() already builds;
+# this helper sums them
 # instead of sampling from them. That makes the epred exact rather than an
 # approximation, and makes it consistent with the predictions by construction
 # -- the two now differ only by Monte Carlo error, which is what a test can
@@ -100,12 +103,12 @@
 #
 # Until 0.9.0 posterior_epred_binegbin() substituted the MARGINAL shared
 # fraction mu/(mu + lambdatwo) -- the bipois answer -- for the conditional one,
-# and posterior_epred_binegbin_cens() did not exist. The substitution is exact
+# and the partially observed family had no epred at all. The substitution is exact
 # only in the Poisson limit and biased otherwise, in the direction set by which
 # component carries more dispersion. See NEWS for the size of the change.
 #
 # `shapex2` is the dispersion of the SECOND margin's excess component
-# (`shapex` for binegbin(), `shapextwo` for binegbin_cens()) -- the y2
+# (`shapextwo`, or a pre-0.10.0 fit's single `shapex`) -- the y2
 # marginal is what is being conditioned on, so the first margin's dispersion
 # does not enter.
 #
@@ -130,4 +133,22 @@
     out[, j] <- (w %*% k) / rowSums(w)
   }
   out
+}
+
+# --------------------------------------------------------------------------
+# The observation flag, for a prep built by either constructor
+# --------------------------------------------------------------------------
+
+# From 0.10.0 each component distribution has two constructors sharing one
+# family name. The fully paired one declares vars = c("vint1[n]", "1"), so the
+# flag reaches Stan as a literal and never enters the data block; a prep built
+# from such a fit therefore has no vint2 at all, and every one of its rows is
+# matched. The partially observed constructor declares
+# vars = c("vint1[n]", "vint2[n]") and the flag is there to read.
+#
+# Only log_lik_* calls this. posterior_predict_* and posterior_epred_* do not
+# read the flag under either shape -- they impute the first margin on every
+# row, which is the package's epred convention (see CLAUDE.md).
+.y1_obs_at <- function(prep, i) {
+  if (is.null(prep$data$vint2)) 1L else prep$data$vint2[i]
 }

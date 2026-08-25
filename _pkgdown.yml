@@ -8,21 +8,25 @@ reference:
   desc: >
     Model the matched pair jointly via trivariate reduction, capturing its
     correlation, marginal overdispersion, and difference together rather than
-    the difference alone. Both counts must be observed on every row.
+    the difference alone. Each component distribution has one family name and
+    two constructors: the plain one for a fully paired design, and the
+    _partialobs one for a design in which the first count is missing on some
+    rows. Both share a likelihood and a set of post-processing methods.
   contents:
   - bipois
   - binegbin
 
-- title: Censoring-aware families
+- title: Partially observed pairs
   desc: >
-    The same two models, extended to rows on which the first count is
-    unobserved, through the integrated-out marginal of the same joint. For
-    Poisson components that marginal is closed form; for Negative-Binomial
-    components it is a convolution, and the two source-specific components may
-    differ in overdispersion.
+    The same two models, for rows on which the first count was never recorded.
+    Those rows are scored by the integrated-out marginal of the same joint, so
+    they still inform the shared component and the second source rather than
+    being dropped. For Poisson components that marginal is closed form; for
+    Negative-Binomial components it is a convolution. This is unrelated to
+    brms's own cens() addition term, which means a value known to lie in a set.
   contents:
-  - bipois_cens
-  - binegbin_cens
+  - bipois_partialobs
+  - binegbin_partialobs
 
 - title: Parameterisation helpers
   desc: >
@@ -31,11 +35,3 @@ reference:
   contents:
   - binegbin_mfd_to_dpars
   - binegbin_dpars_to_mfd
-
-- title: Deprecated
-  desc: >
-    Retained so that code and fitted models predating the 0.9.0 rename
-    binegbin_joint -> binegbin_cens keep working. Removed in the next major
-    version.
-  contents:
-  - binegbin_joint-deprecated

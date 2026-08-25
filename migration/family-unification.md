@@ -1,5 +1,25 @@
 # Unifying the symmetric and asymmetric joint families
 
+> **Superseded in part by 0.10.0.** This note is a record of a decision taken at
+> 0.8.0 and is left saying what it said then. Three of its conclusions no longer
+> describe the shipping package:
+>
+> * The family it calls `binegbin_joint()`, renamed `binegbin_cens()` at 0.9.0,
+>   is **`binegbin_partialobs()`** from 0.10.0. `_cens` was the wrong word:
+>   censoring means a value known to lie in a set, and brms uses `cens()` for
+>   exactly that, whereas here the first count is not observed at all.
+> * The two source-specific dispersions are no longer that family's alone.
+>   0.10.0 gives `shapexone`/`shapextwo` to **both** constructors, which is the
+>   right way round — every row of a fully paired design informs both, so that
+>   is where they are easiest to identify.
+> * §5's adoption steps, and the five `binegbin_joint` aliases §2a discusses,
+>   are gone: 0.10.0 removes every old name outright with no deprecation layer.
+>   A fit stored under one needs bicountbrms 0.9.1 attached.
+>
+> §1–§4 remain accurate as history, and the equivalence measurements in §3 stand
+> as recorded. See `migration/workorder-unify-families.md` and the 0.10.0 entry
+> in `NEWS.md` for what replaced this.
+
 **Written for pairedcountbrms 0.8.0; the package is now bicountbrms 0.9.x.**
 This note records why `binegbin_joint()` was generalised to six distributional
 parameters rather than joined by a second family, what was measured to establish

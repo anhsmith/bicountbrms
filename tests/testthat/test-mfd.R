@@ -97,26 +97,52 @@ test_that("one excess at zero is the finite +/-Inf bias limit", {
 })
 
 test_that("dispersion conversion inverts, with the direction reversed", {
+  # `kappax` is the tied case: it writes BOTH per-margin slots, because since
+  # 0.10.0 no family has a `shapex` dpar and this direction must emit only
+  # names a shipping family accepts.
   d <- binegbin_mfd_to_dpars(12, 0.6, 0, kappas = 0.5, kappax = 2)
   expect_equal(d$shapes, 1 / 0.5^2)
-  expect_equal(d$shapex, 1 / 2^2)
+  expect_equal(d$shapexone, 1 / 2^2)
+  expect_equal(d$shapextwo, 1 / 2^2)
+  expect_null(d$shapex)
 
   back <- binegbin_dpars_to_mfd(d$mu, d$lambdaone, d$lambdatwo,
-                                shapes = d$shapes, shapex = d$shapex)
+                                shapes = d$shapes,
+                                shapexone = d$shapexone,
+                                shapextwo = d$shapextwo)
   expect_equal(back$kappas, 0.5)
-  expect_equal(back$kappax, 2)
+  expect_equal(back$kappaxone, 2)
+  expect_equal(back$kappaxtwo, 2)
 
   # raising kappa lowers shape
   expect_lt(binegbin_mfd_to_dpars(1, 0.5, 0, kappas = 2)$shapes,
             binegbin_mfd_to_dpars(1, 0.5, 0, kappas = 1)$shapes)
 })
 
+test_that("the inverse still reads a pre-0.10.0 fit's single `shapex`", {
+  # The asymmetry between the two directions, asserted rather than assumed.
+  # binegbin_dpars_to_mfd() takes a STORED FIT's dpars, and every binegbin fit
+  # made before 0.10.0 carries one `shapex`; 103 such fits exist in the
+  # sibling project. The forward direction writes current names only.
+  back <- binegbin_dpars_to_mfd(7.2, 2.4, 2.4, shapes = 4, shapex = 1 / 2^2)
+  expect_equal(back$kappas, 0.5)
+  expect_equal(back$kappax, 2)
+  expect_null(back$kappaxone)
+
+  # And it agrees with the same fit read through the per-margin names, which
+  # is what .SHAPEXONE_NAMES/.SHAPEXTWO_NAMES do to it at post-processing time.
+  pair <- binegbin_dpars_to_mfd(7.2, 2.4, 2.4, shapes = 4,
+                                shapexone = 1 / 2^2, shapextwo = 1 / 2^2)
+  expect_equal(back$kappax, pair$kappaxone)
+  expect_equal(back$kappax, pair$kappaxtwo)
+})
+
 # --------------------------------------------------------------------------
-# Per-margin excess dispersions (binegbin_cens, 0.8.0+)
+# Per-margin excess dispersions (binegbin_partialobs, 0.8.0+)
 # --------------------------------------------------------------------------
 
 test_that("kappaxone/kappaxtwo convert to shapexone/shapextwo and round-trip", {
-  # binegbin_cens carries one excess dispersion per margin, so the converters
+  # binegbin_partialobs carries one excess dispersion per margin, so the converters
   # accept and return the pair under the family's own dpar names rather than
   # making the caller re-derive shape = 1/kappa^2 by hand.
   d <- binegbin_mfd_to_dpars(12, 0.6, 0.2, kappas = 0.5,
@@ -142,9 +168,12 @@ test_that("kappaxone/kappaxtwo convert to shapexone/shapextwo and round-trip", {
 test_that("the pair uses the same kappa <-> shape map as the single kappax", {
   # Not a separate formula: passing one value through kappax and through
   # kappaxone must give the same number, or the two spellings could drift.
-  one  <- binegbin_mfd_to_dpars(12, 0.6, 0, kappax    = 1.7)$shapex
+  one  <- binegbin_mfd_to_dpars(12, 0.6, 0, kappax    = 1.7)$shapexone
   pair <- binegbin_mfd_to_dpars(12, 0.6, 0, kappaxone = 1.7)$shapexone
   expect_identical(one, pair)
+  # kappax is the tied case, so it fills both slots with that same number.
+  tied <- binegbin_mfd_to_dpars(12, 0.6, 0, kappax = 1.7)
+  expect_identical(tied$shapexone, tied$shapextwo)
   expect_equal(binegbin_mfd_to_dpars(12, 0.6, 0, kappaxone = 0)$shapexone, Inf)
 })
 
@@ -167,8 +196,49 @@ test_that("kappax and the per-margin pair cannot be combined", {
     "not both"
   )
   # ...but either alone is fine
-  expect_type(binegbin_mfd_to_dpars(12, 0.6, 0, kappax = 1)$shapex, "double")
+  expect_type(binegbin_mfd_to_dpars(12, 0.6, 0, kappax = 1)$shapexone, "double")
   expect_type(binegbin_mfd_to_dpars(12, 0.6, 0, kappaxone = 1)$shapexone, "double")
+})
+
+test_that("the forward direction emits only names a shipping family accepts", {
+  # The invariant behind the kappax change: everything this returns can be
+  # pasted into a brm() call. `shapex` would not be -- no family has taken it
+  # since 0.10.0.
+  ok <- c("mu", "lambdaone", "lambdatwo", "shapes", "shapexone", "shapextwo")
+  for (args in list(list(kappas = 0.5, kappax = 1.2),
+                    list(kappas = 0.5, kappaxone = 1.2, kappaxtwo = 0.3),
+                    list(kappax = 1.2),
+                    list())) {
+    d <- do.call(binegbin_mfd_to_dpars, c(list(12, 0.6, 0.1), args))
+    expect_true(all(names(d) %in% ok), label = paste(names(d), collapse = ","))
+  }
+  # Every one of those names really is a dpar of the shipping family.
+  expect_true(all(setdiff(ok, c("shapes", "shapexone", "shapextwo")) %in% bipois()$dpars))
+  expect_true(all(ok %in% binegbin()$dpars))
+})
+
+test_that("the forward direction returns dpars in the family's own order", {
+  # Not cosmetic. The generated Stan call takes dpars positionally, and this
+  # package's docs warn repeatedly that reordering them without reordering the
+  # Stan signature silently swaps which rate or dispersion governs which
+  # component. A converter whose printed output reads shapextwo before
+  # shapexone invites exactly that inference.
+  #
+  # This caught a real defect: writing both slots as `a <- b <- value`
+  # evaluates right-to-left, so the chained form created shapextwo first.
+  expect_identical(
+    names(binegbin_mfd_to_dpars(12, 0.67, 0.2, kappas = 0.5, kappax = 1)),
+    binegbin()$dpars
+  )
+  expect_identical(
+    names(binegbin_mfd_to_dpars(12, 0.67, 0.2, kappas = 0.5,
+                                kappaxone = 1, kappaxtwo = 0.3)),
+    binegbin()$dpars
+  )
+  expect_identical(
+    names(binegbin_mfd_to_dpars(12, 0.67, 0.2)),
+    bipois()$dpars
+  )
 })
 
 test_that("the pair vectorises over draws like every other argument", {
@@ -208,17 +278,17 @@ test_that("the map agrees with the trivariate-reduction moment identities", {
   expect_equal(e_em - e_lb, d$lambdaone - d$lambdatwo)
 })
 
-test_that("the rate half of the map serves bipois_cens unchanged", {
-  # bipois_cens takes the same three rates and no dispersion, so only the rate
+test_that("the rate half of the map serves bipois unchanged", {
+  # bipois_partialobs takes the same three rates and no dispersion, so only the rate
   # half of the converters applies to it -- there is no kappa to supply. Rather
-  # than assert that in prose, feed the converted rates to the family's censored
+  # than assert that in prose, feed the converted rates to the family's unmatched
   # branch and check the resulting distribution has the mean the map predicts:
   # that branch is Poisson(mu + lambdatwo), so its mean must be E[y2] = mu +
   # lambdatwo, which by the identity above is M(1 - (1 - f) * tanh(delta)).
   d <- binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = 0.3)
 
   ys <- 0:400
-  lp <- bipois_cens_lpmf_r(0L, ys, 0L, d$mu, d$lambdaone, d$lambdatwo)
+  lp <- bipois_lpmf_r(0L, ys, y1_obs = 0L, d$mu, d$lambdaone, d$lambdatwo)
   expect_equal(sum(exp(lp)), 1, tolerance = 1e-10)
   expect_equal(sum(ys * exp(lp)), d$mu + d$lambdatwo, tolerance = 1e-8)
   expect_equal(d$mu + d$lambdatwo, 12 * (1 - (1 - 0.67) * tanh(0.3)))

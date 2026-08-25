@@ -1,0 +1,36 @@
+# Line endings.
+#
+# `text=auto` governs the OBJECT STORE: normalise to LF on commit, convert to
+# the platform convention on checkout. Every blob here is already LF, so this
+# renormalises nothing today. Its value is that the rule stops depending on
+# whichever global core.autocrlf happens to be set -- a checkout on a machine
+# with core.autocrlf=false could otherwise start committing CRLF blobs, and
+# nothing in the repo would object.
+#
+# WHAT IT DOES NOT DO. It does not silence "LF will be replaced by CRLF the
+# next time Git touches it". That is core.autocrlf=true finding an LF
+# working-tree copy, and it appears whenever a tool writes LF into a CRLF
+# working tree -- knitr, roxygen2 and R's writeLines() all do. It is cosmetic:
+# the stored blob is LF either way, and the notice clears once the file has
+# been committed and checked out again.
+#
+# Do not reach for `eol=lf` to silence it. That was tried during the 0.10.0
+# work and it does not fix the warning, it inverts it -- git then reports
+# "CRLF will be replaced by LF" and rewrites the working-tree copy on the next
+# checkout. Trading a harmless notice for a real change to every generated file
+# is the wrong way round.
+* text=auto
+
+# Byte-for-byte round trip; never transform these.
+*.png binary
+*.pdf binary
+*.rds binary
+
+# Text, stated rather than sniffed from content.
+*.R      text
+*.Rd     text
+*.Rmd    text
+*.stan   text
+*.svg    text
+*.md     text
+*.yml    text
