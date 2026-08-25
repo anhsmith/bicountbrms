@@ -1,6 +1,154 @@
 # Changelog
 
-## bicountbrms 0.9.1
+## bicountbrms 0.10.0
+
+- **Breaking: four families become two, with two constructors each.**
+  The package now supplies
+  [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
+  and
+  [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md),
+  each with a `_partialobs()` sibling:
+
+  |  | fully paired | first count missing on some rows |
+  |----|----|----|
+  | Poisson | [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md) | [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md) |
+  | Negative-Binomial | [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md) | [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md) |
+
+  Both constructors of a pair return the *same* `custom_family` name, so
+  there is one Stan `_lpmf` and one set of `log_lik_*` /
+  `posterior_predict_*` / `posterior_epred_*` methods per component
+  distribution. They differ only in whether the observation flag reaches
+  the likelihood as data or as a constant. A user fitting fully paired
+  data never has to supply the flag, or know it exists.
+
+  `bipois_cens()`, `binegbin_cens()` and the five `binegbin_joint` names
+  are **removed outright**. There is no deprecation layer and nothing
+  left to remove at a later version — see the last bullet for what to do
+  if you hold a fit made under those names.
+
+- **[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
+  now carries six dpars, not five.** `shapex` is gone; both excess
+  components have their own dispersion, `shapexone` and `shapextwo`, as
+  `binegbin_cens()` has had since 0.8.0. This is the change the release
+  exists for. The capability was on the wrong family: in a partially
+  paired design the unmatched rows inform only `shapextwo`, so
+  `shapexone` rests on the matched rows alone, whereas in a fully paired
+  design every row informs both and they are as easy to identify as they
+  ever get.
+
+  The symmetric model is a formula constraint, exactly as it has been
+  for the partially observed family since 0.8.0:
+
+  ``` r
+
+  bf(y1 | vint(y2) ~ 1,
+     nlf(shapexone ~ shapexx), nlf(shapextwo ~ shapexx),
+     shapexx ~ 1, ..., nl = TRUE)
+  ```
+
+  Set priors on it with `nlpar = "shapexx"` rather than
+  `dpar = "shapex"`.
+
+- **`_cens` was the wrong word, and wrong inside brms specifically.**
+  Censoring means a value is known to lie in a set. On these rows the
+  first count is not observed at all and the likelihood marginalises
+  over its whole support. brms already uses `cens()` as an addition term
+  meaning exactly the bounded thing — `left`, `right`, `interval`, with
+  no code for “not observed” — so a brms user met a familiar word
+  attached to an incompatible mechanism. `partialobs` names what is
+  actually partial: the *pair*, which is a property of the data. `unobs`
+  and `unmatched` name only the minority row class, and `partial` alone
+  collides with partial likelihood and partial pooling.
+
+- **How the two constructors share one Stan function, and why there is
+  no Stan version floor.** brms builds the generated lpmf call by
+  pasting each entry of `family$vars` in verbatim, and validates those
+  entries no further than
+  [`as.character()`](https://rdrr.io/r/base/character.html). The plain
+  constructors exploit that: they declare `vars = c("vint1[n]", "1")`,
+  so a fully paired model calls the same function with `y1_obs` fixed at
+  the literal `1`.
+
+      binegbin()             target += binegbin_lpmf(Y[n] | ..., vint1[n], 1);
+      binegbin_partialobs()  target += binegbin_lpmf(Y[n] | ..., vint1[n], vint2[n]);
+
+  The alternative — two Stan functions of the same name and different
+  arity — needs user-defined function overloading, which arrived in Stan
+  2.29 (February 2022). Taking it would have obliged `DESCRIPTION` to
+  declare floors on rstan and cmdstanr, whose absence would otherwise
+  surface as an opaque compile error. This design needs none, and none
+  has been added.
+
+  That pasting behaviour is not a documented brms guarantee, so
+  `tests/testthat/test-stancode-shape.R` pins it: it asserts the exact
+  call each constructor generates and that the one-`vint`
+  [`standata()`](https://paulbuerkner.com/brms/reference/standata.html)
+  carries no `vint2`. It needs brms but no Stan toolchain, so it runs in
+  the fast suite.
+
+- **New tests, and the one-`vint` path is now covered at all.** Most
+  users take the fully paired path and, before this release, nothing
+  tested its prediction, expectation or dispersion routing — with a
+  single `shapex` there was nothing to get wrong.
+
+  - `tests/testthat/test-partialobs-predict.R` replaces
+    `test-cens-predict.R`. It keeps all five of that file’s blocks and
+    adds a one-`vint` mirror of each: the same fixtures with `shapexone`
+    and `shapextwo` an order of magnitude apart, on a prep with no
+    `vint2`.
+  - `tests/testthat/test-unified-vint.R` pins the release criterion that
+    the two shapes agree — for each of `log_lik`, `posterior_predict`
+    and `posterior_epred`, the one-`vint` path on matched data equals
+    the two-`vint` path with the flag set to 1. `log_lik` is the only
+    method that reads the flag, so its non-vacuity partner asserts the
+    flag-0 answer *differs*; the other two ignore the flag by design,
+    and that is asserted rather than left implicit.
+  - `tests/testthat/test-dpar-compat.R` gains the stored-fit shape
+    (below).
+
+- **Stored `binegbin` fits keep working, and this is now tested rather
+  than assumed.** A fit stores its own family object, and brms resolves
+  post-processing from the name it stored, so a five-dpar `binegbin` fit
+  lands on the new six-dpar methods however this package is pinned.
+  Three independent fallbacks have to line up for that to work:
+  `.get_rate()` resolves pre-0.7.0 `lambdaem`/`lambdalb`;
+  `.SHAPEXONE_NAMES` and `.SHAPEXTWO_NAMES` both list `shapex` last, so
+  both per-margin dispersions resolve to the one such a fit has; and an
+  absent `vint2` selects the matched branch. Scanning the sibling
+  project’s fit directory found 103 stored `binegbin` fits, every one of
+  them carrying the pre-0.7.0 rate names *and* the single `shapex`, so
+  all three paths are exercised in practice. `test-dpar-compat.R` now
+  builds that exact prep and asserts all three methods agree with the
+  six-dpar answer with the dispersions tied.
+
+- **[`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_mfd_to_dpars.md)
+  no longer emits `shapex`.** Supplying `kappax` now writes `shapexone`
+  and `shapextwo` at that common value — the tied, symmetric model —
+  rather than a single `shapex`, which is no longer a dpar of anything
+  and so could not be passed to
+  [`brm()`](https://paulbuerkner.com/brms/reference/brm.html). `kappax`
+  survives as the shorthand it always was; only the output naming
+  changed.
+
+  [`binegbin_dpars_to_mfd()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_dpars_to_mfd.md)
+  still *accepts* `shapex`, because its input is a stored fit and that
+  is the genuine dpar name on any `binegbin` fit made before this
+  release. The two directions differ deliberately: the forward one
+  writes the current vocabulary, the inverse reads the old one, which is
+  the same principle `.get_dpar_any()` applies.
+
+- **If you hold a fit made with `bipois_cens()`, `binegbin_cens()` or
+  `binegbin_joint()`**, install the last version that defined them —
+  0.9.1 — and keep it on the search path for that fit. brms resolves
+  post-processing late, by looking up `log_lik_<name>` from the stored
+  family name at call time, so
+  [`loo()`](https://mc-stan.org/loo/reference/loo.html) and
+  [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
+  need the methods of the version the fit was made under. No argument to
+  those calls can route around it, and 0.10.0 deliberately ships no
+  shim: pinning the whole package is a stronger guarantee than a
+  hand-picked subset of forwarders, and the one project with such fits
+  already pins 0.9.1 in its own `renv.lock`. \# bicountbrms 0.9.1
 
 - **No behaviour change.** Nothing in the four families’ likelihoods,
   predictions or expectations differs from 0.9.0. This release adds test
@@ -21,14 +169,14 @@
   distinguished from each other.
 
   That combination left a specific defect invisible. In
-  [`posterior_predict_binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
-  the conditional split of `N_shared | y2` is weighted by `shapextwo`
-  while the fresh `N1` added on top carries `shapexone`; exchanging them
-  passed 412 assertions across six test files with no failures. The new
-  file fails on it four times. It also pins that `y1_obs` does not
-  change the draws — the flag selects a likelihood branch, not a
-  prediction — and that `y2 = 0` leaves `posterior_predict` drawing
-  `NB2(lambdaone, shapexone)` alone, which is the short-circuit keeping
+  `posterior_predict_binegbin_cens()` the conditional split of
+  `N_shared | y2` is weighted by `shapextwo` while the fresh `N1` added
+  on top carries `shapexone`; exchanging them passed 412 assertions
+  across six test files with no failures. The new file fails on it four
+  times. It also pins that `y1_obs` does not change the draws — the flag
+  selects a likelihood branch, not a prediction — and that `y2 = 0`
+  leaves `posterior_predict` drawing `NB2(lambdaone, shapexone)` alone,
+  which is the short-circuit keeping
   [`sample()`](https://rdrr.io/r/base/sample.html) from being handed an
   empty support.
 
@@ -77,31 +225,22 @@
   below available for checking first, so that what is archived has been
   exercised rather than merely tested.
 
-- **Renamed:
-  [`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
-  →
-  [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md).**
-  All four families in this package model the two counts jointly, so
-  `_joint` named a property common to all of them. The property that
-  selects this one is that the first margin may be unobserved on some
-  rows, which `_cens` names.
-  [`binegbin_cens_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md),
-  `binegbin_cens_lpmf` (Stan) and the three post-processing methods
-  follow the same rename.
+- **Renamed: `binegbin_joint()` → `binegbin_cens()`.** All four families
+  in this package model the two counts jointly, so `_joint` named a
+  property common to all of them. The property that selects this one is
+  that the first margin may be unobserved on some rows, which `_cens`
+  names. `binegbin_cens_stanvars()`, `binegbin_cens_lpmf` (Stan) and the
+  three post-processing methods follow the same rename.
 
-  **Old code and old fits both keep working.**
-  [`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
-  and
-  [`binegbin_joint_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
-  remain as deprecated wrappers that warn once per call and return the
-  new objects. The three post-processing functions
-  [`log_lik_binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md),
-  [`posterior_predict_binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
-  and
-  [`posterior_epred_binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
-  remain as *silent* forwarders, because a fit made before this release
-  stores `family$name == "binegbin_joint"` permanently and brms builds
-  its method names from that stored name — nothing the caller passes to
+  **Old code and old fits both keep working.** `binegbin_joint()` and
+  `binegbin_joint_stanvars()` remain as deprecated wrappers that warn
+  once per call and return the new objects. The three post-processing
+  functions `log_lik_binegbin_joint()`,
+  `posterior_predict_binegbin_joint()` and
+  `posterior_epred_binegbin_joint()` remain as *silent* forwarders,
+  because a fit made before this release stores
+  `family$name == "binegbin_joint"` permanently and brms builds its
+  method names from that stored name — nothing the caller passes to
   [`loo()`](https://mc-stan.org/loo/reference/loo.html) or
   [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
   can route around it. All five are removed in the next major version.
@@ -110,42 +249,32 @@
   five-dpar pre-0.8.0 fit still resolves through both compatibility
   layers at once (a test pins this).
 
-- **New family:
-  [`bipois_cens()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md)
-  /
-  [`bipois_cens_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md).**
-  The censoring-aware bivariate Poisson —
-  [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)’s
-  equidispersed counterpart, and
+- **New family: `bipois_cens()` / `bipois_cens_stanvars()`.** The
+  censoring-aware bivariate Poisson — `binegbin_cens()`’s equidispersed
+  counterpart, and
   [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)’s
   censoring-aware one. Three log-linked dpars (`mu`, `lambdaone`,
   `lambdatwo`) and two `vint()` integers, `vint(y2, y1_obs)`, exactly as
-  [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
-  takes them. It has no deprecated aliases: it was added in this release
-  under its final name.
+  `binegbin_cens()` takes them. It has no deprecated aliases: it was
+  added in this release under its final name.
 
   Its censored branch is closed form. A sum of independent Poissons is
   Poisson, so the `y1`-integrated marginal collapses to
   `poisson_lpmf(y2 | mu + lambdatwo)` — no convolution sum, no cutoff.
-  [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
-  cannot do this (NB2 + NB2 is not NB2 unless the two components share a
-  success probability), which is why it evaluates that branch term by
-  term.
+  `binegbin_cens()` cannot do this (NB2 + NB2 is not NB2 unless the two
+  components share a success probability), which is why it evaluates
+  that branch term by term.
 
   Two things follow. Users whose counts are equidispersed no longer have
-  to fit
-  [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
-  with its dispersions pressed against the Poisson boundary, where
-  sampling degrades. And the suite gains an independent analytic
-  reference for
-  [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)’s
-  censored branch: driving its three dispersions to their Poisson limit
-  must reproduce
-  [`bipois_cens()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md),
-  checked as a limit — the error must shrink in proportion to `1/phi` —
-  rather than at a single tolerance. Previously that branch was pinned
-  only by the marginal identity, which compares it against the matched
-  branch of the same code and so shares any error common to both sums.
+  to fit `binegbin_cens()` with its dispersions pressed against the
+  Poisson boundary, where sampling degrades. And the suite gains an
+  independent analytic reference for `binegbin_cens()`’s censored
+  branch: driving its three dispersions to their Poisson limit must
+  reproduce `bipois_cens()`, checked as a limit — the error must shrink
+  in proportion to `1/phi` — rather than at a single tolerance.
+  Previously that branch was pinned only by the marginal identity, which
+  compares it against the matched branch of the same code and so shares
+  any error common to both sums.
 
 - **Breaking (numerical):
   [`posterior_epred_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
@@ -174,16 +303,14 @@
   [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
   are unaffected; the likelihood has not changed.
 
-- **New:
-  [`posterior_epred_binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md).**
-  That family previously defined no `posterior_epred` at all, on the
-  view that `E[y1]` is ambiguous when `y1` is unobserved. It is not:
-  `E[y1 | y2]` is well defined whether or not `y1` was recorded, and it
-  is the quantity a user imputing the missing margin wants. It is
-  returned for every row, matched and censored alike, matching
-  [`posterior_predict_binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)’s
-  existing convention. Stored fits reach it through the deprecated
-  [`posterior_epred_binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
+- **New: `posterior_epred_binegbin_cens()`.** That family previously
+  defined no `posterior_epred` at all, on the view that `E[y1]` is
+  ambiguous when `y1` is unobserved. It is not: `E[y1 | y2]` is well
+  defined whether or not `y1` was recorded, and it is the quantity a
+  user imputing the missing margin wants. It is returned for every row,
+  matched and censored alike, matching
+  `posterior_predict_binegbin_cens()`’s existing convention. Stored fits
+  reach it through the deprecated `posterior_epred_binegbin_joint()`
   forwarder, so they gain the method without refitting.
 
 - **All four families now share one `posterior_epred` convention**,

@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bicountbrms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -73,9 +73,9 @@
 <code><a href="../reference/binegbin.html">binegbin()</a></code>: simulate a matched pair of counts from known
 parameters, fit them, check that the posterior finds the truth, and then
 predict and score. The other joint families (<code><a href="../reference/bipois.html">bipois()</a></code>, and
-the censoring-aware <code><a href="../reference/binegbin_cens.html">binegbin_cens()</a></code> and
-<code><a href="../reference/bipois_cens.html">bipois_cens()</a></code>) follow the same pattern; the README compares
-them.</p>
+the partially observed <code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code> and
+<code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code>) follow the same pattern; the README
+compares them.</p>
 <p>Everything here is a brms custom family <span class="citation">(<a href="#ref-burkner2017">Bürkner 2017</a>)</span>, so the fitting,
 prediction and model-comparison interfaces are brms’s own. The
 non-linear formula syntax used further down is documented in <span class="citation">Bürkner (<a href="#ref-burkner2018">2018</a>)</span>.</p>
@@ -86,11 +86,11 @@ non-linear formula syntax used further down is documented in <span class="citati
 <strong>trivariate reduction</strong> <span class="citation">(<a href="#ref-holgate1964">Holgate 1964</a>; <a href="#ref-karlis2003">Karlis and Ntzoufras 2003</a>)</span>. Three
 independent Negative-Binomial counts are drawn, and the two observed
 counts share one of them:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mi>s</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>N</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mi>x</mi></msub><mo stretchy="false" form="postfix">)</mo><mspace width="2.0em"></mspace><msub><mi>N</mi><mn>2</mn></msub><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mn>2</mn></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mi>x</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>y</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>+</mo><msub><mi>N</mi><mn>1</mn></msub><mspace width="2.0em"></mspace><msub><mi>y</mi><mn>2</mn></msub><mo>=</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>+</mo><msub><mi>N</mi><mn>2</mn></msub></mtd></mtr></mtable><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mi>s</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>N</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo><mspace width="2.0em"></mspace><msub><mi>N</mi><mn>2</mn></msub><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mn>2</mn></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>y</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>+</mo><msub><mi>N</mi><mn>1</mn></msub><mspace width="2.0em"></mspace><msub><mi>y</mi><mn>2</mn></msub><mo>=</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>+</mo><msub><mi>N</mi><mn>2</mn></msub></mtd></mtr></mtable><annotation encoding="application/x-tex">
 \begin{aligned}
 N_{\text{shared}} &amp;\sim \mathrm{NB2}(\mu,\ \phi_s) \\
-N_1 &amp;\sim \mathrm{NB2}(\lambda_1,\ \phi_x) \qquad
-N_2 \sim \mathrm{NB2}(\lambda_2,\ \phi_x) \\[4pt]
+N_1 &amp;\sim \mathrm{NB2}(\lambda_1,\ \phi_{x1}) \qquad
+N_2 \sim \mathrm{NB2}(\lambda_2,\ \phi_{x2}) \\[4pt]
 y_1 &amp;= N_{\text{shared}} + N_1 \qquad
 y_2 = N_{\text{shared}} + N_2
 \end{aligned}
@@ -105,7 +105,7 @@ pair.</p>
 R’s <code>dnbinom(size = phi, mu = m)</code>: mean <code>m</code>,
 variance <code>m + m^2/phi</code>. Larger <code>phi</code> means
 <em>less</em> overdispersion.</p>
-<p>Five dpars, all with a log link:</p>
+<p>Six dpars, all with a log link:</p>
 <table class="table">
 <thead><tr class="header">
 <th>dpar</th>
@@ -137,10 +137,16 @@ variance <code>m + m^2/phi</code>. Larger <code>phi</code> means
 of the shared component</td>
 </tr>
 <tr class="odd">
-<td><code>shapex</code></td>
+<td><code>shapexone</code></td>
 <td>dispersion
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>x</mi></msub><annotation encoding="application/x-tex">\phi_x</annotation></semantics></math>,
-shared by both excesses</td>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>
+of the first source’s excess</td>
+</tr>
+<tr class="even">
+<td><code>shapextwo</code></td>
+<td>dispersion
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x2}</annotation></semantics></math>
+of the second source’s excess</td>
 </tr>
 </tbody>
 </table>
@@ -156,7 +162,7 @@ maths below writes them
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>.</p>
-<p>All five use a log link, the conventional log-linear rate
+<p>All six use a log link, the conventional log-linear rate
 parameterisation for this construction <span class="citation">(<a href="#ref-karlis2003">Karlis and Ntzoufras 2003</a>)</span>.</p>
 </div>
 <div class="section level2">
@@ -171,12 +177,13 @@ parameterisation for this construction <span class="citation">(<a href="#ref-kar
 <span>  lambdaone <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  lambdatwo <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  shapes    <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  shapex    <span class="op">=</span> <span class="fl">6</span></span>
+<span>  shapexone <span class="op">=</span> <span class="fl">6</span>,</span>
+<span>  shapextwo <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">n_shared</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="va">n</span>, size <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">shapes</span>, mu <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">mu</span><span class="op">)</span></span>
-<span><span class="va">n1</span>       <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="va">n</span>, size <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">shapex</span>, mu <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">lambdaone</span><span class="op">)</span></span>
-<span><span class="va">n2</span>       <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="va">n</span>, size <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">shapex</span>, mu <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">lambdatwo</span><span class="op">)</span></span>
+<span><span class="va">n1</span>       <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="va">n</span>, size <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">shapexone</span>, mu <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">lambdaone</span><span class="op">)</span></span>
+<span><span class="va">n2</span>       <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="va">n</span>, size <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">shapextwo</span>, mu <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">lambdatwo</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  y1 <span class="op">=</span> <span class="va">n_shared</span> <span class="op">+</span> <span class="va">n1</span>,</span>
@@ -186,9 +193,9 @@ parameterisation for this construction <span class="citation">(<a href="#ref-kar
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span></span>
 <span><span class="co">#&gt; 'data.frame':    400 obs. of  2 variables:</span></span>
 <span><span class="co">#&gt;  $ y1: num  11 8 7 15 5 13 9 15 13 8 ...</span></span>
-<span><span class="co">#&gt;  $ y2: num  11 7 6 16 6 11 9 15 9 7 ...</span></span>
+<span><span class="co">#&gt;  $ y2: num  11 7 5 16 6 11 9 16 9 7 ...</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">y1</span>, <span class="va">dat</span><span class="op">$</span><span class="va">y2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.8911927</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.8518386</span></span></code></pre></div>
 <p>The correlation is positive and substantial because both counts carry
 the same <code>n_shared</code>. That shared term is exactly what a model
 of the difference alone throws away.</p>
@@ -213,7 +220,8 @@ the generated model will not compile.</p>
 <span>    <span class="va">lambdaone</span>     <span class="op">~</span> <span class="fl">1</span>,</span>
 <span>    <span class="va">lambdatwo</span>     <span class="op">~</span> <span class="fl">1</span>,</span>
 <span>    <span class="va">shapes</span>        <span class="op">~</span> <span class="fl">1</span>,</span>
-<span>    <span class="va">shapex</span>        <span class="op">~</span> <span class="fl">1</span></span>
+<span>    <span class="va">shapexone</span>     <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">shapextwo</span>     <span class="op">~</span> <span class="fl">1</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  family   <span class="op">=</span> <span class="fu"><a href="../reference/binegbin.html">binegbin</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  stanvars <span class="op">=</span> <span class="fu"><a href="../reference/binegbin.html">binegbin_stanvars</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -223,7 +231,8 @@ the generated model will not compile.</p>
 <span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span>, dpar <span class="op">=</span> <span class="st">"lambdaone"</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span>, dpar <span class="op">=</span> <span class="st">"lambdatwo"</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span>, dpar <span class="op">=</span> <span class="st">"shapes"</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span>, dpar <span class="op">=</span> <span class="st">"shapex"</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span>, dpar <span class="op">=</span> <span class="st">"shapexone"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span>, dpar <span class="op">=</span> <span class="st">"shapextwo"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  chains  <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  iter    <span class="op">=</span> <span class="fl">1500</span>,</span>
@@ -231,20 +240,20 @@ the generated model will not compile.</p>
 <span>  backend <span class="op">=</span> <span class="va">backend</span>,</span>
 <span>  seed    <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>One weakly-informative prior serves all five, since every dpar here
-is a log-linked positive quantity of similar magnitude. On the natural
+<p>One weakly-informative prior serves all six, since every dpar here is
+a log-linked positive quantity of similar magnitude. On the natural
 scale <code>normal(2, 1)</code> is lognormal with 95% of its mass in
 roughly <code>[1, 52]</code>.</p>
-<p>The five truths span <code>0.69</code> to <code>2.08</code> on the
-log scale, so no single prior sits away from all of them: the shared
-rate’s truth falls near the prior mean, the second excess rate’s 1.3
-prior SDs below it. Recovery here is therefore not on its own evidence
-that the prior is uninfluential. The article <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html"><em>The
+<p>The six truths span <code>0.69</code> to <code>2.08</code> on the log
+scale, so no single prior sits away from all of them: the shared rate’s
+truth falls near the prior mean, the second excess rate’s 1.3 prior SDs
+below it. Recovery here is therefore not on its own evidence that the
+prior is uninfluential. The article <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html"><em>The
 anatomy of a paired count</em></a> tests that directly, shifting a prior
 median sevenfold and moving the corresponding posterior median by
 0.005.</p>
 <p>To adapt these priors, shift the <strong>mean</strong> to the scale
-of the counts rather than increasing the SD. All five dpars are
+of the counts rather than increasing the SD. All six dpars are
 log-linked, so a normal prior is lognormal on the natural scale, and
 increasing its SD moves mass to implausible values rather than making
 the prior neutral <span class="citation">(<a href="#ref-smithInstantaneousVsNoninstantaneous2020">Smith et al.
@@ -253,7 +262,7 @@ the prior neutral <span class="citation">(<a href="#ref-smithInstantaneousVsNoni
 <div class="section level2">
 <h2 id="did-it-recover-the-truth">Did it recover the truth?<a class="anchor" aria-label="anchor" href="#did-it-recover-the-truth"></a>
 </h2>
-<p>All five dpars are log-linked, so each posterior intercept
+<p>All six dpars are log-linked, so each posterior intercept
 exponentiates back onto the natural scale.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">draws</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/posterior/reference/draws_df.html" class="external-link">as_draws_df</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
@@ -263,7 +272,8 @@ exponentiates back onto the natural scale.</p>
 <span>  lambdaone <span class="op">=</span> <span class="st">"b_lambdaone_Intercept"</span>,</span>
 <span>  lambdatwo <span class="op">=</span> <span class="st">"b_lambdatwo_Intercept"</span>,</span>
 <span>  shapes    <span class="op">=</span> <span class="st">"b_shapes_Intercept"</span>,</span>
-<span>  shapex    <span class="op">=</span> <span class="st">"b_shapex_Intercept"</span></span>
+<span>  shapexone <span class="op">=</span> <span class="st">"b_shapexone_Intercept"</span>,</span>
+<span>  shapextwo <span class="op">=</span> <span class="st">"b_shapextwo_Intercept"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">recovery</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">pars</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">{</span></span>
@@ -292,52 +302,60 @@ exponentiates back onto the natural scale.</p>
 <tr class="odd">
 <td align="left">mu</td>
 <td align="right">8</td>
-<td align="right">8.36</td>
-<td align="right">7.65</td>
-<td align="right">9.04</td>
+<td align="right">7.91</td>
+<td align="right">7.14</td>
+<td align="right">8.61</td>
 <td align="left">TRUE</td>
 </tr>
 <tr class="even">
 <td align="left">lambdaone</td>
 <td align="right">3</td>
-<td align="right">2.87</td>
-<td align="right">2.39</td>
-<td align="right">3.41</td>
+<td align="right">3.33</td>
+<td align="right">2.81</td>
+<td align="right">3.97</td>
 <td align="left">TRUE</td>
 </tr>
 <tr class="odd">
 <td align="left">lambdatwo</td>
 <td align="right">2</td>
-<td align="right">1.95</td>
-<td align="right">1.47</td>
-<td align="right">2.49</td>
+<td align="right">2.29</td>
+<td align="right">1.77</td>
+<td align="right">2.94</td>
 <td align="left">TRUE</td>
 </tr>
 <tr class="even">
 <td align="left">shapes</td>
 <td align="right">4</td>
-<td align="right">3.82</td>
-<td align="right">2.97</td>
-<td align="right">4.95</td>
+<td align="right">3.58</td>
+<td align="right">2.68</td>
+<td align="right">4.73</td>
 <td align="left">TRUE</td>
 </tr>
 <tr class="odd">
-<td align="left">shapex</td>
+<td align="left">shapexone</td>
 <td align="right">6</td>
-<td align="right">7.10</td>
-<td align="right">3.10</td>
-<td align="right">23.27</td>
+<td align="right">7.16</td>
+<td align="right">3.31</td>
+<td align="right">21.90</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="left">shapextwo</td>
+<td align="right">2</td>
+<td align="right">3.13</td>
+<td align="right">1.44</td>
+<td align="right">10.05</td>
 <td align="left">TRUE</td>
 </tr>
 </tbody>
 </table>
-<p>The three rates should land tightly on their true values. The two
+<p>The three rates should land tightly on their true values. The three
 dispersions are estimated from an aggregate mean–variance mismatch
 rather than from any directly observed quantity, so their intervals are
-wider — <code>shapex</code> especially, since it is identified only
-through the part of the pair’s spread that the shared component cannot
-explain. Wide but covering is the expected result here, not a warning
-sign.</p>
+wider — the two excess dispersions especially, since they are identified
+only through the part of the pair’s spread that the shared component
+cannot explain. Wide but covering is the expected result here, not a
+warning sign.</p>
 </div>
 <div class="section level2">
 <h2 id="predict-and-score">Predict and score<a class="anchor" aria-label="anchor" href="#predict-and-score"></a>
@@ -374,12 +392,12 @@ conditional, not an approximation.</p>
 <tr class="even">
 <td align="left">sd</td>
 <td align="right">5.59</td>
-<td align="right">5.49</td>
+<td align="right">5.43</td>
 </tr>
 <tr class="odd">
 <td align="left">max</td>
 <td align="right">37.00</td>
-<td align="right">34.12</td>
+<td align="right">33.23</td>
 </tr>
 </tbody>
 </table>
@@ -401,12 +419,12 @@ importance weights are unreliable <span class="citation">(<a href="#ref-vehtari2
 <span><span class="co">#&gt; Computed from 1500 by 400 log-likelihood matrix.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;          Estimate   SE</span></span>
-<span><span class="co">#&gt; elpd_loo  -2146.3 22.7</span></span>
-<span><span class="co">#&gt; p_loo         4.8  0.5</span></span>
-<span><span class="co">#&gt; looic      4292.7 45.4</span></span>
+<span><span class="co">#&gt; elpd_loo  -2202.8 22.6</span></span>
+<span><span class="co">#&gt; p_loo         5.8  0.6</span></span>
+<span><span class="co">#&gt; looic      4405.7 45.2</span></span>
 <span><span class="co">#&gt; ------</span></span>
 <span><span class="co">#&gt; MCSE of elpd_loo is 0.1.</span></span>
-<span><span class="co">#&gt; MCSE and ESS estimates assume MCMC draws (r_eff in [0.4, 1.3]).</span></span>
+<span><span class="co">#&gt; MCSE and ESS estimates assume MCMC draws (r_eff in [0.3, 1.5]).</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; All Pareto k estimates are good (k &lt; 0.69).</span></span>
 <span><span class="co">#&gt; See help('pareto-k-diagnostic') for details.</span></span></code></pre></div>
@@ -422,16 +440,16 @@ importance weights are unreliable <span class="citation">(<a href="#ref-vehtari2
 observed</em> — not a marginal expectation. That is the quantity the
 construction makes available and the one worth having: it is what the
 second source implies about the first.</p>
-<p>For <code><a href="../reference/bipois.html">bipois()</a></code> and <code><a href="../reference/bipois_cens.html">bipois_cens()</a></code> it is closed
-form, because conditioning a sum of independent Poissons on its total
-gives a Binomial split. For <code><a href="../reference/binegbin.html">binegbin()</a></code> and
-<code><a href="../reference/binegbin_cens.html">binegbin_cens()</a></code> there is no such shortcut, so the
-conditional is evaluated over its support
+<p>For <code><a href="../reference/bipois.html">bipois()</a></code> it is closed form, because conditioning a
+sum of independent Poissons on its total gives a Binomial split. For
+<code><a href="../reference/binegbin.html">binegbin()</a></code> there is no such shortcut, so the conditional is
+evaluated over its support
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>0</mn><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">k = 0, \ldots, y_2</annotation></semantics></math>
-and summed. All four are exact, and each agrees with the mean of its own
+and summed. All are exact, and each agrees with the mean of its own
 <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> draws to within Monte Carlo error.</p>
-<p>The censoring-aware families return it for every row, including those
-where
+<p>It is returned for every row, including — under
+<code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code> and <code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code>
+— those where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math>
 was never observed — imputing the unobserved margin is the point of
 fitting them.</p>
@@ -447,17 +465,39 @@ dispatches to the family’s method, as do <code><a href="https://rdrr.io/r/stat
 <ul>
 <li>
 <code><a href="../reference/bipois.html">bipois()</a></code> — the non-overdispersed Poisson sibling. Same
-construction, three dpars instead of five. Use it when the margins are
+construction, three dpars instead of six. Use it when the margins are
 not overdispersed; compare the two with <code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code>.</li>
 <li>
-<code><a href="../reference/binegbin_cens.html">binegbin_cens()</a></code> — censoring-aware, for data where one
-of the two counts is missing on some rows. It admits those rows via the
-integrated-out marginal instead of dropping them. It also gives each
-excess component its own dispersion
-(<code>shapexone</code>/<code>shapextwo</code>, six dpars rather than
-five), so the two sources may be differently overdispersed; tying them
-together with <code><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf()</a></code> recovers the single-<code>shapex</code>
-model shown above.</li>
+<strong>The symmetric model.</strong> The fit above let the two
+excess dispersions differ. To impose
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">\phi_{x1} = \phi_{x2}</annotation></semantics></math>
+instead, route both through one non-linear parameter —
+<code>nlf(shapexone ~ shapexx)</code>,
+<code>nlf(shapextwo ~ shapexx)</code>, <code>shapexx ~ 1</code>, with
+<code>nl = TRUE</code> — and set its prior with
+<code>nlpar = "shapexx"</code>. That is the model this package fitted
+under a single <code>shapex</code> dpar before 0.10.0, term for
+term.</li>
+<li>
+<code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code> — for data where the first count
+is missing on some rows. It is the same family: same name, same six
+dpars, same likelihood and the same post-processing. What it adds is a
+second <code>vint()</code> integer, a 0/1 flag saying whether
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math>
+was recorded. Rows where it was not are scored by the integrated-out
+marginal of this same joint rather than dropped, so they still inform
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>s</mi></msub><annotation encoding="application/x-tex">\phi_s</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x2}</annotation></semantics></math>
+and any group-level effects — and afterwards the fit imputes the missing
+count conditional on the observed one. Note that
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>
+are then identified by the matched rows alone. Despite the name it used
+to carry, this is unrelated to brms’s <code>cens()</code> addition term,
+which means a value known to lie in a set.</li>
 <li>The
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mo>,</mo><mi>f</mi><mo>,</mo><mi>δ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(M, f, \delta)</annotation></semantics></math><strong>reparameterisation</strong> — overall level
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>,
@@ -482,13 +522,14 @@ support otherwise; the rate parameterisation has no such nulls. Worked
 end to end in the article <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html"><em>The
 anatomy of a paired count</em></a>.</li>
 <li>
-<code><a href="../reference/bipois_cens.html">bipois_cens()</a></code> — censoring-aware and equidispersed:
-<code><a href="../reference/binegbin_cens.html">binegbin_cens()</a></code>’s Poisson special case. Its integrated-out
-marginal is closed form,
+<code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code> — the same partial observation,
+equidispersed: <code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code>’s Poisson special
+case. Its integrated-out marginal is closed form,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mn>2</mn></msub><mo>∼</mo><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">y_2 \sim \mathrm{Poisson}(\mu + \lambda_2)</annotation></semantics></math>,
 since a sum of independent Poissons is Poisson. Use it when the margins
-are not overdispersed, rather than fitting <code><a href="../reference/binegbin_cens.html">binegbin_cens()</a></code>
-with its dispersions pressed against the Poisson boundary.</li>
+are not overdispersed, rather than fitting
+<code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code> with its dispersions pressed against
+the Poisson boundary.</li>
 <li>
 <strong>Modelling the difference instead.</strong> Where only the
 disagreement

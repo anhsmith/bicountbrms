@@ -13,10 +13,10 @@ simulate a matched pair of counts from known parameters, fit them, check
 that the posterior finds the truth, and then predict and score. The
 other joint families
 ([`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md),
-and the censoring-aware
-[`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
+and the partially observed
+[`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
 and
-[`bipois_cens()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md))
+[`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md))
 follow the same pattern; the README compares them.
 
 Everything here is a brms custom family ([Bürkner
@@ -36,8 +36,8 @@ observed counts share one of them:
 ``` math
 \begin{aligned}
 N_{\text{shared}} &\sim \mathrm{NB2}(\mu,\ \phi_s) \\
-N_1 &\sim \mathrm{NB2}(\lambda_1,\ \phi_x) \qquad
-N_2 \sim \mathrm{NB2}(\lambda_2,\ \phi_x) \\[4pt]
+N_1 &\sim \mathrm{NB2}(\lambda_1,\ \phi_{x1}) \qquad
+N_2 \sim \mathrm{NB2}(\lambda_2,\ \phi_{x2}) \\[4pt]
 y_1 &= N_{\text{shared}} + N_1 \qquad
 y_2 = N_{\text{shared}} + N_2
 \end{aligned}
@@ -52,15 +52,16 @@ the correlation between the pair.
 `dnbinom(size = phi, mu = m)`: mean `m`, variance `m + m^2/phi`. Larger
 `phi` means *less* overdispersion.
 
-Five dpars, all with a log link:
+Six dpars, all with a log link:
 
-| dpar        | role                                              |
-|-------------|---------------------------------------------------|
-| `mu`        | rate of the shared component, $`\mu`$             |
-| `lambdaone` | rate of the first source’s excess, $`\lambda_1`$  |
-| `lambdatwo` | rate of the second source’s excess, $`\lambda_2`$ |
-| `shapes`    | dispersion $`\phi_s`$ of the shared component     |
-| `shapex`    | dispersion $`\phi_x`$, shared by both excesses    |
+| dpar        | role                                                   |
+|-------------|--------------------------------------------------------|
+| `mu`        | rate of the shared component, $`\mu`$                  |
+| `lambdaone` | rate of the first source’s excess, $`\lambda_1`$       |
+| `lambdatwo` | rate of the second source’s excess, $`\lambda_2`$      |
+| `shapes`    | dispersion $`\phi_s`$ of the shared component          |
+| `shapexone` | dispersion $`\phi_{x1}`$ of the first source’s excess  |
+| `shapextwo` | dispersion $`\phi_{x2}`$ of the second source’s excess |
 
 `mu` is brms’s mandatory first-dpar name. Here it is bound to the shared
 component’s *rate* — it is not the mean of either response, and not the
@@ -72,7 +73,7 @@ The two rates are spelled `lambdaone`/`lambdatwo` rather than
 rejects dpar names ending in a digit. The maths below writes them
 $`\lambda_1`$ and $`\lambda_2`$.
 
-All five use a log link, the conventional log-linear rate
+All six use a log link, the conventional log-linear rate
 parameterisation for this construction ([Karlis and Ntzoufras
 2003](#ref-karlis2003)).
 
@@ -88,12 +89,13 @@ truth <- list(
   lambdaone = 3,
   lambdatwo = 2,
   shapes    = 4,
-  shapex    = 6
+  shapexone = 6,
+  shapextwo = 2
 )
 
 n_shared <- rnbinom(n, size = truth$shapes, mu = truth$mu)
-n1       <- rnbinom(n, size = truth$shapex, mu = truth$lambdaone)
-n2       <- rnbinom(n, size = truth$shapex, mu = truth$lambdatwo)
+n1       <- rnbinom(n, size = truth$shapexone, mu = truth$lambdaone)
+n2       <- rnbinom(n, size = truth$shapextwo, mu = truth$lambdatwo)
 
 dat <- data.frame(
   y1 = n_shared + n1,
@@ -103,9 +105,9 @@ dat <- data.frame(
 str(dat)
 #> 'data.frame':    400 obs. of  2 variables:
 #>  $ y1: num  11 8 7 15 5 13 9 15 13 8 ...
-#>  $ y2: num  11 7 6 16 6 11 9 15 9 7 ...
+#>  $ y2: num  11 7 5 16 6 11 9 16 9 7 ...
 cor(dat$y1, dat$y2)
-#> [1] 0.8911927
+#> [1] 0.8518386
 ```
 
 The correlation is positive and substantial because both counts carry
@@ -135,7 +137,8 @@ fit <- brm(
     lambdaone     ~ 1,
     lambdatwo     ~ 1,
     shapes        ~ 1,
-    shapex        ~ 1
+    shapexone     ~ 1,
+    shapextwo     ~ 1
   ),
   family   = binegbin(),
   stanvars = binegbin_stanvars(),
@@ -145,7 +148,8 @@ fit <- brm(
     prior(normal(2, 1), class = "Intercept", dpar = "lambdaone"),
     prior(normal(2, 1), class = "Intercept", dpar = "lambdatwo"),
     prior(normal(2, 1), class = "Intercept", dpar = "shapes"),
-    prior(normal(2, 1), class = "Intercept", dpar = "shapex")
+    prior(normal(2, 1), class = "Intercept", dpar = "shapexone"),
+    prior(normal(2, 1), class = "Intercept", dpar = "shapextwo")
   ),
   chains  = 2,
   iter    = 1500,
@@ -155,11 +159,11 @@ fit <- brm(
 )
 ```
 
-One weakly-informative prior serves all five, since every dpar here is a
+One weakly-informative prior serves all six, since every dpar here is a
 log-linked positive quantity of similar magnitude. On the natural scale
 `normal(2, 1)` is lognormal with 95% of its mass in roughly `[1, 52]`.
 
-The five truths span `0.69` to `2.08` on the log scale, so no single
+The six truths span `0.69` to `2.08` on the log scale, so no single
 prior sits away from all of them: the shared rate’s truth falls near the
 prior mean, the second excess rate’s 1.3 prior SDs below it. Recovery
 here is therefore not on its own evidence that the prior is
@@ -169,15 +173,15 @@ tests that directly, shifting a prior median sevenfold and moving the
 corresponding posterior median by 0.005.
 
 To adapt these priors, shift the **mean** to the scale of the counts
-rather than increasing the SD. All five dpars are log-linked, so a
-normal prior is lognormal on the natural scale, and increasing its SD
-moves mass to implausible values rather than making the prior neutral
-([Smith et al. 2020](#ref-smithInstantaneousVsNoninstantaneous2020),
-supplement 3).
+rather than increasing the SD. All six dpars are log-linked, so a normal
+prior is lognormal on the natural scale, and increasing its SD moves
+mass to implausible values rather than making the prior neutral ([Smith
+et al. 2020](#ref-smithInstantaneousVsNoninstantaneous2020), supplement
+3).
 
 ## Did it recover the truth?
 
-All five dpars are log-linked, so each posterior intercept exponentiates
+All six dpars are log-linked, so each posterior intercept exponentiates
 back onto the natural scale.
 
 ``` r
@@ -189,7 +193,8 @@ pars <- c(
   lambdaone = "b_lambdaone_Intercept",
   lambdatwo = "b_lambdatwo_Intercept",
   shapes    = "b_shapes_Intercept",
-  shapex    = "b_shapex_Intercept"
+  shapexone = "b_shapexone_Intercept",
+  shapextwo = "b_shapextwo_Intercept"
 )
 
 recovery <- do.call(rbind, lapply(names(pars), function(p) {
@@ -209,18 +214,20 @@ knitr::kable(recovery, digits = 2)
 
 | dpar      | truth |  est | lower | upper | covered |
 |:----------|------:|-----:|------:|------:|:--------|
-| mu        |     8 | 8.36 |  7.65 |  9.04 | TRUE    |
-| lambdaone |     3 | 2.87 |  2.39 |  3.41 | TRUE    |
-| lambdatwo |     2 | 1.95 |  1.47 |  2.49 | TRUE    |
-| shapes    |     4 | 3.82 |  2.97 |  4.95 | TRUE    |
-| shapex    |     6 | 7.10 |  3.10 | 23.27 | TRUE    |
+| mu        |     8 | 7.91 |  7.14 |  8.61 | TRUE    |
+| lambdaone |     3 | 3.33 |  2.81 |  3.97 | TRUE    |
+| lambdatwo |     2 | 2.29 |  1.77 |  2.94 | TRUE    |
+| shapes    |     4 | 3.58 |  2.68 |  4.73 | TRUE    |
+| shapexone |     6 | 7.16 |  3.31 | 21.90 | TRUE    |
+| shapextwo |     2 | 3.13 |  1.44 | 10.05 | TRUE    |
 
-The three rates should land tightly on their true values. The two
+The three rates should land tightly on their true values. The three
 dispersions are estimated from an aggregate mean–variance mismatch
 rather than from any directly observed quantity, so their intervals are
-wider — `shapex` especially, since it is identified only through the
-part of the pair’s spread that the shared component cannot explain. Wide
-but covering is the expected result here, not a warning sign.
+wider — the two excess dispersions especially, since they are identified
+only through the part of the pair’s spread that the shared component
+cannot explain. Wide but covering is the expected result here, not a
+warning sign.
 
 ## Predict and score
 
@@ -247,8 +254,8 @@ data.frame(
 | quantity | observed | predicted |
 |:---------|---------:|----------:|
 | mean     |    11.25 |     11.24 |
-| sd       |     5.59 |      5.49 |
-| max      |    37.00 |     34.12 |
+| sd       |     5.59 |      5.43 |
+| max      |    37.00 |     33.23 |
 
 [`log_lik()`](https://mc-stan.org/rstantools/reference/log_lik.html)
 gives the pointwise log-likelihood of the *joint* pair, evaluated by an
@@ -271,12 +278,12 @@ loo(fit)
 #> Computed from 1500 by 400 log-likelihood matrix.
 #> 
 #>          Estimate   SE
-#> elpd_loo  -2146.3 22.7
-#> p_loo         4.8  0.5
-#> looic      4292.7 45.4
+#> elpd_loo  -2202.8 22.6
+#> p_loo         5.8  0.6
+#> looic      4405.7 45.2
 #> ------
 #> MCSE of elpd_loo is 0.1.
-#> MCSE and ESS estimates assume MCMC draws (r_eff in [0.4, 1.3]).
+#> MCSE and ESS estimates assume MCMC draws (r_eff in [0.3, 1.5]).
 #> 
 #> All Pareto k estimates are good (k < 0.69).
 #> See help('pareto-k-diagnostic') for details.
@@ -297,22 +304,21 @@ second source implies about the first.
 
 For
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
-and
-[`bipois_cens()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md)
 it is closed form, because conditioning a sum of independent Poissons on
 its total gives a Binomial split. For
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-and
-[`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
 there is no such shortcut, so the conditional is evaluated over its
-support $`k = 0, \ldots, y_2`$ and summed. All four are exact, and each
+support $`k = 0, \ldots, y_2`$ and summed. All are exact, and each
 agrees with the mean of its own
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
 draws to within Monte Carlo error.
 
-The censoring-aware families return it for every row, including those
-where $`y_1`$ was never observed — imputing the unobserved margin is the
-point of fitting them.
+It is returned for every row, including — under
+[`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
+and
+[`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
+— those where $`y_1`$ was never observed — imputing the unobserved
+margin is the point of fitting them.
 
 Call it the ordinary way: `posterior_epred(fit)` dispatches to the
 family’s method, as do
@@ -329,18 +335,27 @@ posterior_epred_binegbin(prepare_predictions(fit))
 
 - [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
   — the non-overdispersed Poisson sibling. Same construction, three
-  dpars instead of five. Use it when the margins are not overdispersed;
+  dpars instead of six. Use it when the margins are not overdispersed;
   compare the two with
   [`loo()`](https://mc-stan.org/loo/reference/loo.html).
-- [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
-  — censoring-aware, for data where one of the two counts is missing on
-  some rows. It admits those rows via the integrated-out marginal
-  instead of dropping them. It also gives each excess component its own
-  dispersion (`shapexone`/`shapextwo`, six dpars rather than five), so
-  the two sources may be differently overdispersed; tying them together
-  with
-  [`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html)
-  recovers the single-`shapex` model shown above.
+- **The symmetric model.** The fit above let the two excess dispersions
+  differ. To impose $`\phi_{x1} = \phi_{x2}`$ instead, route both
+  through one non-linear parameter — `nlf(shapexone ~ shapexx)`,
+  `nlf(shapextwo ~ shapexx)`, `shapexx ~ 1`, with `nl = TRUE` — and set
+  its prior with `nlpar = "shapexx"`. That is the model this package
+  fitted under a single `shapex` dpar before 0.10.0, term for term.
+- [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
+  — for data where the first count is missing on some rows. It is the
+  same family: same name, same six dpars, same likelihood and the same
+  post-processing. What it adds is a second `vint()` integer, a 0/1 flag
+  saying whether $`y_1`$ was recorded. Rows where it was not are scored
+  by the integrated-out marginal of this same joint rather than dropped,
+  so they still inform $`\mu`$, $`\phi_s`$, $`\lambda_2`$, $`\phi_{x2}`$
+  and any group-level effects — and afterwards the fit imputes the
+  missing count conditional on the observed one. Note that $`\lambda_1`$
+  and $`\phi_{x1}`$ are then identified by the matched rows alone.
+  Despite the name it used to carry, this is unrelated to brms’s
+  `cens()` addition term, which means a value known to lie in a set.
 - The $`(M, f, \delta)`$**reparameterisation** — overall level $`M`$,
   congruence $`f`$, and source bias $`\delta`$, with the dispersions on
   an SD scale $`\kappa = 1/\sqrt{\phi}`$ where $`\kappa = 0`$ is the
@@ -356,14 +371,14 @@ posterior_epred_binegbin(prepare_predictions(fit))
   parameterisation has no such nulls. Worked end to end in the article
   [*The anatomy of a paired
   count*](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html).
-- [`bipois_cens()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md)
-  — censoring-aware and equidispersed:
-  [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)’s
+- [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
+  — the same partial observation, equidispersed:
+  [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)’s
   Poisson special case. Its integrated-out marginal is closed form,
   $`y_2 \sim \mathrm{Poisson}(\mu + \lambda_2)`$, since a sum of
   independent Poissons is Poisson. Use it when the margins are not
   overdispersed, rather than fitting
-  [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
+  [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
   with its dispersions pressed against the Poisson boundary.
 - **Modelling the difference instead.** Where only the disagreement
   $`d = y_1 - y_2`$ is of interest, or where truncation via

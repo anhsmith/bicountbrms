@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bicountbrms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -70,9 +70,9 @@
 
     
     
-<p>Every joint family in this package — <code><a href="../reference/bipois.html">bipois()</a></code>,
-<code><a href="../reference/binegbin.html">binegbin()</a></code>, and their censoring-aware counterparts
-<code><a href="../reference/bipois_cens.html">bipois_cens()</a></code> and <code><a href="../reference/binegbin_cens.html">binegbin_cens()</a></code> — is built
+<p>Every joint family in this package — <code><a href="../reference/bipois.html">bipois()</a></code> and
+<code><a href="../reference/binegbin.html">binegbin()</a></code>, each with a <code>_partialobs()</code>
+constructor for data whose first count is sometimes missing — is built
 by <strong>trivariate reduction</strong> <span class="citation">(<a href="#ref-holgate1964">Holgate 1964</a>; <a href="#ref-karlis2003">Karlis and Ntzoufras 2003</a>)</span>. Three
 independent counts are drawn, and the two observed counts share one of
 them:</p>
@@ -288,7 +288,7 @@ the other five respond.</p>
     {k:"lone",   lab:"<code>lambdaone</code>", min:0, max:30, step:0.1, dp:2},
     {k:"ltwo",   lab:"<code>lambdatwo</code>", min:0, max:30, step:0.1, dp:2},
     {k:"shapes", lab:"<code>shapes</code>",    log:true, dp:2},
-    {k:"shapex", lab:"<code>shapex</code>",    log:true, dp:2}
+    {k:"shapex", lab:"<code>shapexone</code> = <code>shapextwo</code>", log:true, dp:2}
   ];
 
   var DEFAULTS = {M:12, f:0.67, b:0, kA:0.6, kX:1.0};
@@ -395,7 +395,7 @@ the other five respond.</p>
       "&kappa; = 0 is the Poisson floor, reachable at a finite zero."
       + (degenerate ? '<span class="pca-flag">' + degenerate + " &mdash; holding last value</span>" : "");
     $("pca-note-nat").innerHTML =
-      "<code>shapes</code>/<code>shapex</code> are NB2 <i>&phi;</i>: <b>larger means less "
+      "<code>shapes</code> and the two <code>shapex*</code> are NB2 <i>&phi;</i>: <b>larger means less "
       + "overdispersed</b>, and Poisson is the <i>&phi;</i> &rarr; &infin; limit &mdash; off the end "
       + "of any finite slider. That asymmetry is why &kappa; = 1/&radic;<i>&phi;</i> is the nicer dial.";
 
@@ -574,7 +574,10 @@ and it is what the JavaScript above is checked against:</p>
 <span><span class="co">#&gt; $shapes</span></span>
 <span><span class="co">#&gt; [1] 2.777778</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $shapex</span></span>
+<span><span class="co">#&gt; $shapexone</span></span>
+<span><span class="co">#&gt; [1] 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $shapextwo</span></span>
 <span><span class="co">#&gt; [1] 1</span></span></code></pre></div>
 <p><code>delta</code> is the unbounded log-ratio bias; the widget’s
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
@@ -809,6 +812,7 @@ below tests that.</p>
 <p>Simulate a pair of counts from known coordinates:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paul-buerkner/brms" class="external-link">brms</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: package 'Rcpp' was built under R version 4.6.1</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/anhsmith/bicountbrms" class="external-link">bicountbrms</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">20260731</span><span class="op">)</span></span>
@@ -831,13 +835,13 @@ below tests that.</p>
 <span><span class="va">Ns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="va">n</span>, size <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">shapes</span>, mu <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">mu</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  y1 <span class="op">=</span> <span class="va">Ns</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="va">n</span>, size <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">shapex</span>, mu <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">lambdaone</span><span class="op">)</span>,</span>
-<span>  y2 <span class="op">=</span> <span class="va">Ns</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="va">n</span>, size <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">shapex</span>, mu <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">lambdatwo</span><span class="op">)</span></span>
+<span>  y1 <span class="op">=</span> <span class="va">Ns</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="va">n</span>, size <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">shapexone</span>, mu <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">lambdaone</span><span class="op">)</span>,</span>
+<span>  y2 <span class="op">=</span> <span class="va">Ns</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="va">n</span>, size <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">shapextwo</span>, mu <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">lambdatwo</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">truth</span><span class="op">)</span></span>
-<span><span class="co">#&gt;        mu lambdaone lambdatwo    shapes    shapex </span></span>
-<span><span class="co">#&gt;  8.040000  5.113598  2.806402  4.000000  2.777778</span></span></code></pre></div>
+<span><span class="co">#&gt;        mu lambdaone lambdatwo    shapes shapexone shapextwo </span></span>
+<span><span class="co">#&gt;  8.040000  5.113598  2.806402  4.000000  2.777778  2.777778</span></span></code></pre></div>
 <p>Fit. Every prior either shrinks towards the simpler model or sits
 away from the truth, so what comes back is carried by the data rather
 than echoed from the prior:</p>
@@ -848,7 +852,8 @@ than echoed from the prior:</p>
 <span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">lambdaone</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="va">eta</span> <span class="op">+</span> <span class="fu">log_inv_logit</span><span class="op">(</span><span class="op">-</span><span class="va">con</span><span class="op">)</span> <span class="op">+</span> <span class="fu">log_inv_logit</span><span class="op">(</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">methd</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">lambdatwo</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="va">eta</span> <span class="op">+</span> <span class="fu">log_inv_logit</span><span class="op">(</span><span class="op">-</span><span class="va">con</span><span class="op">)</span> <span class="op">+</span> <span class="fu">log_inv_logit</span><span class="op">(</span><span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="va">methd</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapes</span>    <span class="op">~</span> <span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">kappas</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapex</span>    <span class="op">~</span> <span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">kappax</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapexone</span> <span class="op">~</span> <span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">kappax</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapextwo</span> <span class="op">~</span> <span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">kappax</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">lf</a></span><span class="op">(</span><span class="va">eta</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">con</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">methd</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">kappas</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">kappax</span> <span class="op">~</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  family   <span class="op">=</span> <span class="fu"><a href="../reference/binegbin.html">binegbin</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  stanvars <span class="op">=</span> <span class="fu"><a href="../reference/binegbin.html">binegbin_stanvars</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -903,43 +908,42 @@ coordinates themselves, with no transformation needed:</p>
 <tr class="odd">
 <td align="left">M</td>
 <td align="right">12.00</td>
-<td align="right">12.178</td>
-<td align="right">11.749</td>
-<td align="right">12.646</td>
+<td align="right">12.193</td>
+<td align="right">11.752</td>
+<td align="right">12.629</td>
 </tr>
 <tr class="even">
 <td align="left">f</td>
 <td align="right">0.67</td>
-<td align="right">0.659</td>
-<td align="right">0.601</td>
+<td align="right">0.661</td>
+<td align="right">0.596</td>
 <td align="right">0.709</td>
 </tr>
 <tr class="odd">
 <td align="left">delta</td>
 <td align="right">0.30</td>
-<td align="right">0.279</td>
-<td align="right">0.222</td>
-<td align="right">0.347</td>
+<td align="right">0.280</td>
+<td align="right">0.220</td>
+<td align="right">0.348</td>
 </tr>
 <tr class="even">
 <td align="left">kappas</td>
 <td align="right">0.50</td>
 <td align="right">0.510</td>
-<td align="right">0.447</td>
+<td align="right">0.446</td>
 <td align="right">0.588</td>
 </tr>
 <tr class="odd">
 <td align="left">kappax</td>
 <td align="right">0.60</td>
-<td align="right">0.536</td>
-<td align="right">0.423</td>
-<td align="right">0.665</td>
+<td align="right">0.537</td>
+<td align="right">0.414</td>
+<td align="right">0.666</td>
 </tr>
 </tbody>
 </table>
 <p>Because the map is a bijection, the same posterior can be read in
-native dpars without refitting — push the draws back through
-[<code><a href="../reference/binegbin_mfd_to_dpars.html">binegbin_mfd_to_dpars()</a></code>][binegbin_mfd_to_dpars]:</p>
+native dpars without refitting — push the draws back through <a href="../reference/binegbin_mfd_to_dpars.html"><code>binegbin_mfd_to_dpars()</code></a>:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">back</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/binegbin_mfd_to_dpars.html">binegbin_mfd_to_dpars</a></span><span class="op">(</span></span>
 <span>  M     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">post</span><span class="op">$</span><span class="va">b_eta_Intercept</span><span class="op">)</span>,</span>
@@ -966,17 +970,17 @@ native dpars without refitting — push the draws back through
 <tr class="odd">
 <td align="left">mu</td>
 <td align="right">8.040</td>
-<td align="right">8.017</td>
+<td align="right">8.041</td>
 </tr>
 <tr class="even">
 <td align="left">lambdaone</td>
 <td align="right">5.114</td>
-<td align="right">5.305</td>
+<td align="right">5.292</td>
 </tr>
 <tr class="odd">
 <td align="left">lambdatwo</td>
 <td align="right">2.806</td>
-<td align="right">3.015</td>
+<td align="right">3.013</td>
 </tr>
 </tbody>
 </table>
@@ -997,6 +1001,17 @@ but it is not the likelihood, and no part of the package’s inference
 runs in your browser. The rate map it uses is the one tested in
 <code>test-mfd.R</code>; the sampler is illustrative. Treat the picture
 as intuition, and the R above as the specification.</p>
+<p>It also shows ONE excess-dispersion dial. <code><a href="../reference/binegbin.html">binegbin()</a></code>
+carries two, <code>shapexone</code> and <code>shapextwo</code>, and the
+(M, f, delta) coordinates this article is about carry one
+<code>kappax</code> between them – so the dial sets both to the same
+value, which is the symmetric special case. Freeing them means giving
+each its own <code><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf()</a></code> line, as the fit above would if the two
+margins were allowed to differ.</p>
+</div>
+<div class="section level2">
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
 <div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-holgate1964" class="csl-entry">
 Holgate, P. 1964. <span>“Estimation for the Bivariate

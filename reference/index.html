@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bicountbrms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,7 +38,7 @@
     <div class="section level2">
       <h2 id="joint-bivariate-count-families">Joint bivariate-count families<a class="anchor" aria-label="anchor" href="#joint-bivariate-count-families"></a></h2>
 
-      <div class="section-desc"><p>Model the matched pair jointly via trivariate reduction, capturing its correlation, marginal overdispersion, and difference together rather than the difference alone. Both counts must be observed on every row.</p></div>
+      <div class="section-desc"><p>Model the matched pair jointly via trivariate reduction, capturing its correlation, marginal overdispersion, and difference together rather than the difference alone. Each component distribution has one family name and two constructors: the plain one for a fully paired design, and the _partialobs one for a design in which the first count is missing on some rows. Both share a likelihood and a set of post-processing methods.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -59,9 +59,9 @@
         </dt>
         <dd>Joint bivariate-Negative-Binomial custom family for brms</dd>
       </dl></div><div class="section level2">
-      <h2 id="censoring-aware-families">Censoring-aware families<a class="anchor" aria-label="anchor" href="#censoring-aware-families"></a></h2>
+      <h2 id="partially-observed-pairs">Partially observed pairs<a class="anchor" aria-label="anchor" href="#partially-observed-pairs"></a></h2>
 
-      <div class="section-desc"><p>The same two models, extended to rows on which the first count is unobserved, through the integrated-out marginal of the same joint. For Poisson components that marginal is closed form; for Negative-Binomial components it is a convolution, and the two source-specific components may differ in overdispersion.</p></div>
+      <div class="section-desc"><p>The same two models, for rows on which the first count was never recorded. Those rows are scored by the integrated-out marginal of the same joint, so they still inform the shared component and the second source rather than being dropped. For Poisson components that marginal is closed form; for Negative-Binomial components it is a convolution. This is unrelated to brms’s own cens() addition term, which means a value known to lie in a set.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -70,17 +70,17 @@
 
       <dl><dt>
 
-          <code><a href="bipois_cens.html">bipois_cens()</a></code> <code><a href="bipois_cens.html">bipois_cens_stanvars()</a></code> <code><a href="bipois_cens.html">log_lik_bipois_cens()</a></code> <code><a href="bipois_cens.html">posterior_predict_bipois_cens()</a></code> <code><a href="bipois_cens.html">posterior_epred_bipois_cens()</a></code>
+          <code><a href="bipois_partialobs.html">bipois_partialobs()</a></code> <code><a href="bipois_partialobs.html">bipois_partialobs_stanvars()</a></code>
 
         </dt>
-        <dd>Censoring-aware joint bivariate-Poisson family for brms</dd>
+        <dd>Joint bivariate-Poisson family for partially observed pairs</dd>
 
         <dt>
 
-          <code><a href="binegbin_cens.html">binegbin_cens()</a></code> <code><a href="binegbin_cens.html">binegbin_cens_stanvars()</a></code> <code><a href="binegbin_cens.html">log_lik_binegbin_cens()</a></code> <code><a href="binegbin_cens.html">posterior_predict_binegbin_cens()</a></code> <code><a href="binegbin_cens.html">posterior_epred_binegbin_cens()</a></code>
+          <code><a href="binegbin_partialobs.html">binegbin_partialobs()</a></code> <code><a href="binegbin_partialobs.html">binegbin_partialobs_stanvars()</a></code>
 
         </dt>
-        <dd>Censoring-aware joint bivariate-Negative-Binomial family for brms</dd>
+        <dd>Joint bivariate-Negative-Binomial family for partially observed pairs</dd>
       </dl></div><div class="section level2">
       <h2 id="parameterisation-helpers">Parameterisation helpers<a class="anchor" aria-label="anchor" href="#parameterisation-helpers"></a></h2>
 
@@ -104,22 +104,6 @@
 
         </dt>
         <dd>Convert native binegbin/bipois dpars to (M, f, delta) coordinates</dd>
-      </dl></div><div class="section level2">
-      <h2 id="deprecated">Deprecated<a class="anchor" aria-label="anchor" href="#deprecated"></a></h2>
-
-      <div class="section-desc"><p>Retained so that code and fitted models predating the 0.9.0 rename binegbin_joint -&gt; binegbin_cens keep working. Removed in the next major version.</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="binegbin_joint-deprecated.html">binegbin_joint()</a></code> <code><a href="binegbin_joint-deprecated.html">binegbin_joint_stanvars()</a></code> <code><a href="binegbin_joint-deprecated.html">log_lik_binegbin_joint()</a></code> <code><a href="binegbin_joint-deprecated.html">posterior_predict_binegbin_joint()</a></code> <code><a href="binegbin_joint-deprecated.html">posterior_epred_binegbin_joint()</a></code>
-
-        </dt>
-        <dd>Deprecated names for the censoring-aware Negative-Binomial family</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

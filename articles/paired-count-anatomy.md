@@ -1,13 +1,11 @@
 # The anatomy of a paired count
 
 Every joint family in this package —
-[`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md),
-[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md),
-and their censoring-aware counterparts
-[`bipois_cens()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md)
+[`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
 and
-[`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
-— is built by **trivariate reduction** ([Holgate
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md),
+each with a `_partialobs()` constructor for data whose first count is
+sometimes missing — is built by **trivariate reduction** ([Holgate
 1964](#ref-holgate1964); [Karlis and Ntzoufras 2003](#ref-karlis2003)).
 Three independent counts are drawn, and the two observed counts share
 one of them:
@@ -111,7 +109,10 @@ binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = atanh(0), kappas = 0.6, kappax =
 #> $shapes
 #> [1] 2.777778
 #> 
-#> $shapex
+#> $shapexone
+#> [1] 1
+#> 
+#> $shapextwo
 #> [1] 1
 ```
 
@@ -287,6 +288,7 @@ Simulate a pair of counts from known coordinates:
 ``` r
 
 library(brms)
+#> Warning: package 'Rcpp' was built under R version 4.6.1
 library(bicountbrms)
 
 set.seed(20260731)
@@ -309,13 +311,13 @@ n  <- 400
 Ns <- rnbinom(n, size = truth$shapes, mu = truth$mu)
 
 dat <- data.frame(
-  y1 = Ns + rnbinom(n, size = truth$shapex, mu = truth$lambdaone),
-  y2 = Ns + rnbinom(n, size = truth$shapex, mu = truth$lambdatwo)
+  y1 = Ns + rnbinom(n, size = truth$shapexone, mu = truth$lambdaone),
+  y2 = Ns + rnbinom(n, size = truth$shapextwo, mu = truth$lambdatwo)
 )
 
 unlist(truth)
-#>        mu lambdaone lambdatwo    shapes    shapex 
-#>  8.040000  5.113598  2.806402  4.000000  2.777778
+#>        mu lambdaone lambdatwo    shapes shapexone shapextwo 
+#>  8.040000  5.113598  2.806402  4.000000  2.777778  2.777778
 ```
 
 Fit. Every prior either shrinks towards the simpler model or sits away
@@ -330,7 +332,8 @@ fit <- brm(
     nlf(lambdaone ~ log(2) + eta + log_inv_logit(-con) + log_inv_logit( 2 * methd)) +
     nlf(lambdatwo ~ log(2) + eta + log_inv_logit(-con) + log_inv_logit(-2 * methd)) +
     nlf(shapes    ~ -2 * log(kappas)) +
-    nlf(shapex    ~ -2 * log(kappax)) +
+    nlf(shapexone ~ -2 * log(kappax)) +
+    nlf(shapextwo ~ -2 * log(kappax)) +
     lf(eta ~ 1, con ~ 1, methd ~ 1, kappas ~ 1, kappax ~ 1),
   family   = binegbin(),
   stanvars = binegbin_stanvars(),
@@ -378,15 +381,15 @@ knitr::kable(
 
 |        | truth | median |     q5 |    q95 |
 |:-------|------:|-------:|-------:|-------:|
-| M      | 12.00 | 12.178 | 11.749 | 12.646 |
-| f      |  0.67 |  0.659 |  0.601 |  0.709 |
-| delta  |  0.30 |  0.279 |  0.222 |  0.347 |
-| kappas |  0.50 |  0.510 |  0.447 |  0.588 |
-| kappax |  0.60 |  0.536 |  0.423 |  0.665 |
+| M      | 12.00 | 12.193 | 11.752 | 12.629 |
+| f      |  0.67 |  0.661 |  0.596 |  0.709 |
+| delta  |  0.30 |  0.280 |  0.220 |  0.348 |
+| kappas |  0.50 |  0.510 |  0.446 |  0.588 |
+| kappax |  0.60 |  0.537 |  0.414 |  0.666 |
 
 Because the map is a bijection, the same posterior can be read in native
 dpars without refitting — push the draws back through
-\[[`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_mfd_to_dpars.md)\]\[binegbin_mfd_to_dpars\]:
+[`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_mfd_to_dpars.md):
 
 ``` r
 
@@ -409,9 +412,9 @@ knitr::kable(
 
 | dpar      | truth | median |
 |:----------|------:|-------:|
-| mu        | 8.040 |  8.017 |
-| lambdaone | 5.114 |  5.305 |
-| lambdatwo | 2.806 |  3.015 |
+| mu        | 8.040 |  8.041 |
+| lambdaone | 5.114 |  5.292 |
+| lambdatwo | 2.806 |  3.013 |
 
 The reason to bother with any of this: putting a random effect on `eta`
 asks whether groups differ in overall level, and putting one on `con`
@@ -427,6 +430,17 @@ likelihood, and no part of the package’s inference runs in your browser.
 The rate map it uses is the one tested in `test-mfd.R`; the sampler is
 illustrative. Treat the picture as intuition, and the R above as the
 specification.
+
+It also shows ONE excess-dispersion dial.
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
+carries two, `shapexone` and `shapextwo`, and the (M, f, delta)
+coordinates this article is about carry one `kappax` between them – so
+the dial sets both to the same value, which is the symmetric special
+case. Freeing them means giving each its own
+[`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html)
+line, as the fit above would if the two margins were allowed to differ.
+
+## References
 
 Holgate, P. 1964. “Estimation for the Bivariate Poisson Distribution.”
 *Biometrika* 51 (1–2): 241–45. <https://doi.org/10.2307/2334210>.

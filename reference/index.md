@@ -4,7 +4,10 @@
 
 Model the matched pair jointly via trivariate reduction, capturing its
 correlation, marginal overdispersion, and difference together rather
-than the difference alone. Both counts must be observed on every row.
+than the difference alone. Each component distribution has one family
+name and two constructors: the plain one for a fully paired design, and
+the \_partialobs one for a design in which the first count is missing on
+some rows. Both share a likelihood and a set of post-processing methods.
 
 - [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
   [`bipois_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
@@ -19,26 +22,23 @@ than the difference alone. Both counts must be observed on every row.
   [`posterior_epred_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
   : Joint bivariate-Negative-Binomial custom family for brms
 
-## Censoring-aware families
+## Partially observed pairs
 
-The same two models, extended to rows on which the first count is
-unobserved, through the integrated-out marginal of the same joint. For
-Poisson components that marginal is closed form; for Negative-Binomial
-components it is a convolution, and the two source-specific components
-may differ in overdispersion.
+The same two models, for rows on which the first count was never
+recorded. Those rows are scored by the integrated-out marginal of the
+same joint, so they still inform the shared component and the second
+source rather than being dropped. For Poisson components that marginal
+is closed form; for Negative-Binomial components it is a convolution.
+This is unrelated to brms’s own cens() addition term, which means a
+value known to lie in a set.
 
-- [`bipois_cens()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md)
-  [`bipois_cens_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md)
-  [`log_lik_bipois_cens()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md)
-  [`posterior_predict_bipois_cens()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md)
-  [`posterior_epred_bipois_cens()`](https://anhsmith.github.io/bicountbrms/reference/bipois_cens.md)
-  : Censoring-aware joint bivariate-Poisson family for brms
-- [`binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
-  [`binegbin_cens_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
-  [`log_lik_binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
-  [`posterior_predict_binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
-  [`posterior_epred_binegbin_cens()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_cens.md)
-  : Censoring-aware joint bivariate-Negative-Binomial family for brms
+- [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
+  [`bipois_partialobs_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
+  : Joint bivariate-Poisson family for partially observed pairs
+- [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
+  [`binegbin_partialobs_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
+  : Joint bivariate-Negative-Binomial family for partially observed
+  pairs
 
 ## Parameterisation helpers
 
@@ -49,16 +49,3 @@ coordinates of overall level, congruence, and source bias.
   : Convert (M, f, delta) coordinates to native binegbin/bipois dpars
 - [`binegbin_dpars_to_mfd()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_dpars_to_mfd.md)
   : Convert native binegbin/bipois dpars to (M, f, delta) coordinates
-
-## Deprecated
-
-Retained so that code and fitted models predating the 0.9.0 rename
-binegbin_joint -\> binegbin_cens keep working. Removed in the next major
-version.
-
-- [`binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
-  [`binegbin_joint_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
-  [`log_lik_binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
-  [`posterior_predict_binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
-  [`posterior_epred_binegbin_joint()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_joint-deprecated.md)
-  : Deprecated names for the censoring-aware Negative-Binomial family

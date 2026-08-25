@@ -9,6 +9,11 @@ mutually independent given their rates. All three rates are link =
 one of its own components (a \`d = y1 - y2 ~ y2\` design), which induces
 regression to the mean.
 
+Use this when both counts were recorded on every row. If the first count
+is missing on some rows, use \[bipois_partialobs()\], which is the same
+family with an observation flag – same \`name\`, same three dpars, same
+likelihood, same post-processing.
+
 \`y1\` is the family's response; \`y2\` is passed in as supplementary
 integer data via brms's \`vint()\` addition term, since brms's
 \`custom_family()\` machinery is built around a single declared response
@@ -63,14 +68,20 @@ likelihood; \`vint(y2)\` is the correct fit for that gap, not a
 workaround. This does mean \`y2\` is \*not\* itself treated as
 brms-modelled response data (no missing-value handling, no resp\_\*()
 addition terms apply to it) – it is fixed, observed per-row data,
-consistent with the fact that every row used here comes from the matched
-(both-observed) subset.
+consistent with the fact that every row this constructor is for comes
+from the matched (both-observed) subset.
 
 \*\*Order of dpars matters for the generated Stan call.\*\* brms
 generates \`target += bipois_lpmf(Y\[n\] \| mu\[n\], lambdaone\[n\],
-lambdatwo\[n\], vint1\[n\])\` – dpars in the order declared here, then
-vint/vreal args in the order declared in \`vars\`. \`bipois_stan_funs\`
-(stanfunctions via \`bipois_stanvars()\`) declares \`bipois_lpmf\` with
-exactly this argument order; changing the order here without changing
-the Stan signature (or vice versa) silently swaps which rate governs
-which count.
+lambdatwo\[n\], vint1\[n\], 1)\` – dpars in the order declared here,
+then the two \`vars\` entries. \`bipois_stan_funs\` (stanfunctions via
+\`bipois_stanvars()\`) declares \`bipois_lpmf\` with exactly this
+argument order; changing the order here without changing the Stan
+signature (or vice versa) silently swaps which rate governs which count.
+The trailing \`1\` is the observation flag, supplied as a literal
+because every row of a fully paired design has both counts.
+
+## See also
+
+\[bipois_partialobs()\] for partially observed pairs; \[binegbin()\] for
+the overdispersed counterpart.
