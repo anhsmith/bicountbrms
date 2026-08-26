@@ -1,0 +1,209 @@
+# Migration and errata
+
+## Package history
+
+These families were first released as `skellambrms` (0.1.0–0.5.0) and
+then as `pairedcountbrms` (0.6.0–0.8.0). That second package held two
+unrelated suites: families modelling a count pair jointly, and families
+modelling its difference directly. The two shared no code. Release 0.9.0
+separated them. The joint families became this package; the difference
+families returned to
+[`skellambrms`](https://github.com/anhsmith/skellambrms).
+
+The separation renamed nothing, so
+[`library(pairedcountbrms)`](https://rdrr.io/r/base/library.html)
+becomes
+[`library(bicountbrms)`](https://github.com/anhsmith/bicountbrms) or
+[`library(skellambrms)`](https://rdrr.io/r/base/library.html) according
+to which suite was in use. `github.com/anhsmith/pairedcountbrms`
+redirects here.
+
+## Changes by release
+
+**0.8.0** replaced the single excess dispersion `shapex` with the
+per-margin pair `shapexone`/`shapextwo`, for the partially observed
+family alone.
+
+**0.9.0** renamed `binegbin_joint()` to `binegbin_cens()`, on the
+grounds that every family in the package modelled the pair jointly and
+`_joint` therefore distinguished nothing. The same release added
+`bipois_cens()`.
+
+**0.10.0** replaces four families with two. Each of `bipois` and
+`binegbin` now has two constructors: a plain one for a fully paired
+design, and a `_partialobs()` one for a design in which the first count
+is missing on some rows. Both constructors of a pair return the same
+`custom_family` name, so one Stan function and one set of
+post-processing methods serve both. The same release gives
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
+the six distributional parameters previously held by `binegbin_cens()`
+alone.
+
+## Substitutions for existing code
+
+| up to 0.9.1 | from 0.10.0 |
+|----|----|
+| `bipois_cens()` | [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md) |
+| `binegbin_cens()`, `binegbin_joint()` | [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md) |
+| `bipois_cens_stanvars()` | [`bipois_partialobs_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md) |
+| `binegbin_cens_stanvars()`, `binegbin_joint_stanvars()` | [`binegbin_partialobs_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md) |
+| [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md) with `shapex ~ 1` | [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md) with `shapexone ~ 1, shapextwo ~ 1` |
+
+The old names are removed outright. There is no deprecation layer, and
+nothing is left to remove at a later release.
+
+A formula written against the five-dpar
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
+needs its dispersion term replaced. Either estimate the two separately:
+
+``` r
+
+bf(y1 | vint(y2) ~ 1, mu ~ 1,
+   nlf(lambdaone ~ lamx), nlf(lambdatwo ~ lamx),
+   lamx ~ 1, shapes ~ 1, shapexone ~ 1, shapextwo ~ 1, nl = TRUE)
+```
+
+or reproduce the pre-0.10.0 model exactly, by routing both through one
+non-linear parameter:
+
+``` r
+
+bf(y1 | vint(y2) ~ 1, mu ~ 1,
+   nlf(lambdaone ~ lamx), nlf(lambdatwo ~ lamx),
+   nlf(shapexone ~ shapexx), nlf(shapextwo ~ shapexx),
+   lamx ~ 1, shapes ~ 1, shapexx ~ 1, nl = TRUE)
+```
+
+The second form is term for term the likelihood the single `shapex`
+gave, and a package test verifies that the generated Stan assigns both
+distributional parameters from one non-linear parameter.
+
+A prior moves with it. Under the tied form the dispersion prior is
+written
+
+``` r
+
+prior(normal(0, 1.5), class = "b", nlpar = "shapexx")
+```
+
+rather than the pre-0.10.0 `class = "Intercept", dpar = "shapex"`. Both
+fields change. A prior written the old way names no parameter in the new
+model and is dropped without a warning, which leaves the dispersion
+improper. See [Choosing
+priors](https://anhsmith.github.io/bicountbrms/articles/choosing-priors.md).
+
+## `_cens` named the wrong mechanism
+
+brms already uses `cens()` as an addition term meaning a value known to
+lie in a set — `left`, `right`, `interval` — and supplies no code for a
+value that was not observed at all. On the rows these constructors
+admit, the first count was not recorded, and the likelihood marginalises
+over its whole support rather than over a bounded set. A brms user
+meeting `_cens` had every reason to map one mechanism onto the other.
+
+`partialobs` names what is partial, which is the *pair*, and which is a
+property of the data rather than of the model. `unobs` and `unmatched`
+name only the minority class of rows; `partial` alone collides with
+partial likelihood and partial pooling.
+
+## Fits stored under a removed name
+
+A `brmsfit` stores its own family object, and brms builds the name of
+each post-processing method from the stored family name at the time of
+the call. A fit made with `bipois_cens()`, `binegbin_cens()` or
+`binegbin_joint()` therefore looks for `log_lik_bipois_cens()` and its
+counterparts, which 0.10.0 does not define. No argument to
+[`loo()`](https://mc-stan.org/loo/reference/loo.html) or
+[`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
+changes which name is looked up.
+
+To post-process such a fit, install the last release that defined those
+methods and keep it attached for that work:
+
+``` r
+
+pak::pak("anhsmith/bicountbrms@v0.9.1")
+```
+
+0.10.0 ships no forwarding functions, deliberately. Pinning the whole
+package is a stronger guarantee than a hand-picked set of forwarders,
+which would then have to be kept correct as the families continue to
+change.
+
+## Stored `binegbin` fits require no action
+
+A fit stored under the name `binegbin` is the exception. It declares the
+name 0.10.0 keeps, so it is post-processed by the current methods
+whatever version is pinned — and it works. Such fits exist in quantity:
+a scan of the project this package was written for found 103 of them,
+each declaring the pre-0.7.0 rate names `lambdaem` and `lambdalb`
+together with the single `shapex`.
+
+Three fallbacks apply together to make that work.
+
+1.  `.get_rate()` resolves `lambdaem`/`lambdalb` to the
+    `lambdaone`/`lambdatwo` positions, so a fit predating the 0.7.0
+    rename reads correctly.
+2.  `.SHAPEXONE_NAMES` and `.SHAPEXTWO_NAMES` both list `shapex` last,
+    so a fit with one excess dispersion resolves it to both per-margin
+    positions. That is precisely the constraint the five-dpar family
+    imposed.
+3.  An absent `vint2` selects the matched branch of the likelihood,
+    which is correct for a fit made with a constructor that had no
+    observation flag.
+
+`tests/testthat/test-dpar-compat.R` builds that exact combination and
+checks all three post-processing methods against the six-dpar answer
+with the two dispersions tied.
+
+## Telling which constructor a stored fit used
+
+From 0.10.0 `family$name` is identical for both constructors of a
+family, so it does not distinguish them. The presence of the second
+supplementary integer does:
+
+``` r
+
+"vint2" %in% names(standata(fit))   # TRUE for a partially observed fit
+fit$family$vars                     # c("vint1[n]", "vint2[n]") or c("vint1[n]", "1")
+```
+
+## Erratum: `posterior_epred_binegbin()` before 0.9.0
+
+Releases before 0.9.0 computed
+[`posterior_epred_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
+using the *marginal* shared fraction in place of the *conditional* one.
+That substitution is `bipois`’s answer, exact only in the Poisson limit,
+and it made the expectation disagree with the family’s own
+[`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
+draws by more than Monte Carlo error.
+
+Over a grid of plausible rates and dispersions, with within one standard
+deviation of its mean, the substituted value was in error by more than
+5% in about half the settings and by more than 20% in a third of them.
+The direction of the error depends on which component is the more
+dispersed.
+
+[`log_lik()`](https://mc-stan.org/rstantools/reference/log_lik.html),
+[`loo()`](https://mc-stan.org/loo/reference/loo.html) and
+[`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
+were not affected at any release. Any number computed with an earlier
+[`posterior_epred_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
+should be recomputed.
+
+## Erratum: the dispersion routing in `posterior_predict()`, before 0.9.1
+
+Release 0.9.1 added `tests/testthat/test-cens-predict.R`, since
+superseded by `test-partialobs-predict.R`, after a check of the test
+suite’s discrimination. In `posterior_predict_binegbin_cens()` the
+conditional split of is weighted by `shapextwo`, while the fresh
+source-specific count added on top takes `shapexone`. Exchanging those
+two passed 412 assertions across six test files without a single
+failure, because every prediction test then in the suite built its
+fixture from a single five-dpar `shapex`, which both name vectors
+resolve to identically.
+
+No released version computed the exchanged quantity. The defect was in
+the test suite’s power to detect an error, not in the shipped code.
+
+## References

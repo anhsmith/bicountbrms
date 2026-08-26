@@ -16,9 +16,9 @@ y_1 = N_{\text{shared}} + N_1
 y_2 = N_{\text{shared}} + N_2
 ```
 
-The shared term is what makes the pair correlated. It is never observed,
-and is marginalised out analytically in the likelihood. Everything else
-is the part each source saw alone.
+The shared term induces the correlation between the pair. It is never
+observed, and is marginalised out analytically in the likelihood.
+Everything else is the part each source saw alone.
 
 The widget below decomposes a pair, exposing **two coordinate systems at
 once, each driving the other**.
@@ -27,7 +27,7 @@ once, each driving the other**.
 
 The dpars a family actually takes are three rates — `mu` for the shared
 component, `lambdaone` and `lambdatwo` for the two excesses. That is
-what the likelihood consumes, but it is awkward to reason in: raise the
+what the likelihood takes, but it is awkward to reason in: raise the
 overall level of counting and all three move together, so no single one
 of them answers “how much was there”, “how much did the two sources
 agree”, or “which source ran high”.
@@ -164,10 +164,17 @@ $`\text{shapes} = e^{-2\log\kappa_s} =
 1/\kappa_s^2`$, so the model is estimated in $`\kappa`$ — the SD-scale
 dispersion the widget above uses — rather than in $`\phi`$.
 
-That is worth the detour, because it is what makes sensible priors
-available.
+That is worth the detour, because a shrink-to-simpler prior requires a
+finite null.
 
 ### Priors that default to the simpler model
+
+This section covers priors in the coordinates alone. For the native
+distributional parameters — which prior goes in which of the `class`,
+`dpar` and `nlpar` slots, and why brms supplies none of them by default
+— see [Choosing
+priors](https://anhsmith.github.io/bicountbrms/articles/choosing-priors.md),
+which is the page to read first.
 
 Three of these coordinates have a **null at a finite, interpretable
 zero**, which is the setting penalised-complexity priors are constructed
@@ -183,9 +190,9 @@ complex one.
 | $`\kappa_x`$ (`kappax`) | $`0`$ — Poisson private components | `exponential(1)`, $`\kappa \ge 0`$ |
 | $`\operatorname{logit} f`$ (`con`) | none — deliberately, see below | `normal(0, 1.5)` |
 
-Note what $`\kappa`$ buys here. In $`\phi`$ the Poisson limit is
-$`\phi \to \infty`$, so there is no finite point to shrink towards and
-an exponential prior on $`\phi`$ would pull towards *maximum*
+Note what changes on the $`\kappa`$ scale. In $`\phi`$ the Poisson limit
+is $`\phi \to \infty`$, so there is no finite point to shrink towards
+and an exponential prior on $`\phi`$ would pull towards *maximum*
 overdispersion — precisely backwards. In $`\kappa`$ the limit is
 $`\kappa = 0`$, and the obvious prior does the obvious thing.
 
@@ -288,7 +295,6 @@ Simulate a pair of counts from known coordinates:
 ``` r
 
 library(brms)
-#> Warning: package 'Rcpp' was built under R version 4.6.1
 library(bicountbrms)
 
 set.seed(20260731)
@@ -320,9 +326,9 @@ unlist(truth)
 #>  8.040000  5.113598  2.806402  4.000000  2.777778  2.777778
 ```
 
-Fit. Every prior either shrinks towards the simpler model or sits away
-from the truth, so what comes back is carried by the data rather than
-echoed from the prior:
+Fit. Every prior either shrinks towards the simpler model or is centred
+away from the truth, so what comes back is carried by the data rather
+than echoed from the prior:
 
 ``` r
 
@@ -433,10 +439,10 @@ specification.
 
 It also shows ONE excess-dispersion dial.
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-carries two, `shapexone` and `shapextwo`, and the (M, f, delta)
-coordinates this article is about carry one `kappax` between them – so
-the dial sets both to the same value, which is the symmetric special
-case. Freeing them means giving each its own
+estimates two, `shapexone` and `shapextwo`, and the (M, f, delta)
+coordinates this article is about use one `kappax` for both – so the
+dial sets both to the same value, which is the symmetric special case.
+Freeing them means giving each its own
 [`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html)
 line, as the fit above would if the two margins were allowed to differ.
 

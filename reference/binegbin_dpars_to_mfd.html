@@ -7,7 +7,7 @@ As with the forward direction, the three rates are common to [bipois()],
 [bipois_partialobs()], [binegbin()] and [binegbin_partialobs()], so this
 serves all four constructors; only the dispersion arguments differ.
 This direction reads a *stored fit*, so it accepts `shapex` – the single
-excess dispersion every `binegbin` fit made before 0.10.0 carries – as well
+excess dispersion declared by every `binegbin` fit made before 0.10.0 – as well
 as the current `shapexone`/`shapextwo`. The forward direction writes only
 current names; see its documentation for why the two differ."><meta property="og:description" content="Inverse of [binegbin_mfd_to_dpars()]. Reads the rate dpars `mu`,
 `lambdaone`, `lambdatwo` back into the interpretable overall level `M`,
@@ -17,7 +17,7 @@ As with the forward direction, the three rates are common to [bipois()],
 [bipois_partialobs()], [binegbin()] and [binegbin_partialobs()], so this
 serves all four constructors; only the dispersion arguments differ.
 This direction reads a *stored fit*, so it accepts `shapex` – the single
-excess dispersion every `binegbin` fit made before 0.10.0 carries – as well
+excess dispersion declared by every `binegbin` fit made before 0.10.0 – as well
 as the current `shapexone`/`shapextwo`. The forward direction writes only
 current names; see its documentation for why the two differ."><meta property="og:image" content="https://anhsmith.github.io/bicountbrms/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -39,7 +39,11 @@ current names; see its documentation for why the two differ."><meta property="og
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/families-and-parameters.html">The families and their parameters</a></li>
+    <li><a class="dropdown-item" href="../articles/choosing-priors.html">Choosing priors</a></li>
+    <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -66,7 +70,7 @@ dispersions back to the SD scale.</p>
 [bipois_partialobs()], [binegbin()] and [binegbin_partialobs()], so this
 serves all four constructors; only the dispersion arguments differ.</p>
 <p>This direction reads a *stored fit*, so it accepts `shapex` – the single
-excess dispersion every `binegbin` fit made before 0.10.0 carries – as well
+excess dispersion declared by every `binegbin` fit made before 0.10.0 – as well
 as the current `shapexone`/`shapextwo`. The forward direction writes only
 current names; see its documentation for why the two differ.</p>
     </div>
@@ -99,7 +103,7 @@ current names; see its documentation for why the two differ.</p>
 <dt id="arg-shapes-shapex">shapes, shapex<a class="anchor" aria-label="anchor" href="#arg-shapes-shapex"></a></dt>
 <dd><p>Optional NB2 dispersions. If supplied, the returned list
 gains `kappas`/`kappax` (`= 1/sqrt(shape)`, so `shape = Inf` gives `0`).
-`shapex` is the single excess dispersion carried by a `binegbin` fit made
+`shapex` is the single excess dispersion declared by a `binegbin` fit made
 before 0.10.0, when one dpar governed both margins; no shipping family
 takes it now. A fit of [bipois()] or [bipois_partialobs()] has no
 dispersion to pass: read its three rates alone.</p></dd>
@@ -107,7 +111,7 @@ dispersion to pass: read its three rates alone.</p></dd>
 
 <dt id="arg-shapexone-shapextwo">shapexone, shapextwo<a class="anchor" aria-label="anchor" href="#arg-shapexone-shapextwo"></a></dt>
 <dd><p>Optional per-margin NB2 excess dispersions, as
-carried by both negative-binomial constructors since 0.10.0. If supplied,
+taken by both negative-binomial constructors since 0.10.0. If supplied,
 the returned list gains `kappaxone`/`kappaxtwo`. Mutually exclusive with
 `shapex`, which is the same quantity under its older name.</p></dd>
 

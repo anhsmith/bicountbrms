@@ -63,9 +63,12 @@ Six dpars, all with a log link:
 | `shapexone` | dispersion $`\phi_{x1}`$ of the first source’s excess  |
 | `shapextwo` | dispersion $`\phi_{x2}`$ of the second source’s excess |
 
-`mu` is brms’s mandatory first-dpar name. Here it is bound to the shared
-component’s *rate* — it is not the mean of either response, and not the
-mean of their difference. `E[y1] = mu + lambdaone`.
+[`brms::custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
+rejects any family whose dpars do not include one named literally `mu`.
+The requirement is on the name, not on the position: `mu` may appear
+anywhere in the vector. Here it is bound to the shared component’s
+*rate*, so it is not the mean of either response, nor the mean of their
+difference. `E[y1] = mu + lambdaone`.
 
 The two rates are spelled `lambdaone`/`lambdatwo` rather than
 `lambda1`/`lambda2` because
@@ -110,7 +113,7 @@ cor(dat$y1, dat$y2)
 #> [1] 0.8518386
 ```
 
-The correlation is positive and substantial because both counts carry
+The correlation is positive and substantial because both counts include
 the same `n_shared`. That shared term is exactly what a model of the
 difference alone throws away.
 
@@ -317,8 +320,8 @@ It is returned for every row, including — under
 [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
 and
 [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
-— those where $`y_1`$ was never observed — imputing the unobserved
-margin is the point of fitting them.
+— those where $`y_1`$ was never observed. Imputing the unobserved margin
+is what those two constructors are for.
 
 Call it the ordinary way: `posterior_epred(fit)` dispatches to the
 family’s method, as do
@@ -354,8 +357,8 @@ posterior_epred_binegbin(prepare_predictions(fit))
   and any group-level effects — and afterwards the fit imputes the
   missing count conditional on the observed one. Note that $`\lambda_1`$
   and $`\phi_{x1}`$ are then identified by the matched rows alone.
-  Despite the name it used to carry, this is unrelated to brms’s
-  `cens()` addition term, which means a value known to lie in a set.
+  Despite its former name, this is unrelated to brms’s `cens()` addition
+  term, which means a value known to lie in a set.
 - The $`(M, f, \delta)`$**reparameterisation** — overall level $`M`$,
   congruence $`f`$, and source bias $`\delta`$, with the dispersions on
   an SD scale $`\kappa = 1/\sqrt{\phi}`$ where $`\kappa = 0`$ is the

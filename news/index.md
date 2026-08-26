@@ -27,14 +27,14 @@
   if you hold a fit made under those names.
 
 - **[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-  now carries six dpars, not five.** `shapex` is gone; both excess
-  components have their own dispersion, `shapexone` and `shapextwo`, as
+  now has six dpars.** `shapex` is gone; both excess components have
+  their own dispersion, `shapexone` and `shapextwo`, as
   `binegbin_cens()` has had since 0.8.0. This is the change the release
   exists for. The capability was on the wrong family: in a partially
   paired design the unmatched rows inform only `shapextwo`, so
-  `shapexone` rests on the matched rows alone, whereas in a fully paired
-  design every row informs both and they are as easy to identify as they
-  ever get.
+  `shapexone` is identified by the matched rows alone, whereas in a
+  fully paired design every row informs both and they are as easy to
+  identify as they ever get.
 
   The symmetric model is a formula constraint, exactly as it has been
   for the partially observed family since 0.8.0:
@@ -49,21 +49,20 @@
   Set priors on it with `nlpar = "shapexx"` rather than
   `dpar = "shapex"`.
 
-- **`_cens` was the wrong word, and wrong inside brms specifically.**
-  Censoring means a value is known to lie in a set. On these rows the
-  first count is not observed at all and the likelihood marginalises
-  over its whole support. brms already uses `cens()` as an addition term
-  meaning exactly the bounded thing — `left`, `right`, `interval`, with
-  no code for “not observed” — so a brms user met a familiar word
-  attached to an incompatible mechanism. `partialobs` names what is
-  actually partial: the *pair*, which is a property of the data. `unobs`
-  and `unmatched` name only the minority row class, and `partial` alone
-  collides with partial likelihood and partial pooling.
+- **`_cens` named the wrong mechanism.** Censoring means a value is
+  known to lie in a set. On these rows the first count is not observed
+  at all and the likelihood marginalises over its whole support. brms
+  already uses `cens()` as an addition term meaning exactly the bounded
+  thing — `left`, `right`, `interval`, with no code for “not observed” —
+  so a brms user met a familiar word attached to an incompatible
+  mechanism. `partialobs` names what is actually partial: the *pair*,
+  which is a property of the data. `unobs` and `unmatched` name only the
+  minority row class, and `partial` alone collides with partial
+  likelihood and partial pooling.
 
-- **How the two constructors share one Stan function, and why there is
-  no Stan version floor.** brms builds the generated lpmf call by
-  pasting each entry of `family$vars` in verbatim, and validates those
-  entries no further than
+- **One Stan function for both constructors, through a literal in
+  `vars`.** brms builds the generated lpmf call by pasting each entry of
+  `family$vars` in verbatim, and validates those entries no further than
   [`as.character()`](https://rdrr.io/r/base/character.html). The plain
   constructors exploit that: they declare `vars = c("vint1[n]", "1")`,
   so a fully paired model calls the same function with `y1_obs` fixed at
@@ -83,13 +82,13 @@
   `tests/testthat/test-stancode-shape.R` pins it: it asserts the exact
   call each constructor generates and that the one-`vint`
   [`standata()`](https://paulbuerkner.com/brms/reference/standata.html)
-  carries no `vint2`. It needs brms but no Stan toolchain, so it runs in
-  the fast suite.
+  contains no `vint2`. It needs brms but no Stan toolchain, so it runs
+  in the fast suite.
 
-- **New tests, and the one-`vint` path is now covered at all.** Most
-  users take the fully paired path and, before this release, nothing
-  tested its prediction, expectation or dispersion routing — with a
-  single `shapex` there was nothing to get wrong.
+- **New tests for the fully paired path.** Most users take the fully
+  paired path and, before this release, nothing tested its prediction,
+  expectation or dispersion routing — with a single `shapex` there was
+  nothing to get wrong.
 
   - `tests/testthat/test-partialobs-predict.R` replaces
     `test-cens-predict.R`. It keeps all five of that file’s blocks and
@@ -106,20 +105,19 @@
   - `tests/testthat/test-dpar-compat.R` gains the stored-fit shape
     (below).
 
-- **Stored `binegbin` fits keep working, and this is now tested rather
-  than assumed.** A fit stores its own family object, and brms resolves
-  post-processing from the name it stored, so a five-dpar `binegbin` fit
-  lands on the new six-dpar methods however this package is pinned.
-  Three independent fallbacks have to line up for that to work:
-  `.get_rate()` resolves pre-0.7.0 `lambdaem`/`lambdalb`;
-  `.SHAPEXONE_NAMES` and `.SHAPEXTWO_NAMES` both list `shapex` last, so
-  both per-margin dispersions resolve to the one such a fit has; and an
-  absent `vint2` selects the matched branch. Scanning the sibling
-  project’s fit directory found 103 stored `binegbin` fits, every one of
-  them carrying the pre-0.7.0 rate names *and* the single `shapex`, so
-  all three paths are exercised in practice. `test-dpar-compat.R` now
-  builds that exact prep and asserts all three methods agree with the
-  six-dpar answer with the dispersions tied.
+- **Stored `binegbin` fits keep working.** A fit stores its own family
+  object, and brms resolves post-processing from the name it stored, so
+  a five-dpar `binegbin` fit lands on the new six-dpar methods however
+  this package is pinned. Three independent fallbacks have to line up
+  for that to work: `.get_rate()` resolves pre-0.7.0
+  `lambdaem`/`lambdalb`; `.SHAPEXONE_NAMES` and `.SHAPEXTWO_NAMES` both
+  list `shapex` last, so both per-margin dispersions resolve to the one
+  such a fit has; and an absent `vint2` selects the matched branch.
+  Scanning the sibling project’s fit directory found 103 stored
+  `binegbin` fits, every one of them with the pre-0.7.0 rate names *and*
+  the single `shapex`, so all three paths are exercised in practice.
+  `test-dpar-compat.R` now builds that exact prep and asserts all three
+  methods agree with the six-dpar answer with the dispersions tied.
 
 - **[`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_mfd_to_dpars.md)
   no longer emits `shapex`.** Supplying `kappax` now writes `shapexone`
@@ -136,6 +134,33 @@
   release. The two directions differ deliberately: the forward one
   writes the current vocabulary, the inverse reads the old one, which is
   the same principle `.get_dpar_any()` applies.
+
+- **The README is now an orientation page.** It ran to about 5,700
+  words, which is not a length anyone reads, and it set out the
+  construction, the moments, prior guidance, validation and the release
+  history. It is now about 800: what the package is, how to install it,
+  the four constructors in a table, the notation bridge from symbol to
+  distributional-parameter name, one minimal fit, and links.
+
+  Four articles are new, and the site gains an `articles:` section,
+  which it did not have before — neither the get-started vignette nor
+  `paired-count-anatomy` was previously placed on it deliberately.
+
+  - *The families and their parameters* — the construction, the moments,
+    the native distributional parameters, and a fitted demonstration
+    that two excess dispersions an order of magnitude apart are resolved
+    as different rather than merely bracketed.
+  - *Choosing priors* — the improper-defaults fact, the recipes, and
+    which of the `class`, `dpar` and `nlpar` slots each prior belongs
+    in. It routes on to `paired-count-anatomy` for penalised-complexity
+    priors in the interpretable coordinates.
+  - *A worked partially observed fit* — the first such example in the
+    package. A design with 40% of first counts unrecorded is simulated,
+    fitted, and the imputed first count scored against the values
+    withheld from the model.
+  - *Migration and errata* — what each release changed, the
+    substitutions for existing code, and the two corrected numerical
+    results.
 
 - **If you hold a fit made with `bipois_cens()`, `binegbin_cens()` or
   `binegbin_joint()`**, install the last version that defined them —
@@ -171,9 +196,9 @@
   That combination left a specific defect invisible. In
   `posterior_predict_binegbin_cens()` the conditional split of
   `N_shared | y2` is weighted by `shapextwo` while the fresh `N1` added
-  on top carries `shapexone`; exchanging them passed 412 assertions
-  across six test files with no failures. The new file fails on it four
-  times. It also pins that `y1_obs` does not change the draws — the flag
+  on top takes `shapexone`; exchanging them passed 412 assertions across
+  six test files with no failures. The new file fails on it four times.
+  It also pins that `y1_obs` does not change the draws — the flag
   selects a likelihood branch, not a prediction — and that `y2 = 0`
   leaves `posterior_predict` drawing `NB2(lambdaone, shapexone)` alone,
   which is the short-circuit keeping
@@ -338,7 +363,8 @@
   of the epred convention above. That limitation cannot arise here:
   these families do not support
   [`resp_trunc()`](https://paulbuerkner.com/brms/reference/addition-terms.html).
-  It applies to the difference families and now lives in `skellambrms`.
+  It applies to the difference families and is now documented in
+  `skellambrms`.
 
 ------------------------------------------------------------------------
 

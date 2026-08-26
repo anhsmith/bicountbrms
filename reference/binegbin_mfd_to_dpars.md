@@ -19,8 +19,8 @@ common value rather than a single \`shapex\`: no family has had a
 \`shapex\` dpar since 0.10.0.
 
 \[binegbin_dpars_to_mfd()\] is the inverse. It still accepts \`shapex\`,
-because its input is a stored fit and pre-0.10.0 \`binegbin\` fits carry
-that name.
+because its input is a stored fit and pre-0.10.0 \`binegbin\` fits
+declare that name.
 
 ## Usage
 
@@ -89,8 +89,8 @@ posterior draws.
 \[binegbin_dpars_to_mfd()\] reports back as \`NA\`. This direction is
 always well defined; only the inverse degenerates.
 
-\*\*The two ways to name the excess dispersion.\*\* Both
-negative-binomial constructors carry the pair
+\*\*The two spellings of the excess dispersion.\*\* Both
+negative-binomial constructors take the pair
 \`shapexone\`/\`shapextwo\`, so that is what this function writes.
 Supply \`kappaxone\`/\`kappaxtwo\` to give the two margins different
 values, or \`kappax\` to give them the same one – the symmetric model,
@@ -104,9 +104,9 @@ Before 0.10.0, \`kappax\` returned a dpar named \`shapex\` and
 families wanted two different things. There is now one family and one
 dpar set, so both spellings produce it.
 
-\*\*Using these coordinates with the Poisson families.\*\* \[bipois()\]
-and \[bipois_partialobs()\] take the same three rates and no dispersion,
-so call this with \`M\`, \`f\` and \`delta\` alone and pass the result
+\*\*These coordinates under the Poisson families.\*\* \[bipois()\] and
+\[bipois_partialobs()\] take the same three rates and no dispersion, so
+call this with \`M\`, \`f\` and \`delta\` alone and pass the result
 straight through. There is no \`kappa\` to supply: the Poisson case is
 not a dispersion set to a particular value but the absence of the
 parameter, which is precisely why fitting it wants its own family rather

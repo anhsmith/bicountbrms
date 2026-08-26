@@ -39,7 +39,11 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+<li><a class="dropdown-item" href="../articles/families-and-parameters.html">The families and their parameters</a></li>
+    <li><a class="dropdown-item" href="../articles/choosing-priors.html">Choosing priors</a></li>
+    <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -81,7 +85,7 @@ y_1 = N_{\text{shared}} + N_1
 \qquad
 y_2 = N_{\text{shared}} + N_2
 </annotation></semantics></math></p>
-<p>The shared term is what makes the pair correlated. It is never
+<p>The shared term induces the correlation between the pair. It is never
 observed, and is marginalised out analytically in the likelihood.
 Everything else is the part each source saw alone.</p>
 <p>The widget below decomposes a pair, exposing <strong>two coordinate
@@ -92,7 +96,7 @@ systems at once, each driving the other</strong>.</p>
 <p>The dpars a family actually takes are three rates — <code>mu</code>
 for the shared component, <code>lambdaone</code> and
 <code>lambdatwo</code> for the two excesses. That is what the likelihood
-consumes, but it is awkward to reason in: raise the overall level of
+takes, but it is awkward to reason in: raise the overall level of
 counting and all three move together, so no single one of them answers
 “how much was there”, “how much did the two sources agree”, or “which
 source ran high”.</p>
@@ -625,11 +629,16 @@ in
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
 — the SD-scale dispersion the widget above uses — rather than in
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>.</p>
-<p>That is worth the detour, because it is what makes sensible priors
-available.</p>
+<p>That is worth the detour, because a shrink-to-simpler prior requires
+a finite null.</p>
 <div class="section level3">
 <h3 id="priors-that-default-to-the-simpler-model">Priors that default to the simpler model<a class="anchor" aria-label="anchor" href="#priors-that-default-to-the-simpler-model"></a>
 </h3>
+<p>This section covers priors in the coordinates alone. For the native
+distributional parameters — which prior goes in which of the
+<code>class</code>, <code>dpar</code> and <code>nlpar</code> slots, and
+why brms supplies none of them by default — see <a href="choosing-priors.html">Choosing priors</a>, which is the page to
+read first.</p>
 <p>Three of these coordinates have a <strong>null at a finite,
 interpretable zero</strong>, which is the setting penalised-complexity
 priors are constructed for <span class="citation">(<a href="#ref-simpsonPenalisingModelComponent2017">Simpson et al.
@@ -692,9 +701,9 @@ support the more complex one.</p>
 </tr>
 </tbody>
 </table>
-<p>Note what
+<p>Note what changes on the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
-buys here. In
+scale. In
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>
 the Poisson limit is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">\phi \to \infty</annotation></semantics></math>,
@@ -812,7 +821,6 @@ below tests that.</p>
 <p>Simulate a pair of counts from known coordinates:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paul-buerkner/brms" class="external-link">brms</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: package 'Rcpp' was built under R version 4.6.1</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/anhsmith/bicountbrms" class="external-link">bicountbrms</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">20260731</span><span class="op">)</span></span>
@@ -842,9 +850,9 @@ below tests that.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">truth</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        mu lambdaone lambdatwo    shapes shapexone shapextwo </span></span>
 <span><span class="co">#&gt;  8.040000  5.113598  2.806402  4.000000  2.777778  2.777778</span></span></code></pre></div>
-<p>Fit. Every prior either shrinks towards the simpler model or sits
-away from the truth, so what comes back is carried by the data rather
-than echoed from the prior:</p>
+<p>Fit. Every prior either shrinks towards the simpler model or is
+centred away from the truth, so what comes back is carried by the data
+rather than echoed from the prior:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brm.html" class="external-link">brm</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula.html" class="external-link">bf</a></span><span class="op">(</span><span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>, nl <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span></span>
@@ -1002,12 +1010,12 @@ runs in your browser. The rate map it uses is the one tested in
 <code>test-mfd.R</code>; the sampler is illustrative. Treat the picture
 as intuition, and the R above as the specification.</p>
 <p>It also shows ONE excess-dispersion dial. <code><a href="../reference/binegbin.html">binegbin()</a></code>
-carries two, <code>shapexone</code> and <code>shapextwo</code>, and the
-(M, f, delta) coordinates this article is about carry one
-<code>kappax</code> between them – so the dial sets both to the same
-value, which is the symmetric special case. Freeing them means giving
-each its own <code><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf()</a></code> line, as the fit above would if the two
-margins were allowed to differ.</p>
+estimates two, <code>shapexone</code> and <code>shapextwo</code>, and
+the (M, f, delta) coordinates this article is about use one
+<code>kappax</code> for both – so the dial sets both to the same value,
+which is the symmetric special case. Freeing them means giving each its
+own <code><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf()</a></code> line, as the fit above would if the two margins
+were allowed to differ.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

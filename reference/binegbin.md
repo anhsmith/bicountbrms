@@ -53,11 +53,11 @@ A brms custom_family object.
 
 ## Details
 
-\*\*Two excess dispersions, and the symmetric special case.\*\* Up to
-0.9.1 this family carried a single \`shapex\` shared by both excess
-components, imposing \`shapexone == shapextwo\`. That is a modelling
-choice rather than a property of the construction, and 0.10.0 frees it.
-To recover the constraint, route both through one non-linear parameter:
+\*\*Tying the two excess dispersions.\*\* Up to 0.9.1 this family had a
+single \`shapex\` shared by both excess components, imposing \`shapexone
+== shapextwo\`. That is a modelling choice rather than a property of the
+construction, and 0.10.0 frees it. To recover the constraint, route both
+through one non-linear parameter:
 
 “\` bf(y1 \| vint(y2) ~ 1, mu ~ 1 + (1 \| vessel), nlf(shapexone ~
 shapexx), nlf(shapextwo ~ shapexx), shapexx ~ 1, ..., nl = TRUE) “\`
@@ -68,10 +68,10 @@ unchanged: their single \`shapex\` resolves to both \`shapexone\` and
 \`shapextwo\` when post-processed. Set a prior with \`nlpar =
 "shapexx"\` rather than \`dpar = "shapex"\`.
 
-\*\*Forced \`mu\` naming, and \`y2\` via \`vint()\`.\*\* Identical
-conventions to \[bipois()\] – \`mu\` is brms's mandatory dpar name, here
-bound to the shared component's rate (\`lambda_shared\`), not a mean of
-either response; \`y2\` travels as supplementary integer data through
+\*\*Names forced by \`custom_family()\`.\*\* Identical conventions to
+\[bipois()\] – \`mu\` is brms's mandatory dpar name, here bound to the
+shared component's rate (\`lambda_shared\`), not a mean of either
+response; \`y2\` travels as supplementary integer data through
 \`vint()\` because \`custom_family()\` declares a single response
 column. See \[bipois()\] for the full explanation, including why the
 rates are spelled \`lambdaone\`/ \`lambdatwo\` in code but written

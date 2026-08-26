@@ -3,7 +3,7 @@
 \[binegbin()\] for a design in which the first count is missing on some
 rows. Same generative model, same \`name\`, same six dpars, same
 likelihood and the same post-processing methods – the only difference is
-that each row carries a second supplementary integer, an observation
+that each row supplies a second supplementary integer, an observation
 flag, through \`vint()\`:
 
 “\` bf(y1 \| vint(y2, y1_obs) ~ ...) “\`
@@ -15,28 +15,28 @@ placeholder – because the likelihood does not read it. Do not use
 \`NA\`, which brms drops before fitting, taking the row's observed
 \`y2\` with it.
 
-\*\*What happens to each kind of row.\*\* A matched row (\`y1_obs ==
-1\`) uses the full joint lpmf on \`(y1, y2)\`. A row whose first count
-was never recorded (\`y1_obs == 0\`) contributes the second count's
-marginal \*from the same model\*, \`P(y2) = sum_k NB2(k \| mu, shapes)
-NB2(y2 - k \| lambdatwo, shapextwo)\` – the joint with the \`y1\` term
-integrated out over its whole support. It is not dropped, and it is not
-given a different model: it still informs the shared component (\`mu\`,
-\`shapes\`), the second source's rate and dispersion (\`lambdatwo\`,
-\`shapextwo\`), and any group-level effects.
+\*\*Contribution of a matched row and of an unmatched row.\*\* A matched
+row (\`y1_obs == 1\`) uses the full joint lpmf on \`(y1, y2)\`. A row
+whose first count was never recorded (\`y1_obs == 0\`) contributes the
+second count's marginal \*from the same model\*, \`P(y2) = sum_k NB2(k
+\| mu, shapes) NB2(y2 - k \| lambdatwo, shapextwo)\` – the joint with
+the \`y1\` term integrated out over its whole support. It is not
+dropped, and it is not given a different model: it still informs the
+shared component (\`mu\`, \`shapes\`), the second source's rate and
+dispersion (\`lambdatwo\`, \`shapextwo\`), and any group-level effects.
 
-\*\*What you get afterwards.\*\* The fitted model can impute the
+\*\*Imputation after fitting.\*\* The fitted model can impute the
 unobserved first count conditional on the observed second one, which is
 usually why someone wanted this. \`posterior_predict()\` and
 \`posterior_epred()\` return a \`y1\` draw and \`E\[y1 \| y2\]\` for
 \*every\* row, matched and unmatched alike – \`y1_obs\` selects a
 likelihood branch, not a prediction.
 
-\*\*The design consequence, worth knowing before collecting data.\*\*
-The first source's rate \`lambdaone\` and excess dispersion
-\`shapexone\` appear only on the matched branch, so they are identified
-by the matched rows \*alone\*. A design with 20 matched rows in 500
-learns them weakly and leans on their priors. \`mu\`, \`shapes\`,
+\*\*A design consequence, worth knowing before the data are
+collected.\*\* The first source's rate \`lambdaone\` and excess
+dispersion \`shapexone\` appear only on the matched branch, so they are
+identified by the matched rows \*alone\*. A design with 20 matched rows
+in 500 learns them weakly and leans on their priors. \`mu\`, \`shapes\`,
 \`lambdatwo\` and \`shapextwo\` appear on both branches and are informed
 by every row.
 
@@ -69,8 +69,8 @@ A brms custom_family object.
 ## Details
 
 \*\*One likelihood, two constructors.\*\* This returns the same
-\`custom_family\` \`name\` as \[binegbin()\], so both land on one
-\`binegbin_lpmf\` and one set of \`log_lik_binegbin()\` /
+\`custom_family\` \`name\` as \[binegbin()\], so brms resolves both to
+one \`binegbin_lpmf\` and one set of \`log_lik_binegbin()\` /
 \`posterior_predict_binegbin()\` / \`posterior_epred_binegbin()\`
 methods. The matched branch of the likelihood is therefore not a second
 copy that can drift from the fully paired one; it is the same code.
@@ -91,9 +91,9 @@ here: so \`vint(y2, y1_obs)\` binds \`vint1 = y2\` and \`vint2 =
 y1_obs\`. Reordering the two \`vint()\` terms without matching the Stan
 signature silently swaps the second count with the branch flag.
 
-\*\*Telling which shape a stored fit used.\*\* \`family\$name\` is
-\`"binegbin"\` either way. What distinguishes them is the presence of
-the second supplementary integer:
+\*\*Distinguishing the two constructors in a stored fit.\*\*
+\`family\$name\` is \`"binegbin"\` either way. What distinguishes them
+is the presence of the second supplementary integer:
 
 “\` "vint2" fit\$family\$vars \# c("vint1\[n\]", "vint2\[n\]") or
 c("vint1\[n\]", "1") “\`

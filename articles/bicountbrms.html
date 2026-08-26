@@ -34,7 +34,11 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+<li><a class="dropdown-item" href="../articles/families-and-parameters.html">The families and their parameters</a></li>
+    <li><a class="dropdown-item" href="../articles/choosing-priors.html">Choosing priors</a></li>
+    <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -150,9 +154,11 @@ of the second source’s excess</td>
 </tr>
 </tbody>
 </table>
-<p><code>mu</code> is brms’s mandatory first-dpar name. Here it is bound
-to the shared component’s <em>rate</em> — it is not the mean of either
-response, and not the mean of their difference.
+<p><code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">brms::custom_family()</a></code> rejects any family whose dpars do
+not include one named literally <code>mu</code>. The requirement is on
+the name, not on the position: <code>mu</code> may appear anywhere in
+the vector. Here it is bound to the shared component’s <em>rate</em>, so
+it is not the mean of either response, nor the mean of their difference.
 <code>E[y1] = mu + lambdaone</code>.</p>
 <p>The two rates are spelled
 <code>lambdaone</code>/<code>lambdatwo</code> rather than
@@ -196,9 +202,9 @@ parameterisation for this construction <span class="citation">(<a href="#ref-kar
 <span><span class="co">#&gt;  $ y2: num  11 7 5 16 6 11 9 16 9 7 ...</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">y1</span>, <span class="va">dat</span><span class="op">$</span><span class="va">y2</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.8518386</span></span></code></pre></div>
-<p>The correlation is positive and substantial because both counts carry
-the same <code>n_shared</code>. That shared term is exactly what a model
-of the difference alone throws away.</p>
+<p>The correlation is positive and substantial because both counts
+include the same <code>n_shared</code>. That shared term is exactly what
+a model of the difference alone throws away.</p>
 </div>
 <div class="section level2">
 <h2 id="fit">Fit<a class="anchor" aria-label="anchor" href="#fit"></a>
@@ -451,8 +457,8 @@ and summed. All are exact, and each agrees with the mean of its own
 <code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code> and <code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code>
 — those where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math>
-was never observed — imputing the unobserved margin is the point of
-fitting them.</p>
+was never observed. Imputing the unobserved margin is what those two
+constructors are for.</p>
 <p>Call it the ordinary way: <code>posterior_epred(fit)</code>
 dispatches to the family’s method, as do <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code> and
 <code><a href="https://paulbuerkner.com/brms/reference/conditional_effects.brmsfit.html" class="external-link">conditional_effects()</a></code>. The equivalent direct call is</p>
@@ -495,9 +501,9 @@ count conditional on the observed one. Note that
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>
-are then identified by the matched rows alone. Despite the name it used
-to carry, this is unrelated to brms’s <code>cens()</code> addition term,
-which means a value known to lie in a set.</li>
+are then identified by the matched rows alone. Despite its former name,
+this is unrelated to brms’s <code>cens()</code> addition term, which
+means a value known to lie in a set.</li>
 <li>The
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mo>,</mo><mi>f</mi><mo>,</mo><mi>δ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(M, f, \delta)</annotation></semantics></math><strong>reparameterisation</strong> — overall level
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>,
