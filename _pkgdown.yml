@@ -3,6 +3,28 @@ url: https://anhsmith.github.io/bicountbrms/
 template:
   bootstrap: 5
 
+# Ordered so that a reader meets "Choosing priors" before the anatomy article:
+# the recipes and the class/dpar/nlpar mechanics apply in either
+# parameterisation, and the anatomy article assumes them.
+#
+# Everything under vignettes/articles/ must be named with its `articles/`
+# prefix here. pkgdown evaluates a bare entry as an R expression, so
+# `families-and-parameters` is parsed as subtraction and the build fails with
+# "unused argument (parameters)". Quoting does not help; the prefix does.
+articles:
+- title: Using the families
+  navbar: ~
+  contents:
+  - bicountbrms
+  - articles/families-and-parameters
+  - articles/choosing-priors
+  - articles/partially-observed-fit
+
+- title: Interpretation and history
+  contents:
+  - articles/paired-count-anatomy
+  - articles/migration-and-errata
+
 reference:
 - title: Joint bivariate-count families
   desc: >

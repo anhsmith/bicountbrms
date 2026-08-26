@@ -242,14 +242,67 @@ map one onto the other.
 moments, the reparameterisation, prior guidance, validation and migration history. A README
 that long is not read. Target 800–1,000 words: what the package is, how to install it, the
 families in a table, the notation bridge from symbol to dpar name, one minimal example,
-links. Everything else moves into articles — the sketch already agreed is three of them,
-covering the families and their parameters, choosing priors, and migration and errata.
+links. Everything else moves into articles.
+
+**The settled structure, decided 25 August.** Five article pages plus the README and the
+get-started vignette. The division of labour is the part worth holding on to: **article 1
+owns the parameters you fit, `paired-count-anatomy` owns the coordinates you interpret, and
+article 2 owns the recipes for both and routes between them.**
+
+| Page | Owns | Notes |
+|---|---|---|
+| `README.md` | Orientation | 800–1,000 words: what it is, install, the four constructors in a table, the notation bridge, one minimal example, links |
+| `vignettes/bicountbrms.Rmd` | One end-to-end fit | Unchanged in role. Precompiled |
+| **1. The families and their parameters** | The construction, the moments, the native dpars | Must **complement** `paired-count-anatomy`, not restate it. Also carries the fully paired asymmetric-dispersion demonstration, so it too needs an `.Rmd.orig` pair and a `precompile.R` entry. Its claim is **discrimination, not recovery** — the get-started vignette already recovers all six dpars; this shows the two exclusive dispersions being told apart |
+| **2. Choosing priors** | The native-dpar recipe in full, the `class`/`dpar`/`nlpar` mechanics | **Opens with the improper-defaults fact** (below). Hands off explicitly to anatomy for PC priors and the pushforward. The page a user with divergences should land on |
+| **3. Migration and errata** | 0.8.0's dispersion split, 0.9.0's rename and package split, 0.10.0's unification and `_partialobs` rename, the `posterior_epred_binegbin()` erratum | More to carry than the August sketch assumed |
+| **4. A worked partially observed fit** | The distinguishing capability, demonstrated | New; fits a model, so it needs an `.Rmd.orig` pair and a `precompile.R` entry |
+| **5. `paired-count-anatomy`** | The (M, f, δ) coordinates, the widget, **the PC-prior argument**, the pushforward figure | Existing and precompiled. Essentially untouched by phase B beyond errata and cross-links to article 2 |
+
+**Why the PC-prior material stays in anatomy.** It was raised at the checkpoint that anatomy
+already carries ~1,407 words of prior guidance, which the August decision did not know. The
+alternatives were to fold everything into anatomy (no page named for the reader's question)
+or to move anatomy's priors out (which relocates the argument that *is* the payoff of the
+coordinate system — every coordinate has a finite null, so a shrink-to-simpler prior
+exists). Neither is right: the reparameterisation belongs with the coordinates, and the
+recipes belong on a page named for the task. Article 2 routes between them, in both
+directions.
+
+**Two things must survive the README trim into article 2 rather than falling between the
+two documents.**
+
+- **The default-prior fact, leading the page.** brms gives a custom family's `mu` a default
+  `student_t` and leaves every other dpar **flat and improper** — `get_prior()` returns an
+  empty `prior` column for `lamx`, `shapes`, `shapexone` and `shapextwo`. A reader who
+  assumes brms defaults are weakly informative, as they are for built-in families, will not
+  otherwise look. This is why the page exists.
+- **Its connection to identifiability.** The README's "these are the weakly-identified
+  parameters" and the identifiability argument are one fact from two directions, and neither
+  currently points at the other. Under sparse pairing the parameters that most need a prior
+  are leaning on one that is not there.
+
+  *Corrected 26 August, after checking `get_prior()`.* An earlier draft of this bullet said
+  the improper defaults land on **exactly** the parameters identified by the matched rows
+  alone. They do not — it is containment, not identity, and the true version is the stronger
+  claim. The improper set is every dpar except `mu`: `lamx`, `methd`, `shapes`, `shapexone`,
+  `shapextwo`. The matched-rows-only set is `lambdaone` (via `lamx`), `shapexone` and the
+  bias. So `shapes` and `shapextwo` are improper but informed by every row, and `mu` — the
+  one parameter brms *does* prior — is among the best informed. Write it as: **every
+  parameter identified by the matched rows alone is left improper, and the only one brms
+  supplies a prior for is one that needs it least.** One family-specific caveat:
+  under `bipois_partialobs()` the unmatched rows see `mu` only through the sum
+  `mu + lambdatwo`, so separating those two also rests on the matched rows; the statement is
+  not identical across the two families.
+
+When citing the evidence for setting priors, lead on the divergent transition rather than
+R̂ = 1.0101, which passes this package's own 1.02 gate.
 
 **`_pkgdown.yml` has no `articles:` section at all.** It carries `url`, `template` and four
 `reference:` sections and nothing else, so the site currently has a reference index and no
 articles — neither the get-started vignette nor `paired-count-anatomy` is deliberately
 placed. Whatever comes out of the README needs a home on the site, or the split just hides
-it somewhere else.
+it somewhere else. **List all five articles, ordered so a reader meets "Choosing priors"
+before `paired-count-anatomy`.**
 
 **No worked partially observed fit exists anywhere in the package.** Every fitted example in
 every document uses fully matched data. That branch is the package's distinguishing
@@ -278,9 +331,7 @@ proven itself, tracked in `tnc001-belize-em/docs/bicountbrms-release-checklist.m
 If something here turns out to be wrong about the code, or a decision looks mistaken once
 you are inside it, say so rather than working around it.
 
----
-
-## 7. Outcome, recorded 25 August 2026
+## 7. Outcome, recorded 26 August 2026
 
 Added after the release was built. §6 asks for anything that turned out wrong
 about the code to be said rather than worked around; this is that.
@@ -291,15 +342,15 @@ holds: `brms:::stan_log_lik_custom()` is the only consumer of `family$vars`,
 `custom_family()` validates the entries no further than `as.character()`, and a
 non-variable entry is pasted into the generated call verbatim. `binegbin()`
 declares `vars = c("vint1[n]", "1")` and reaches the same `binegbin_lpmf` with
-the flag fixed at `1`; `standata()` carries no `vint2`. **No floor on the Stan
-version was added, and none is needed.** Because that pasting is not a
-documented brms guarantee, `tests/testthat/test-stancode-shape.R` pins the
-generated call for all four constructors and runs in the fast suite.
+the flag fixed at `1`; `standata()` contains no `vint2`. The package therefore
+sets no floor on the Stan version. Because that pasting is not a documented
+brms guarantee, `tests/testthat/test-stancode-shape.R` pins the generated call
+for all four constructors and runs in the fast suite.
 
 **Stored plain `binegbin` fits exist, and they are older than §3 assumes.** §3
 asks whether any do, and notes that `fits/final` is entirely `binegbin_cens` —
 correct, all ten of them. But elsewhere under `tnc001-belize-em/fits/` there
-are **103** fits with `family$name == "binegbin"`, and every one carries
+are **103** fits with `family$name == "binegbin"`, and every one declares
 pre-0.7.0 rate names (`lambdaem`/`lambdalb`) *as well as* the single `shapex`.
 So the compatibility path is three independent mechanisms lining up, not the
 two §3 describes: `.get_rate()` on the rates, `.SHAPEX*_NAMES` falling through
@@ -309,15 +360,15 @@ now pinned in `test-dpar-compat.R`, and one real fit
 `log_lik()`, `posterior_epred()`, `posterior_predict()` and `loo()` all return
 finite, sensible values. Nothing was regenerated.
 
-**One thing §5 does not mention needed a code change.**
-`binegbin_mfd_to_dpars()` emitted a dpar named `shapex` when given `kappax`.
-After unification no family accepts that name, so the converter's output could
-no longer be passed to `brm()` — a functional defect, not a stale sentence.
-`kappax` now writes `shapexone` and `shapextwo` at a common value. The inverse
-still *accepts* `shapex`, because its input is a stored fit and that is the
-genuine dpar name on all 103 of them.
+**§5 does not list `binegbin_mfd_to_dpars()`, which required a functional fix
+rather than a documentation edit.** The converter emitted a dpar named `shapex`
+when given `kappax`. After unification no family accepts that name, so the
+converter's output could no longer be passed to `brm()`. `kappax` now writes
+`shapexone` and `shapextwo` at a common value. The inverse still *accepts*
+`shapex`, because its input is a stored fit and that is the genuine dpar name
+on all 103 of them.
 
-**The Stan-side blind spot §3 warns about was still open, and is now closed.**
+**0.10.0 closes the Stan-side blind spot §3 warns about.**
 Unification made the Stan-vs-Stan equivalence checks vacuous — they compared a
 function to itself. Deleting them would have left the Stan lpmf's dispersion
 routing tested only by a grid that passes the *same* value for both
@@ -326,6 +377,17 @@ dispersions, which a swap cannot disturb: injecting one into
 asymmetric routing checks, which catch the same swap by 45 log units. All five
 mutation sites — the three R methods, the R reference and the Stan lpmf — are
 now caught.
+
+**A pkgdown index defect in the phase B structure would have failed CI.** The
+five article pages of §5 are listed in `_pkgdown.yml` under `articles:`, where
+pkgdown evaluates each `contents:` entry as an R expression. A bare hyphenated
+name such as `families-and-parameters` parses as subtraction and errors with
+`unused argument (parameters)`; quoting does not prevent it. The `articles/`
+path prefix is required, and is what the file now uses. This was found by
+validating the index directly rather than by the local pkgdown build, which
+fails earlier for unrelated reasons (`build_favicons()`, `cran_link()` and
+`pkg_timeline()` all require `httr2`, and the favicon gate is skipped on CI
+but not locally).
 
 The `_partialobs` naming, the removal of every `_cens`/`_joint` name with no
 deprecation layer, and the decision not to regenerate the Belize fits were all

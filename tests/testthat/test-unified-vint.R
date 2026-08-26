@@ -4,7 +4,7 @@
 #
 # From 0.10.0 each component distribution has one family name and two
 # constructors: binegbin() takes vint(y2) and binegbin_partialobs() takes
-# vint(y2, y1_obs). Both return the same `name`, so both land on the same lpmf
+# vint(y2, y1_obs). Both return the same `name`, so brms resolves both to the same lpmf
 # and the same three post-processing methods. What distinguishes them at
 # post-processing time is nothing but the presence of prep$data$vint2.
 #
@@ -144,7 +144,7 @@ test_that("bipois posterior_epred: all three prep shapes give one answer", {
 
 test_that("epred equals the mean of posterior_predict draws on the one-vint path", {
   # test-epred.R states this convention for all families; it is repeated here
-  # on the prep shape that carries no vint2, with the two dispersions apart.
+  # on the prep shape with no vint2, and the two dispersions apart.
   set.seed(20260825)
   draws <- posterior_predict_binegbin(1, nb_prep(NULL))
   ep    <- unique(as.vector(posterior_epred_binegbin(nb_prep(NULL, ndraws = 2L))))

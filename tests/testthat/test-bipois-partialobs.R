@@ -81,7 +81,7 @@ test_that("the unmatched branch's closed form equals the brute-force convolution
 
 test_that("marginal identity: sum over y1 of the matched branch == y2-only branch", {
   # Integrating the matched (y1_obs==1) joint over all y1 must reproduce the
-  # y2-only (y1_obs==0) value at that y2. This is what makes the two branches
+  # y2-only (y1_obs==0) value at that y2. This identity is what makes the two branches
   # one model rather than two, and here it also confirms that the closed form
   # is the marginal OF THIS JOINT and not merely a Poisson that happens to sum
   # to 1.
@@ -363,7 +363,7 @@ test_that("bipois_partialobs fits a partially observed design, dispatches, and r
   # Half the rows are y2-only (y1 unobserved) -- the partial observation the family
   # exists to handle. mu and lambdatwo are separated only by the matched rows
   # (the unmatched branch sees them only through their sum), so the matched
-  # half is what makes this recoverable; see ?bipois_partialobs.
+  # half is what makes lambdaone recoverable; see ?bipois_partialobs.
   y1_obs <- rep(c(1L, 0L), length.out = n)
 
   dat <- data.frame(

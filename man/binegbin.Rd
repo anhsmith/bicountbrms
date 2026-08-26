@@ -61,8 +61,8 @@ Use in a brm() call as:
   )
 }
 \details{
-**Two excess dispersions, and the symmetric special case.** Up to 0.9.1
-this family carried a single `shapex` shared by both excess components,
+**Tying the two excess dispersions.** Up to 0.9.1
+this family had a single `shapex` shared by both excess components,
 imposing `shapexone == shapextwo`. That is a modelling choice rather than a
 property of the construction, and 0.10.0 frees it. To recover the
 constraint, route both through one non-linear parameter:
@@ -81,7 +81,7 @@ their single `shapex` resolves to both `shapexone` and `shapextwo` when
 post-processed. Set a prior with `nlpar = "shapexx"` rather than
 `dpar = "shapex"`.
 
-**Forced `mu` naming, and `y2` via `vint()`.** Identical conventions to
+**Names forced by `custom_family()`.** Identical conventions to
 [bipois()] -- `mu` is brms's mandatory dpar name, here bound to the shared
 component's rate (`lambda_shared`), not a mean of either response; `y2`
 travels as supplementary integer data through `vint()` because

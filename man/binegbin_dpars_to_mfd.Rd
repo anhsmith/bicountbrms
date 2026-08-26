@@ -21,13 +21,13 @@ binegbin_dpars_to_mfd(
 
 \item{shapes, shapex}{Optional NB2 dispersions. If supplied, the returned list
 gains `kappas`/`kappax` (`= 1/sqrt(shape)`, so `shape = Inf` gives `0`).
-`shapex` is the single excess dispersion carried by a `binegbin` fit made
+`shapex` is the single excess dispersion declared by a `binegbin` fit made
 before 0.10.0, when one dpar governed both margins; no shipping family
 takes it now. A fit of [bipois()] or [bipois_partialobs()] has no
 dispersion to pass: read its three rates alone.}
 
 \item{shapexone, shapextwo}{Optional per-margin NB2 excess dispersions, as
-carried by both negative-binomial constructors since 0.10.0. If supplied,
+taken by both negative-binomial constructors since 0.10.0. If supplied,
 the returned list gains `kappaxone`/`kappaxtwo`. Mutually exclusive with
 `shapex`, which is the same quantity under its older name.}
 }
@@ -47,7 +47,7 @@ As with the forward direction, the three rates are common to [bipois()],
 serves all four constructors; only the dispersion arguments differ.
 
 This direction reads a *stored fit*, so it accepts `shapex` -- the single
-excess dispersion every `binegbin` fit made before 0.10.0 carries -- as well
+excess dispersion declared by every `binegbin` fit made before 0.10.0 -- as well
 as the current `shapexone`/`shapextwo`. The forward direction writes only
 current names; see its documentation for why the two differ.
 }

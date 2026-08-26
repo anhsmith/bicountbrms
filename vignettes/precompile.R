@@ -35,9 +35,15 @@ stopifnot(
 
 # input/output are relative to the directory each pair lives in, so knitr
 # resolves any relative paths inside the document the same way a build would.
+# Every target here fits at least one model, which is why it is precompiled.
+# The two articles that do not fit anything -- choosing-priors and
+# migration-and-errata -- are plain .Rmd with no .orig, and are absent from
+# this list on purpose.
 targets <- list(
   list(dir = "vignettes",          stem = "bicountbrms"),
-  list(dir = "vignettes/articles", stem = "paired-count-anatomy")
+  list(dir = "vignettes/articles", stem = "paired-count-anatomy"),
+  list(dir = "vignettes/articles", stem = "families-and-parameters"),
+  list(dir = "vignettes/articles", stem = "partially-observed-fit")
 )
 
 for (tg in targets) {

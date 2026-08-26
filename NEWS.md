@@ -21,11 +21,11 @@
   remove at a later version — see the last bullet for what to do if you hold a
   fit made under those names.
 
-* **`binegbin()` now carries six dpars, not five.** `shapex` is gone; both
+* **`binegbin()` now has six dpars.** `shapex` is gone; both
   excess components have their own dispersion, `shapexone` and `shapextwo`, as
   `binegbin_cens()` has had since 0.8.0. This is the change the release exists
   for. The capability was on the wrong family: in a partially paired design
-  the unmatched rows inform only `shapextwo`, so `shapexone` rests on the
+  the unmatched rows inform only `shapextwo`, so `shapexone` is identified by the
   matched rows alone, whereas in a fully paired design every row informs both
   and they are as easy to identify as they ever get.
 
@@ -40,7 +40,7 @@
 
   Set priors on it with `nlpar = "shapexx"` rather than `dpar = "shapex"`.
 
-* **`_cens` was the wrong word, and wrong inside brms specifically.** Censoring
+* **`_cens` named the wrong mechanism.** Censoring
   means a value is known to lie in a set. On these rows the first count is not
   observed at all and the likelihood marginalises over its whole support. brms
   already uses `cens()` as an addition term meaning exactly the bounded thing —
@@ -50,8 +50,8 @@
   `unobs` and `unmatched` name only the minority row class, and `partial` alone
   collides with partial likelihood and partial pooling.
 
-* **How the two constructors share one Stan function, and why there is no Stan
-  version floor.** brms builds the generated lpmf call by pasting each entry of
+* **One Stan function for both constructors, through a literal in `vars`.**
+  brms builds the generated lpmf call by pasting each entry of
   `family$vars` in verbatim, and validates those entries no further than
   `as.character()`. The plain constructors exploit that: they declare
   `vars = c("vint1[n]", "1")`, so a fully paired model calls the same function
@@ -70,11 +70,11 @@
 
   That pasting behaviour is not a documented brms guarantee, so
   `tests/testthat/test-stancode-shape.R` pins it: it asserts the exact call
-  each constructor generates and that the one-`vint` `standata()` carries no
+  each constructor generates and that the one-`vint` `standata()` contains no
   `vint2`. It needs brms but no Stan toolchain, so it runs in the fast suite.
 
-* **New tests, and the one-`vint` path is now covered at all.** Most users take
-  the fully paired path and, before this release, nothing tested its
+* **New tests for the fully paired path.** Most users take the fully paired
+  path and, before this release, nothing tested its
   prediction, expectation or dispersion routing — with a single `shapex` there
   was nothing to get wrong.
 
@@ -91,8 +91,8 @@
     rather than left implicit.
   - `tests/testthat/test-dpar-compat.R` gains the stored-fit shape (below).
 
-* **Stored `binegbin` fits keep working, and this is now tested rather than
-  assumed.** A fit stores its own family object, and brms resolves
+* **Stored `binegbin` fits keep working.** A fit stores its own family
+  object, and brms resolves
   post-processing from the name it stored, so a five-dpar `binegbin` fit lands
   on the new six-dpar methods however this package is pinned. Three independent
   fallbacks have to line up for that to work: `.get_rate()` resolves pre-0.7.0
@@ -100,7 +100,7 @@
   `shapex` last, so both per-margin dispersions resolve to the one such a fit
   has; and an absent `vint2` selects the matched branch. Scanning the sibling
   project's fit directory found 103 stored `binegbin` fits, every one of them
-  carrying the pre-0.7.0 rate names *and* the single `shapex`, so all three
+  with the pre-0.7.0 rate names *and* the single `shapex`, so all three
   paths are exercised in practice. `test-dpar-compat.R` now builds that exact
   prep and asserts all three methods agree with the six-dpar answer with the
   dispersions tied.
@@ -116,6 +116,31 @@
   before this release. The two directions differ deliberately: the forward one
   writes the current vocabulary, the inverse reads the old one, which is the
   same principle `.get_dpar_any()` applies.
+
+* **The README is now an orientation page.** It ran to about 5,700 words,
+  which is not a length anyone
+  reads, and it set out the construction, the moments, prior guidance,
+  validation and the release history. It is now about 800: what the package is,
+  how to install it, the four constructors in a table, the notation bridge from
+  symbol to distributional-parameter name, one minimal fit, and links.
+
+  Four articles are new, and the site gains an `articles:` section, which it
+  did not have before — neither the get-started vignette nor
+  `paired-count-anatomy` was previously placed on it deliberately.
+
+  - *The families and their parameters* — the construction, the moments, the
+    native distributional parameters, and a fitted demonstration that two
+    excess dispersions an order of magnitude apart are resolved as different
+    rather than merely bracketed.
+  - *Choosing priors* — the improper-defaults fact, the recipes, and which of
+    the `class`, `dpar` and `nlpar` slots each prior belongs in. It routes on
+    to `paired-count-anatomy` for penalised-complexity priors in the
+    interpretable coordinates.
+  - *A worked partially observed fit* — the first such example in the package.
+    A design with 40% of first counts unrecorded is simulated, fitted, and the
+    imputed first count scored against the values withheld from the model.
+  - *Migration and errata* — what each release changed, the substitutions for
+    existing code, and the two corrected numerical results.
 
 * **If you hold a fit made with `bipois_cens()`, `binegbin_cens()` or
   `binegbin_joint()`**, install the last version that defined them — 0.9.1 —
@@ -146,7 +171,7 @@
 
   That combination left a specific defect invisible. In
   `posterior_predict_binegbin_cens()` the conditional split of `N_shared | y2`
-  is weighted by `shapextwo` while the fresh `N1` added on top carries
+  is weighted by `shapextwo` while the fresh `N1` added on top takes
   `shapexone`; exchanging them passed 412 assertions across six test files with
   no failures. The new file fails on it four times. It also pins that `y1_obs`
   does not change the draws — the flag selects a likelihood branch, not a
@@ -291,7 +316,7 @@
   which described brms's `posterior_epred()` failure on *truncated* custom-family
   fits — is replaced by a statement of the epred convention above. That
   limitation cannot arise here: these families do not support `resp_trunc()`. It
-  applies to the difference families and now lives in `skellambrms`.
+  applies to the difference families and is now documented in `skellambrms`.
 
 ---
 
@@ -332,7 +357,7 @@ entirely, are recorded in
   are required.** brms resolves a custom family's `log_lik_*` /
   `posterior_predict_*` by name against the live search path at call time, not
   from anything frozen in the fit, so a stored fit always runs the currently
-  attached code. Only the dpar NAMES it carries are frozen, and both excess
+  attached code. Only the dpar NAMES it declares are frozen, and both excess
   dispersions now fall back to a five-dpar fit's single `shapex` — which is
   precisely the constraint that fit was estimated under. Verified on stored
   five-dpar fits: `log_lik()` and `posterior_predict()` agree with 0.7.0
@@ -377,7 +402,7 @@ entirely, are recorded in
 
 * **Fits made before this release still post-process; no refitting is
   required.** A `brmsfit` stores its own family object, so
-  `prepare_predictions()` on an older fit returns a `prep` carrying the previous
+  `prepare_predictions()` on an older fit returns a `prep` with the previous
   dpar names. Rate reads in the joint families now resolve the name against the
   fit, so `log_lik()`, `loo()`, `posterior_predict()` and `posterior_epred()`
   return numerically identical results on pre-0.7.0 fits
@@ -571,7 +596,7 @@ entirely, are recorded in
 * Added `binegbin_joint()` / `binegbin_joint_stanvars()`: a **censoring-aware
   extension of `binegbin()`** for data in which the EM margin (`y_em`) is
   observed on only some rows. The same trivariate-reduction bivariate
-  Negative-Binomial model and five dpars as `binegbin()`, but each row carries
+  Negative-Binomial model and five dpars as `binegbin()`, but each row supplies
   a second `vint()` integer, an `em_obs` 0/1 flag: on `em_obs == 1` (matched)
   rows the likelihood is the full joint `binegbin` lpmf on `(y_em, y_lb)`; on
   `em_obs == 0` (LB-only) rows it is the `y_em`-integrated marginal of that

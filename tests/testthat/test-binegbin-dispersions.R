@@ -208,8 +208,8 @@ test_that("shapextwo defaults to shapexone (eight-argument calls are symmetric)"
 
 test_that("a five-dpar prep resolves `shapex` to BOTH excess dispersions", {
   # The stored-fit compatibility path, without needing a stored fit: a prep
-  # carrying only the pre-0.8.0 `shapex` must behave exactly like one
-  # carrying shapexone == shapextwo == that value. This is what lets
+  # declaring only the pre-0.8.0 `shapex` must behave exactly like one
+  # declaring shapexone == shapextwo == that value. This fallback lets
   # <= 0.7.0 fits post-process under 0.8.0 with no shim.
   Y <- c(5L, 9L, 0L, 14L); V1 <- c(4L, 7L, 2L, 11L); V2 <- c(1L, 0L, 1L, 0L)
   common <- list(mu = c(6, 6.5, 5.5), lambdaone = c(3, 3.2, 2.8),
@@ -481,7 +481,7 @@ test_that("binegbin recovers shapexone and shapextwo from a fully paired design"
   n1       <- rnbinom(n, size = true_shapexone, mu = true_lone)
   n2       <- rnbinom(n, size = true_shapextwo, mu = true_ltwo)
 
-  # No y1_obs column anywhere. That is the point of the plain constructor: the
+  # No y1_obs column anywhere, which is what the plain constructor is for: the
   # flag reaches Stan as a literal 1 and never enters the data.
   dat <- data.frame(y1 = n_shared + n1, y2 = n_shared + n2,
                     vessel = factor(vessel))
@@ -514,7 +514,7 @@ test_that("binegbin recovers shapexone and shapextwo from a fully paired design"
     )
   })
 
-  # The generated model must carry six dpars and no vint2.
+  # The generated model must declare six dpars and no vint2.
   sd_fit <- brms::standata(fit)
   expect_true("vint1" %in% names(sd_fit))
   expect_false("vint2" %in% names(sd_fit))

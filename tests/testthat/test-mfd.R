@@ -122,7 +122,7 @@ test_that("dispersion conversion inverts, with the direction reversed", {
 test_that("the inverse still reads a pre-0.10.0 fit's single `shapex`", {
   # The asymmetry between the two directions, asserted rather than assumed.
   # binegbin_dpars_to_mfd() takes a STORED FIT's dpars, and every binegbin fit
-  # made before 0.10.0 carries one `shapex`; 103 such fits exist in the
+  # made before 0.10.0 declares one `shapex`; 103 such fits exist in the
   # sibling project. The forward direction writes current names only.
   back <- binegbin_dpars_to_mfd(7.2, 2.4, 2.4, shapes = 4, shapex = 1 / 2^2)
   expect_equal(back$kappas, 0.5)
@@ -142,7 +142,7 @@ test_that("the inverse still reads a pre-0.10.0 fit's single `shapex`", {
 # --------------------------------------------------------------------------
 
 test_that("kappaxone/kappaxtwo convert to shapexone/shapextwo and round-trip", {
-  # binegbin_partialobs carries one excess dispersion per margin, so the converters
+  # binegbin_partialobs takes one excess dispersion per margin, so the converters
   # accept and return the pair under the family's own dpar names rather than
   # making the caller re-derive shape = 1/kappa^2 by hand.
   d <- binegbin_mfd_to_dpars(12, 0.6, 0.2, kappas = 0.5,
@@ -222,7 +222,7 @@ test_that("the forward direction returns dpars in the family's own order", {
   # package's docs warn repeatedly that reordering them without reordering the
   # Stan signature silently swaps which rate or dispersion governs which
   # component. A converter whose printed output reads shapextwo before
-  # shapexone invites exactly that inference.
+  # shapexone would lead a reader to infer the wrong signature.
   #
   # This caught a real defect: writing both slots as `a <- b <- value`
   # evaluates right-to-left, so the chained form created shapextwo first.

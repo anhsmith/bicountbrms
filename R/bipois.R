@@ -52,7 +52,7 @@
 # the likelihood marginalises over its whole support. The partially observed
 # family was called bipois_cens() up to 0.9.1 and renamed at 0.10.0.
 #
-# THE UNMATCHED BRANCH IS ANALYTIC, AND THAT IS THE POINT. For binegbin the
+# THE UNMATCHED BRANCH IS ANALYTIC. For binegbin the
 # y1-integrated marginal is a convolution that must be evaluated as a sum,
 #
 #   P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo),
@@ -91,12 +91,11 @@
 # matched branch and is identified solely by the matched rows. mu enters both,
 # but on the unmatched branch only through the sum mu + lambdatwo: those rows
 # constrain the total, not the split between shared and source-2-only.
-# Separating mu from lambdatwo therefore rests on the matched rows as well, and
-# a design with few of them will learn the congruence f weakly however many
-# unmatched rows it has. This is sharper than the corresponding statement for
-# binegbin, where the two dispersions carry some of the same information, and
-# it is visible directly in the closed form above. Under full pairing none of
-# this applies.
+# Separating mu from lambdatwo is therefore informed by the matched rows as
+# well, so a design with few of them will learn the congruence f weakly however
+# many unmatched rows it has. That statement is sharper here than for binegbin,
+# where the two dispersions overlap in what they inform. The closed form above
+# shows it directly. Under full pairing none of this applies.
 #
 # EXACT RELATIONSHIP TO binegbin. As shapes, shapexone and shapextwo -> Inf,
 # binegbin -> bipois on both branches. Pinned in test-bipois-partialobs.R.
@@ -145,14 +144,14 @@
 #' (source-2-only rate) are the other two dpars, plainly named (no forced
 #' reinterpretation needed for those two).
 #'
-#' **Why `lambdaone`, not `lambda1`.** `custom_family()` rejects dpar names
+#' **The spelling `lambdaone` rather than `lambda1`.** `custom_family()` rejects dpar names
 #' ending in a digit (`stop2("'dpars' should not end with a number.")`), as
 #' well as dots and underscores. The documentation therefore writes these
 #' rates as \eqn{\lambda_1}{lambda_1} and \eqn{\lambda_2}{lambda_2} while the
 #' code must spell them `lambdaone`/`lambdatwo`. See the notation table in
 #' the package README.
 #'
-#' **Why `y2` travels via `vint()`, not as a second response.** brms's
+#' **`y2` as supplementary data rather than a second response.** brms's
 #' `custom_family()` API supports exactly one declared response column
 #' (`Y`) plus optional supplementary integer/real data (`vint()`/`vreal()`
 #' addition terms) -- the same mechanism used for, e.g., binomial trial
@@ -202,7 +201,7 @@ bipois_stanvars <- function() {
 #' [bipois()] for a design in which the first count is missing on some rows.
 #' Same generative model, same `name`, same three dpars, same likelihood and
 #' the same post-processing methods -- the only difference is that each row
-#' carries a second supplementary integer, an observation flag, through
+#' supplies a second integer, an observation flag, through
 #' `vint()`:
 #'
 #' ```
@@ -215,7 +214,7 @@ bipois_stanvars <- function() {
 #' not read it. Do not use `NA`, which brms drops before fitting, taking the
 #' row's observed `y2` with it.
 #'
-#' **What happens to each kind of row.** A matched row (`y1_obs == 1`) uses the
+#' **Contribution of a matched row and of an unmatched row.** A matched row (`y1_obs == 1`) uses the
 #' full joint [bipois()] lpmf on `(y1, y2)`. A row whose first count was never
 #' recorded (`y1_obs == 0`) contributes the second count's marginal *from the
 #' same model*. For Poisson components that marginal is closed form -- a sum of
@@ -225,20 +224,20 @@ bipois_stanvars <- function() {
 #' is not dropped and is not given a different model: it still informs `mu`,
 #' `lambdatwo` and any group-level effects.
 #'
-#' **What you get afterwards.** The fitted model can impute the unobserved
+#' **Imputation after fitting.** The fitted model can impute the unobserved
 #' first count conditional on the observed second one, which is usually why
 #' someone wanted this. `posterior_predict()` and `posterior_epred()` return a
 #' `y1` draw and `E[y1 | y2]` for *every* row, matched and unmatched alike --
 #' `y1_obs` selects a likelihood branch, not a prediction.
 #'
-#' **The design consequence, worth knowing before collecting data.**
+#' **A design consequence, worth knowing before the data are collected.**
 #' `lambdatwo` appears on both branches, so every row informs it. `lambdaone`
 #' appears only on the matched branch and is identified by the matched rows
 #' *alone*. `mu` appears on both, but the unmatched branch sees it only through
 #' the sum `mu + lambdatwo` -- those rows constrain the total rate of the
 #' observed margin, not how it divides between the shared and source-2-only
 #' components. Separating `mu` from `lambdatwo`, and so estimating the
-#' congruence \eqn{f}, therefore also rests on the matched rows. With few of
+#' congruence \eqn{f}, is therefore also informed by the matched rows. With few of
 #' them, `mu` and `lambdatwo` trade off along their sum and the prior does
 #' correspondingly more of the work, however many unmatched rows the design
 #' contains.
@@ -263,7 +262,7 @@ bipois_stanvars <- function() {
 #'   )
 #'
 #' @details
-#' **When to use this rather than [binegbin_partialobs()].** This family fixes
+#' **Choosing between this family and [binegbin_partialobs()].** This family fixes
 #' each latent component's variance equal to its mean. Where the counts are
 #' genuinely overdispersed relative to that,
 #' [binegbin_partialobs()] is the correct model and this one will understate
@@ -274,11 +273,11 @@ bipois_stanvars <- function() {
 #' it. Compare the two with `loo()`.
 #'
 #' **One likelihood, two constructors.** This returns the same
-#' `custom_family` `name` as [bipois()], so both land on one `bipois_lpmf` and
+#' `custom_family` `name` as [bipois()], so brms resolves both to one `bipois_lpmf` and
 #' one set of `log_lik_bipois()` / `posterior_predict_bipois()` /
 #' `posterior_epred_bipois()` methods. The matched branch is therefore not a
 #' second copy that can drift from the fully paired likelihood; it is the same
-#' code. See [binegbin_partialobs()] for why `vars` carries a literal in the
+#' code. See [binegbin_partialobs()] for why `vars` declares a literal in the
 #' plain constructor rather than the two families declaring overloaded Stan
 #' functions.
 #'
@@ -291,7 +290,7 @@ bipois_stanvars <- function() {
 #' two `vint()` terms without matching the Stan signature silently swaps which
 #' rate governs which component or which integer is the branch flag.
 #'
-#' **Telling which shape a stored fit used.** `family$name` is `"bipois"`
+#' **Distinguishing the two constructors in a stored fit.** `family$name` is `"bipois"`
 #' either way. What distinguishes them is the presence of the second
 #' supplementary integer:
 #'
@@ -412,16 +411,16 @@ bipois_stan_funs <- "
 #
 # The matched branch is computed term-by-term from the original
 # P(N_shared=k) P(N1=x-k) P(N2=y-k) definition rather than via the recurrence
-# -- an independent route to the same quantity, which is what makes it a check
-# on the Stan implementation. It is evaluated post-hoc, not inside the
+# -- an independent route to the same quantity, so it verifies the Stan
+# implementation rather than restating it. It is evaluated post-hoc, not inside the
 # sampler's hot loop, so there is no reason to use the recurrence's algebraic
 # shortcuts here.
 #
 # The unmatched branch uses the closed form, as Stan does. The independent
-# route -- brute-force convolution over k = 0..y2 -- lives in
+# route -- brute-force convolution over k = 0..y2 -- is in
 # test-bipois-partialobs.R rather than here, so log_lik() does not pay for a
-# sum that has an exact one-line answer. Keeping it in the test is what makes
-# the closed form checked rather than assumed.
+# sum that has an exact one-line answer. Keeping it in the test is what checks
+# the closed form rather than assuming it.
 #
 # `y1_obs` defaults to 1, so a call that names no flag is the matched branch.
 bipois_lpmf_r <- function(y1, y2, mu, lambdaone, lambdatwo, y1_obs = 1L) {

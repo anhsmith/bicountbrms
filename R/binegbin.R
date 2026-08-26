@@ -76,7 +76,7 @@
 # regenerate the observed spread (recovered excess SD 0.37 vs true 0.85;
 # fresh-deviate Var(d) 2.9 vs true 19.2). A conditional posterior-predictive
 # check hides this completely -- only a marginal (fresh-deviate) check exposes
-# it. binegbin carries the dispersion in SCALAR shapes/shapexone/shapextwo
+# it. binegbin represents the dispersion with SCALAR shapes/shapexone/shapextwo
 # instead, estimated from aggregate mean-variance mismatch across sets --
 # identifiable, no per-set overfitting, clean marginal PPC, and consistent
 # with the review-track NegBin models.
@@ -93,7 +93,7 @@
 # (Gamma-mixing a Poisson while keeping it Poisson): the components are
 # DIRECTLY NegBin, so the marginalisation sum is the same finite sum as
 # bipois with neg_binomial_2_lpmf swapped in for poisson_lpmf. The bipois
-# incremental recurrence does not carry over cleanly (NegBin consecutive-term
+# incremental recurrence does not transfer cleanly (NegBin consecutive-term
 # ratios are less simple than Poisson's), so binegbin_lpmf evaluates the sum
 # directly via log_sum_exp. m = min(y1, y2) is bounded by the data
 # (~50-60 terms at most for this project), so the direct sum is not a
@@ -102,7 +102,7 @@
 #
 # WHY A DEDICATED FAMILY AND NOT TWO SEPARATE FITS, under partial observation.
 # The unmatched (y2-only) rows never observe y1, so a matched-only fit could
-# use the matched rows alone. But the y2-only rows still carry information
+# use the matched rows alone. But the y2-only rows are still informative
 # about the SHARED structure (mu, shapes, lambdatwo, shapextwo) and the
 # vessel/trip random effects: their y2 is a draw from the same bivariate
 # model, merely with its y1 margin unobserved. Integrating y1 out (rather than
@@ -167,8 +167,8 @@
 #'   )
 #'
 #' @details
-#' **Two excess dispersions, and the symmetric special case.** Up to 0.9.1
-#' this family carried a single `shapex` shared by both excess components,
+#' **Tying the two excess dispersions.** Up to 0.9.1
+#' this family had a single `shapex` shared by both excess components,
 #' imposing `shapexone == shapextwo`. That is a modelling choice rather than a
 #' property of the construction, and 0.10.0 frees it. To recover the
 #' constraint, route both through one non-linear parameter:
@@ -187,7 +187,7 @@
 #' post-processed. Set a prior with `nlpar = "shapexx"` rather than
 #' `dpar = "shapex"`.
 #'
-#' **Forced `mu` naming, and `y2` via `vint()`.** Identical conventions to
+#' **Names forced by `custom_family()`.** Identical conventions to
 #' [bipois()] -- `mu` is brms's mandatory dpar name, here bound to the shared
 #' component's rate (`lambda_shared`), not a mean of either response; `y2`
 #' travels as supplementary integer data through `vint()` because
@@ -231,7 +231,7 @@ binegbin_stanvars <- function() {
 #' @description
 #' [binegbin()] for a design in which the first count is missing on some rows.
 #' Same generative model, same `name`, same six dpars, same likelihood and the
-#' same post-processing methods -- the only difference is that each row carries
+#' same post-processing methods -- the only difference is that each row supplies
 #' a second supplementary integer, an observation flag, through `vint()`:
 #'
 #' ```
@@ -244,7 +244,7 @@ binegbin_stanvars <- function() {
 #' not read it. Do not use `NA`, which brms drops before fitting, taking the
 #' row's observed `y2` with it.
 #'
-#' **What happens to each kind of row.** A matched row (`y1_obs == 1`) uses the
+#' **Contribution of a matched row and of an unmatched row.** A matched row (`y1_obs == 1`) uses the
 #' full joint lpmf on `(y1, y2)`. A row whose first count was never recorded
 #' (`y1_obs == 0`) contributes the second count's marginal *from the same
 #' model*,
@@ -254,13 +254,13 @@ binegbin_stanvars <- function() {
 #' shared component (`mu`, `shapes`), the second source's rate and dispersion
 #' (`lambdatwo`, `shapextwo`), and any group-level effects.
 #'
-#' **What you get afterwards.** The fitted model can impute the unobserved
+#' **Imputation after fitting.** The fitted model can impute the unobserved
 #' first count conditional on the observed second one, which is usually why
 #' someone wanted this. `posterior_predict()` and `posterior_epred()` return a
 #' `y1` draw and `E[y1 | y2]` for *every* row, matched and unmatched alike --
 #' `y1_obs` selects a likelihood branch, not a prediction.
 #'
-#' **The design consequence, worth knowing before collecting data.** The first
+#' **A design consequence, worth knowing before the data are collected.** The first
 #' source's rate `lambdaone` and excess dispersion `shapexone` appear only on
 #' the matched branch, so they are identified by the matched rows *alone*. A
 #' design with 20 matched rows in 500 learns them weakly and leans on their
@@ -289,7 +289,7 @@ binegbin_stanvars <- function() {
 #'
 #' @details
 #' **One likelihood, two constructors.** This returns the same
-#' `custom_family` `name` as [binegbin()], so both land on one
+#' `custom_family` `name` as [binegbin()], so brms resolves both to one
 #' `binegbin_lpmf` and one set of `log_lik_binegbin()` /
 #' `posterior_predict_binegbin()` / `posterior_epred_binegbin()` methods. The
 #' matched branch of the likelihood is therefore not a second copy that can
@@ -310,7 +310,7 @@ binegbin_stanvars <- function() {
 #' two `vint()` terms without matching the Stan signature silently swaps the
 #' second count with the branch flag.
 #'
-#' **Telling which shape a stored fit used.** `family$name` is `"binegbin"`
+#' **Distinguishing the two constructors in a stored fit.** `family$name` is `"binegbin"`
 #' either way. What distinguishes them is the presence of the second
 #' supplementary integer:
 #'
@@ -516,7 +516,7 @@ posterior_epred_binegbin <- function(prep) {
   #
   # y1_obs is not read, as it is not in posterior_predict_binegbin(): the
   # conditional expectation of the first margin is defined on unmatched rows
-  # too, and imputing it there is the point of having the family. Returning it
+  # too, and imputing it there is what the family is for. Returning it
   # for every row keeps epred and posterior_predict comparable row by row.
   #
   # Before 0.9.0 this substituted the MARGINAL shared fraction

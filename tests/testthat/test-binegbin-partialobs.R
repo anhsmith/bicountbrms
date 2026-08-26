@@ -171,7 +171,7 @@ test_that("Stan binegbin_lpmf matches R brute-force reference (both branches)", 
     yg <- expand.grid(y1 = ys, y2 = ys, y1_obs = c(0L, 1L))
     # Symmetric case: the single `sx` is passed for BOTH shapexone and
     # shapextwo, which is the constraint the pre-0.8.0 five-dpar family
-    # imposed. The asymmetric grid lives in test-binegbin-dispersions.R.
+    # imposed. The asymmetric grid is in test-binegbin-dispersions.R.
     stan_vals <- mapply(
       function(r, s, e) binegbin_lpmf(r, mu, lone, ltwo, ss, sx, sx, s, e),
       yg$y1, yg$y2, yg$y1_obs)
@@ -332,7 +332,7 @@ test_that("binegbin_partialobs fits the SYMMETRIC model via nlf, dispatches, and
 
   draws <- as.data.frame(fit)
   # Smoke gate at a wide interval, not a calibration claim. See
-  # helper-coverage.R; the calibration assessment lives in test-binegbin.R and
+  # helper-coverage.R; the calibration assessment is in test-binegbin.R and
   # applies to this family's matched branch, which is binegbin term for term.
   check_recovery <- function(true_val, draws_col) {
     recovery_ok(draws, true_val, draws_col)

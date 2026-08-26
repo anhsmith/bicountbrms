@@ -1,0 +1,384 @@
+---
+title: "The families and their parameters"
+description: >
+  How the two families are constructed, what each distributional parameter
+  means, how to constrain the two excess dispersions to be equal, and a fitted
+  demonstration that they can be told apart when they are not.
+bibliography: ../references.bib
+link-citations: true
+---
+
+
+
+
+``` r
+library(brms)
+library(bicountbrms)
+```
+
+This article describes the parameters that are fitted. The companion article
+[The anatomy of a paired count](paired-count-anatomy.html) describes the
+coordinates in which they are interpreted, and
+[Choosing priors](choosing-priors.html) gives the recipes for both.
+
+## Trivariate reduction
+
+Both families are constructed by trivariate reduction [@holgate1964;
+@karlis2003]: three independent latent counts are drawn, and one of them enters
+both observed counts.
+
+$$
+y_1 = N_{\text{shared}} + N_1
+\qquad
+y_2 = N_{\text{shared}} + N_2
+$$
+
+`N_shared` is never observed. The likelihood sums it out analytically over
+\eqn{k = 0, \ldots, \min(y_1, y_2)},
+
+$$
+P(y_1 = x,\ y_2 = y) = \sum_{k=0}^{\min(x,y)}
+  f_{\text{s}}(k)\, f_1(x-k)\, f_2(y-k),
+$$
+
+where \eqn{f_{\text{s}}}, \eqn{f_1} and \eqn{f_2} are the probability mass
+functions of the three latent counts. The first source is the modelled
+response; the second is supplied as supplementary integer data through
+`vint()`, because `brms::custom_family()` declares a single response column.
+
+The shared latent count enters both observed counts and therefore induces their
+covariance, \eqn{\mathrm{Cov}(y_1, y_2) = \mathrm{Var}(N_{\text{shared}})}. It
+cancels from the difference,
+
+$$
+d = y_1 - y_2 = N_1 - N_2,
+$$
+
+so the difference depends on the two source-specific counts alone. For Poisson
+latent counts that difference is exactly Skellam-distributed [@skellam1946],
+which is why `bipois()` induces the Skellam as its difference model.
+
+brms requires one distributional parameter of every family to be named `mu`. In
+these families `mu` is the rate of the shared latent count. Since
+\eqn{\mathrm{E}[y_1] = \mu + \lambda_1}, `mu` is not the mean of either observed
+count, nor of their difference. The constraint is `custom_family()`'s rather
+than a modelling choice, and the same applies to the spelling of the two
+source-specific rates: `custom_family()` rejects a distributional parameter
+name ending in a digit, so the code writes `lambdaone` and `lambdatwo` where the
+documentation writes \eqn{\lambda_1} and \eqn{\lambda_2}.
+
+## Poisson or negative-binomial latent counts
+
+`bipois()` draws each latent count from a Poisson distribution, which fixes its
+variance equal to its mean. `binegbin()` draws each from NB2 instead and
+estimates three scalar dispersions. NB2\eqn{(m, \phi)} is Stan's
+`neg_binomial_2` and R's `dnbinom(size = phi, mu = m)`: it has mean \eqn{m} and
+variance \eqn{m + m^2/\phi}, so a larger \eqn{\phi} means less overdispersion,
+and the Poisson is the \eqn{\phi \to \infty} limit.
+
+| dpar | latent count | rate | dispersion |
+|---|---|---|---|
+| `mu`, `shapes` | \eqn{N_{\text{shared}}} | \eqn{\mu} | \eqn{\phi_{\text{s}}} |
+| `lambdaone`, `shapexone` | \eqn{N_1} | \eqn{\lambda_1} | \eqn{\phi_{x1}} |
+| `lambdatwo`, `shapextwo` | \eqn{N_2} | \eqn{\lambda_2} | \eqn{\phi_{x2}} |
+
+`bipois()` takes the three rates alone; `binegbin()` takes all six. Every
+parameter uses a log link.
+
+The moments follow directly from the decomposition:
+
+$$
+\mathrm{Var}(y_1) =
+  \Big(\mu + \tfrac{\mu^2}{\phi_{\text{s}}}\Big) +
+  \Big(\lambda_1 + \tfrac{\lambda_1^2}{\phi_{x1}}\Big),
+\qquad
+\mathrm{Var}(d) =
+  \Big(\lambda_1 + \tfrac{\lambda_1^2}{\phi_{x1}}\Big) +
+  \Big(\lambda_2 + \tfrac{\lambda_2^2}{\phi_{x2}}\Big).
+$$
+
+The covariance involves the shared latent count alone, so neither excess
+dispersion appears in it:
+\eqn{\mathrm{Cov}(y_1, y_2) = \mu + \mu^2/\phi_{\text{s}}}. Freeing the two
+excess dispersions therefore changes both margins and the difference, and
+leaves the covariance unchanged; the correlation moves only through its
+denominator.
+
+An observation-level random effect on the source-specific components would be
+the obvious alternative to a scalar dispersion, and it fails synthetic
+recovery. With one observed pair per unit but three latent deviates per unit,
+the excess deviates absorb the residual: in the motivating dataset the
+population standard deviation of the excess was recovered as 0.37 against a
+true 0.85, and drawing fresh deviates gave \eqn{\mathrm{Var}(d) = 2.9} against a
+true 19.2. A conditional posterior-predictive check does not expose that
+failure; a marginal one, drawing fresh deviates, does.
+
+## Tying the two excess dispersions
+
+Both negative-binomial constructors estimate a separate dispersion for each
+source-specific component. The two sources are different instruments, and no
+argument requires their source-specific excess to be equally overdispersed. Up
+to release 0.9.1 a single distributional parameter `shapex` imposed
+\eqn{\phi_{x1} = \phi_{x2}}; 0.10.0 frees the constraint for both constructors.
+
+To impose that constraint deliberately, route both distributional parameters
+through one non-linear parameter:
+
+
+``` r
+bf(y1 | vint(y2) ~ 1, mu ~ 1,
+   nlf(lambdaone ~ lamx), nlf(lambdatwo ~ lamx),
+   nlf(shapexone ~ shapexx), nlf(shapextwo ~ shapexx),
+   lamx ~ 1, shapes ~ 1, shapexx ~ 1, nl = TRUE)
+```
+
+The generated Stan shows the tie directly. Both distributional parameters are
+assigned from the same non-linear predictor, so the model contains one free
+dispersion rather than two:
+
+```
+shapexone[n] = exp(nlp_shapexx[n]);
+shapextwo[n] = exp(nlp_shapexx[n]);
+```
+
+That is worth checking rather than assuming, because an untied model would
+still compile and still sample: it would quietly fit the six-parameter model
+the formula was meant to constrain.
+`tests/testthat/test-stancode-shape.R` pins both lines.
+
+A prior on the tied parameter is written with `class = "b"` and
+`nlpar = "shapexx"`. Both fields differ from the pre-0.10.0 spelling, which was
+`class = "Intercept"` with `dpar = "shapex"`. A prior written the old way names
+no parameter in the tied model and is dropped without a warning, which leaves
+the dispersion improper — see [Choosing priors](choosing-priors.html).
+
+Under full pairing every row informs both dispersions. Under partial
+observation the two are not equally identified: `shapextwo` governs the
+always-observed margin and appears on both branches of the likelihood, while
+`shapexone` appears on the matched branch alone. [A worked partially observed
+fit](partially-observed-fit.html) shows what follows from that asymmetry.
+
+## Discrimination of two dispersions an order of magnitude apart
+
+The get-started vignette recovers all six distributional parameters from a
+fully paired design. The question here is narrower: when \eqn{\phi_{x1}} and
+\eqn{\phi_{x2}} differ substantially, does the fit resolve them as different, or
+merely bracket each of them widely enough to contain the truth?
+
+The simulation below sets the two an order of magnitude apart, at 0.7 and 6.0,
+and gives the design 300 rows across ten vessels. No observation flag appears
+anywhere: this is `binegbin()` with `vint(y2)` alone.
+
+
+``` r
+set.seed(20260825)
+
+n_vessel     <- 10L
+n_per_vessel <- 30L
+n            <- n_vessel * n_per_vessel
+
+truth <- list(
+  log_mu_int = log(6),
+  sd_vessel  = 0.3,
+  lone       = 6,
+  ltwo       = 6,
+  shapes     = 3,
+  shapexone  = 0.7,   # first source: strongly overdispersed
+  shapextwo  = 6.0    # second source: mildly overdispersed
+)
+
+vessel <- rep(seq_len(n_vessel), each = n_per_vessel)
+mu_i   <- exp(truth$log_mu_int + truth$sd_vessel * rnorm(n_vessel)[vessel])
+
+# One shared count per row, drawn once and entering both observed counts.
+n_shared <- rnbinom(n, size = truth$shapes, mu = mu_i)
+
+dat <- data.frame(
+  y1     = n_shared + rnbinom(n, size = truth$shapexone, mu = truth$lone),
+  y2     = n_shared + rnbinom(n, size = truth$shapextwo, mu = truth$ltwo),
+  vessel = factor(vessel)
+)
+
+c(cor = cor(dat$y1, dat$y2), var_y1 = var(dat$y1), var_y2 = var(dat$y2))
+#>        cor     var_y1     var_y2 
+#>  0.4115147 69.9471460 36.2650056
+```
+
+Drawing `n_shared` once and adding it to both counts is what correlates the
+pair; drawing it separately for each would give two independent counts
+with the right margins and no covariance. The first count is the more variable
+of the two, as \eqn{\phi_{x1} < \phi_{x2}} requires.
+
+
+``` r
+fit <- brm(
+  bf(y1 | vint(y2) ~ 1,
+     mu ~ 1 + (1 | vessel),
+     nlf(lambdaone ~ lamx), nlf(lambdatwo ~ lamx),
+     lamx ~ 1, shapes ~ 1, shapexone ~ 1, shapextwo ~ 1, nl = TRUE),
+  family   = binegbin(),
+  stanvars = binegbin_stanvars(),
+  data     = dat,
+  prior    = c(
+    prior(normal(2, 1),   class = "Intercept"),
+    prior(normal(2, 1),   class = "b",         nlpar = "lamx"),
+    prior(normal(0, 1.5), class = "Intercept", dpar  = "shapes"),
+    prior(normal(0, 1.5), class = "Intercept", dpar  = "shapexone"),
+    prior(normal(0, 1.5), class = "Intercept", dpar  = "shapextwo")
+  ),
+  chains  = 4, iter = 2000, warmup = 1000,
+  seed    = 20260825, refresh = 0, init = 0.5,
+  control = list(adapt_delta = 0.99, max_treedepth = 12),
+  backend = backend
+)
+```
+
+The prior on each log dispersion is `normal(0, 1.5)`, which spans roughly
+\eqn{[0.05, 20]} at two standard deviations and so contains all three true
+values without favouring any of them.
+
+
+``` r
+draws <- as.data.frame(fit)
+
+qi <- function(x) c(median = median(x), lower = quantile(x, 0.025, names = FALSE),
+                    upper = quantile(x, 0.975, names = FALSE))
+
+recovery <- rbind(
+  shapexone = qi(exp(draws$b_shapexone_Intercept)),
+  shapextwo = qi(exp(draws$b_shapextwo_Intercept)),
+  shapes    = qi(exp(draws$b_shapes_Intercept))
+)
+knitr::kable(
+  cbind(truth = c(truth$shapexone, truth$shapextwo, truth$shapes), recovery),
+  digits = 2
+)
+```
+
+
+
+|          | truth| median| lower| upper|
+|:---------|-----:|------:|-----:|-----:|
+|shapexone |   0.7|   0.98|  0.62|  1.57|
+|shapextwo |   6.0|   6.70|  3.92| 12.45|
+|shapes    |   3.0|   2.40|  1.36|  3.93|
+
+
+
+Each interval contains its true value. That much the vignette already
+established for a symmetric design. The claim particular to this section is the
+next one:
+
+
+``` r
+lr    <- draws$b_shapexone_Intercept - draws$b_shapextwo_Intercept
+lr_ci <- quantile(lr, c(0.025, 0.975), names = FALSE)
+
+c(true_log_ratio = log(truth$shapexone) - log(truth$shapextwo),
+  median         = median(lr),
+  lower          = lr_ci[1],
+  upper          = lr_ci[2])
+#> true_log_ratio         median          lower          upper 
+#>      -2.148434      -1.917969      -2.513566      -1.417690
+```
+
+The 95% posterior interval for \eqn{\log \phi_{x1} - \log \phi_{x2}} excludes
+zero, so the data separate the two dispersions rather than the priors doing so —
+both priors are identical, and centred at a log ratio of zero.
+
+
+``` r
+c(divergences = sum(nuts_params(fit, pars = "divergent__")$Value),
+  max_rhat    = max(rhat(fit), na.rm = TRUE))
+#> divergences    max_rhat 
+#>    0.000000    1.005511
+```
+
+
+``` r
+op <- par(mfrow = c(1, 2), mar = c(4.1, 4.1, 2.6, 1.1), bty = "n")
+
+d1 <- density(draws$b_shapexone_Intercept)
+d2 <- density(draws$b_shapextwo_Intercept)
+plot(d1, xlim = range(d1$x, d2$x), ylim = c(0, max(d1$y, d2$y)),
+     lwd = 2, col = "#C4622D", main = "The two excess dispersions",
+     xlab = expression(log ~ phi), ylab = "density")
+lines(d2, lwd = 2, col = "#2D6A7F")
+abline(v = log(truth$shapexone), lty = 3, col = "#C4622D")
+abline(v = log(truth$shapextwo), lty = 3, col = "#2D6A7F")
+legend("topright", bty = "n", lwd = 2, cex = 0.85,
+       col = c("#C4622D", "#2D6A7F"),
+       legend = c("shapexone", "shapextwo"))
+
+plot(density(lr), lwd = 2, col = "#8A8072", main = "Their log ratio",
+     xlab = expression(log ~ phi[x1] - log ~ phi[x2]), ylab = "density")
+abline(v = 0, lwd = 2)
+abline(v = log(truth$shapexone) - log(truth$shapextwo), lty = 3)
+mtext("solid = zero, dotted = truth", side = 3, line = -1.1,
+      cex = 0.7, adj = 0.97)
+```
+
+<div class="figure">
+<img src="figure/dispersion-posteriors-1.svg" alt="Two panels. The left shows posterior densities for the two excess dispersions on the log scale, well separated, with their true values marked. The right shows the posterior for their log ratio, with zero marked outside the bulk of the distribution."  />
+<p class="caption">plot of chunk dispersion-posteriors</p>
+</div>
+
+``` r
+
+par(op)
+```
+
+Under partial observation the same demonstration requires a majority of rows to
+be matched, because `shapexone` is then informed by those rows alone.
+`tests/testthat/test-binegbin-dispersions.R` runs both designs.
+
+## Quantities returned by `posterior_epred()` and `posterior_predict()`
+
+`posterior_epred()` returns
+
+$$
+\mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_{\text{shared}} \mid y_2] + \lambda_1,
+$$
+
+the expected first count given the second count observed on that row. The
+returned quantity is a conditional expectation rather than a marginal one, and
+the conditioning is on data rather than on a fitted value.
+
+For `bipois()` the conditional distribution is available in closed form:
+conditioning a sum of independent Poisson counts on its total gives a Binomial,
+so \eqn{N_{\text{shared}} \mid y_2 \sim \mathrm{Binomial}(y_2,\ \mu/(\mu +
+\lambda_2))} and the expectation is \eqn{y_2\,\mu/(\mu + \lambda_2) +
+\lambda_1}. A sum of negative-binomial counts has no Binomial conditional, so
+`binegbin()` evaluates the discrete conditional law over
+\eqn{k = 0, \ldots, y_2} and sums it. Both are exact, and each agrees with the
+mean of that family's own `posterior_predict()` draws to within Monte Carlo
+error.
+
+`posterior_epred(fit)`, and therefore `fitted()` and `conditional_effects()`,
+dispatch to the family's own method in the ordinary way. Neither family
+supports `resp_trunc()`, so the brms limitation by which `posterior_epred()`
+errors on a truncated custom family cannot arise here.
+
+## Checks performed
+
+The test suite runs 1,164 assertions with a Stan toolchain available and 621
+without. For the likelihood it verifies:
+
+- the Stan implementation against an independent brute-force reference written
+  in R, agreeing to about \eqn{10^{-14}} across a grid of rates and dispersions
+  and at edge cases;
+- normalisation to 1, over the pair on the matched branch and over \eqn{y_2} on
+  the unmatched one;
+- the moment identities above, by exact summation over the joint probability
+  mass function rather than by simulation;
+- the marginal identity, that summing the matched branch over \eqn{y_1}
+  reproduces the unmatched branch;
+- the Poisson limit, checked as a limit — the discrepancy must shrink as
+  \eqn{\phi} grows — rather than at a single tolerance.
+
+For the post-processing methods it verifies that each expectation equals the
+mean of its own predictive draws, that the observation flag changes neither the
+prediction nor the expectation, and that exchanging the two excess dispersions
+anywhere they are routed produces a detectably different answer.
+
+## References

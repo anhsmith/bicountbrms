@@ -59,14 +59,14 @@ response individually. `lambdaone` (source-1-only rate) and `lambdatwo`
 (source-2-only rate) are the other two dpars, plainly named (no forced
 reinterpretation needed for those two).
 
-**Why `lambdaone`, not `lambda1`.** `custom_family()` rejects dpar names
+**The spelling `lambdaone` rather than `lambda1`.** `custom_family()` rejects dpar names
 ending in a digit (`stop2("'dpars' should not end with a number.")`), as
 well as dots and underscores. The documentation therefore writes these
 rates as \eqn{\lambda_1}{lambda_1} and \eqn{\lambda_2}{lambda_2} while the
 code must spell them `lambdaone`/`lambdatwo`. See the notation table in
 the package README.
 
-**Why `y2` travels via `vint()`, not as a second response.** brms's
+**`y2` as supplementary data rather than a second response.** brms's
 `custom_family()` API supports exactly one declared response column
 (`Y`) plus optional supplementary integer/real data (`vint()`/`vreal()`
 addition terms) -- the same mechanism used for, e.g., binomial trial

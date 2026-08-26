@@ -26,7 +26,7 @@
 #
 # binegbin()/bipois() are parameterised by three rates -- mu (shared),
 # lambdaone and lambdatwo (the two source-specific excesses) -- because that
-# is what the trivariate-reduction likelihood consumes directly. Those three
+# is what the trivariate-reduction likelihood is written in terms of. Those three
 # are correlated in use: raising the overall catch level moves all three at
 # once, so none of them is individually interpretable as "how much was
 # caught", "how much did the two sources agree", or "which source ran high".
@@ -92,7 +92,7 @@
 #' single `shapex`: no family has had a `shapex` dpar since 0.10.0.
 #'
 #' [binegbin_dpars_to_mfd()] is the inverse. It still accepts `shapex`, because
-#' its input is a stored fit and pre-0.10.0 `binegbin` fits carry that name.
+#' its input is a stored fit and pre-0.10.0 `binegbin` fits declare that name.
 #'
 #' @param M Overall level: `mu + (lambdaone + lambdatwo)/2`. Non-negative.
 #' @param f Congruence, the share of `M` that both sources saw: `mu / M`. In
@@ -123,8 +123,8 @@
 #' [binegbin_dpars_to_mfd()] reports back as `NA`. This direction is always
 #' well defined; only the inverse degenerates.
 #'
-#' **The two ways to name the excess dispersion.** Both negative-binomial
-#' constructors carry the pair `shapexone`/`shapextwo`, so that is what this
+#' **The two spellings of the excess dispersion.** Both negative-binomial
+#' constructors take the pair `shapexone`/`shapextwo`, so that is what this
 #' function writes. Supply `kappaxone`/`kappaxtwo` to give the two margins
 #' different values, or `kappax` to give them the same one -- the symmetric
 #' model, term for term the pre-0.8.0 likelihood, which a fit reaches by
@@ -136,7 +136,7 @@
 #' wanted two different things. There is now one family and one dpar set, so
 #' both spellings produce it.
 #'
-#' **Using these coordinates with the Poisson families.** [bipois()] and
+#' **These coordinates under the Poisson families.** [bipois()] and
 #' [bipois_partialobs()] take the same three rates and no dispersion, so call
 #' this with `M`, `f` and `delta` alone and pass the result straight through.
 #' There is no `kappa` to supply: the Poisson case is not a dispersion set to a
@@ -209,8 +209,8 @@ binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL,
     # Assigned separately, not chained: `a <- b <- value` evaluates
     # right-to-left, so the chained form would create shapextwo first and the
     # returned list would read shapextwo, shapexone. Dpar order is load-bearing
-    # in this package, and a printed list in the wrong order invites the reader
-    # to infer the wrong signature.
+    # in this package, and a reader may infer the wrong signature from a
+    # printed list in the wrong order.
     kx <- .kappa_to_shape(rep_len(kappax, n))
     out$shapexone <- kx
     out$shapextwo <- kx
@@ -233,7 +233,7 @@ binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL,
 #' serves all four constructors; only the dispersion arguments differ.
 #'
 #' This direction reads a *stored fit*, so it accepts `shapex` -- the single
-#' excess dispersion every `binegbin` fit made before 0.10.0 carries -- as well
+#' excess dispersion declared by every `binegbin` fit made before 0.10.0 -- as well
 #' as the current `shapexone`/`shapextwo`. The forward direction writes only
 #' current names; see its documentation for why the two differ.
 #'
@@ -241,12 +241,12 @@ binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL,
 #' @param lambdaone,lambdatwo The two excess rates.
 #' @param shapes,shapex Optional NB2 dispersions. If supplied, the returned list
 #'   gains `kappas`/`kappax` (`= 1/sqrt(shape)`, so `shape = Inf` gives `0`).
-#'   `shapex` is the single excess dispersion carried by a `binegbin` fit made
+#'   `shapex` is the single excess dispersion declared by a `binegbin` fit made
 #'   before 0.10.0, when one dpar governed both margins; no shipping family
 #'   takes it now. A fit of [bipois()] or [bipois_partialobs()] has no
 #'   dispersion to pass: read its three rates alone.
 #' @param shapexone,shapextwo Optional per-margin NB2 excess dispersions, as
-#'   carried by both negative-binomial constructors since 0.10.0. If supplied,
+#'   taken by both negative-binomial constructors since 0.10.0. If supplied,
 #'   the returned list gains `kappaxone`/`kappaxtwo`. Mutually exclusive with
 #'   `shapex`, which is the same quantity under its older name.
 #'

@@ -16,8 +16,10 @@ citHeader(
   "To cite bicountbrms in publications, cite the package itself and, ",
   "because every family here is a brms custom family, brms as well ",
   "(citation(\"brms\")). If you use a specific family, please also cite the ",
-  "distribution it implements -- see the References section of the package ",
-  "README for Holgate (1964) and Karlis & Ntzoufras (2003, 2006)."
+  "distribution it implements: Holgate (1964) for the construction and ",
+  "Karlis & Ntzoufras (2003, 2006) for its regression form. Full references ",
+  "are given in the article \"The families and their parameters\", at ",
+  "https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.html"
 )
 
 bibentry(

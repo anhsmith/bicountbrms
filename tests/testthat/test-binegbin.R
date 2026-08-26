@@ -3,7 +3,7 @@
 # The fully paired constructor: likelihood, Stan-vs-R agreement, and end-to-end
 # recovery.
 #
-# THE FITS HERE TIE THE TWO EXCESS DISPERSIONS. binegbin() has carried
+# THE FITS HERE TIE THE TWO EXCESS DISPERSIONS. binegbin() has had
 # shapexone and shapextwo separately since 0.10.0, but the generative truth
 # below is symmetric, so the models fitted here impose shapexone == shapextwo
 # through one non-linear parameter:
@@ -258,7 +258,7 @@ binegbin_fit <- function(dat, mu_re = FALSE, ...) {
   #
   # All four are centred at ZERO while the truths are positive (log 8 = 2.08,
   # log 3 = 1.10), so every prior pulls AWAY from the truth. Recovery therefore
-  # remains a genuine test of what the data carries, not a prior echo. They are
+  # remains a genuine test of what the data show, not a prior echo. They are
   # weak: normal(0, 2) on a log dispersion spans phi in [0.02, 50] at 95%, and
   # normal(0, 3) on a log rate spans [0.003, 357].
   prm <- c(

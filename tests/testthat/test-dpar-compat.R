@@ -3,13 +3,13 @@
 # 0.7.0 renamed the joint families' excess-rate dpars lambdaem/lambdalb to
 # lambdaone/lambdatwo. A brmsfit stores its OWN family object, so
 # prepare_predictions() on a fit made before the rename hands post-processing a
-# prep whose dpars carry the old names. Every rate read in bipois/bipois_partialobs/
+# prep whose dpars use the old names. Every rate read in bipois/bipois_partialobs/
 # binegbin/binegbin_partialobs therefore goes through .get_rate(), which resolves the name
 # against the fit rather than assuming the current spelling.
 #
 # What these tests pin: identical inputs under either spelling produce
 # identical output (so old fits are not merely non-erroring but numerically
-# unchanged), and a prep carrying neither spelling fails with a message that
+# unchanged), and a prep with neither spelling fails with a message that
 # names the problem instead of a bare `!is.null(x) is not TRUE` from
 # brms::get_dpar().
 #
@@ -83,7 +83,7 @@ test_that("posterior_epred is identical under old and new rate-dpar names", {
   # .get_rate() and its excess dispersion through .SHAPEXTWO_NAMES, whose last
   # candidate is the five-dpar `shapex` supplied by mk() -- the same fallback
   # log_lik and posterior_predict already rely on. bipois_partialobs is not tested
-  # here: it is new at 0.9.0, so no fit can carry the old spellings.
+  # here: it is new at 0.9.0, so no fit can use the old spellings.
   expect_equal(
     posterior_epred_binegbin(mk(OLD, vint2 = V2)),
     posterior_epred_binegbin(mk(NEW, vint2 = V2))
@@ -126,12 +126,12 @@ test_that("a prep with neither rate-dpar spelling errors informatively", {
 #
 # 0.10.0 keeps the name `binegbin` and changes what it means: five dpars with a
 # single `shapex` become six with shapexone/shapextwo. A fit stored under the
-# old meaning therefore lands on the NEW post-processing methods no matter what
+# old meaning is therefore post-processed by the NEW methods no matter what
 # anyone pins, because brms resolves log_lik_<name> off the attached search
 # path using the name the fit stored.
 #
 # Such fits exist. Scanning tnc001-belize-em/fits at 0.9.1 found 103 with
-# family$name == "binegbin", and every one of them carries
+# family$name == "binegbin", and every one of them declares
 #
 #   mu, lambdaem, lambdalb, shapes, shapex          (vint1 only, no vint2)
 #

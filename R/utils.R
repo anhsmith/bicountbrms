@@ -7,9 +7,8 @@
 # --------------------------------------------------------------------------
 #
 # 0.7.0 renamed the joint families' two excess-rate dpars lambdaem/lambdalb
-# to lambdaone/lambdatwo (see NEWS). Fits made before that carry the OLD
-# names, and they carry them in a way post-processing cannot route around
-# generically: a brmsfit stores its own family object, so
+# to lambdaone/lambdatwo (see NEWS). Fits made before that rename declare the
+# OLD names, in a way post-processing cannot route around generically: a brmsfit stores its own family object, so
 # prepare_predictions() builds prep$dpars from THAT family, not from
 # whatever the currently-attached package declares. An old fit therefore
 # arrives here with prep$dpars$lambdaem populated and prep$dpars$lambdaone
@@ -49,7 +48,7 @@
 #                              binegbin_cens fits, where one dispersion
 #                              served both margins)
 #
-# Falling back to `shapex` LAST is what makes the symmetric special case work
+# Falling back to `shapex` LAST is what lets the symmetric special case work
 # without a shim: a five-dpar fit resolves both shapexone and shapextwo to its
 # single `shapex`, which is precisely the constraint shapexone == shapextwo
 # that the five-dpar family imposed.
@@ -105,7 +104,7 @@
 # fraction mu/(mu + lambdatwo) -- the bipois answer -- for the conditional one,
 # and the partially observed family had no epred at all. The substitution is exact
 # only in the Poisson limit and biased otherwise, in the direction set by which
-# component carries more dispersion. See NEWS for the size of the change.
+# component is the more dispersed. See NEWS for the size of the change.
 #
 # `shapex2` is the dispersion of the SECOND margin's excess component
 # (`shapextwo`, or a pre-0.10.0 fit's single `shapex`) -- the y2

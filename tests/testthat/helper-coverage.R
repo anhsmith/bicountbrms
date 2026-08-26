@@ -43,7 +43,7 @@
 # Varying only the Stan seed on that fit, data held fixed, gives max Rhat
 # 1.0023 1.0079 1.0055 1.0032 1.0023 -- a span of 0.006 with zero divergences
 # throughout. A platform change is a larger perturbation than a seed change:
-# CI's 1.012 sits above every one of those. test-binegbin.R records an earlier
+# CI's 1.012 exceeds every one of those. test-binegbin.R records an earlier
 # near-miss at 1.0101.
 #
 # MORE DRAWS IS NOT THE FIX EITHER. At iter = 6000, warmup = 2000 the same five
@@ -114,7 +114,7 @@ coverage_floor <- function(R, level = 0.9, alpha = 0.01) {
 # Refit `fit` on R fresh datasets from `sim` and return, per parameter, the
 # proportion of replicates whose `level` interval contained the truth.
 #
-# `fit`    a brmsfit to reuse -- its COMPILED Stan model is what makes this
+# `fit`    a brmsfit to reuse -- reusing its COMPILED Stan model is what keeps this
 #          affordable. update(recompile = FALSE) re-runs sampling only;
 #          measured on this package's binegbin model, compiling costs ~66 s and
 #          each refit ~15 s, so R = 10 is ~3.5 min rather than ~11. stanvars

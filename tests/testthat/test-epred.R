@@ -8,12 +8,13 @@
 #
 # -- the conditional expectation of the first margin given the observed second
 # one, exactly, for every row including those whose first count was never
-# recorded. Before 0.9.0 the
-# three families then shipping answered three different ways: bipois exactly,
-# binegbin with
-# the marginal shared fraction substituted for the conditional one, and the
-# partially observed one not at all. This file pins the convention so they cannot drift
-# apart again.
+# recorded.
+#
+# Before 0.9.0 the three families then shipping answered three different ways.
+# bipois returned the exact conditional expectation. binegbin substituted the
+# marginal shared fraction for the conditional one. The partially observed
+# family had no posterior_epred method at all. This file pins the convention so
+# that the two families now shipping cannot drift apart again.
 #
 # The standard applied to each is the same and does not depend on knowing the
 # closed form: the epred must equal the mean of a large posterior_predict
@@ -110,7 +111,7 @@ test_that("binegbin epred equals the mean of its posterior_predict draws", {
   # CONDITIONAL one belongs, which at these settings is off by ~0.6% and, over
   # a grid of plausible rates and dispersions, by more than 5% in about half of
   # them and more than 20% in a third -- in either direction, depending on
-  # which component carries the greater dispersion.
+  # which component is the more dispersed.
   set.seed(20260804)
   draws <- posterior_predict_binegbin(1, nb_prep())
   ep    <- unique(as.vector(posterior_epred_binegbin(nb_prep())))
@@ -144,7 +145,7 @@ test_that("the observation flag does not change either family's epred", {
 test_that("the binegbin epred is the same with and without the flag on a matched row", {
   # The families share a matched-branch likelihood, so they must share a
   # conditional expectation. binegbin_partialobs resolves its second-margin
-  # dispersion through .SHAPEXTWO_NAMES, whose `shapex` fallback is what makes
+  # dispersion through .SHAPEXTWO_NAMES, whose `shapex` fallback is what lets
   # the five-dpar prep here serve both.
   expect_equal(posterior_epred_binegbin(nb_prep()),
                posterior_epred_binegbin(nb_prep(vint2 = 1L)))

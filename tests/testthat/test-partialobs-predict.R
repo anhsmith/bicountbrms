@@ -142,7 +142,7 @@ test_that("y2 = 0 makes posterior_predict draw the private component alone", {
   # from 1:0 -- and it was untested for the prediction function, epred aside.
   #
   # It is also the modal row class in a sparse partially observed design: where y2 = 0 the
-  # imputation carries no information from the observed margin at all.
+  # imputation draws no information from the observed margin at all.
   set.seed(20260805)
   draws <- posterior_predict_binegbin(1, asym_prep(vint2 = 0L, y2 = 0L))
   expect_length(draws, ND)
@@ -163,7 +163,7 @@ test_that("y2 = 0 makes posterior_predict draw the private component alone", {
 #
 # Everything above runs through a two-vint prep. Most users will never build
 # one: a fully paired design calls binegbin(), passes vint(y2) alone, and lands
-# on a prep with no vint2 at all. That path carries the identical dispersion
+# on a prep with no vint2 at all. That path uses the identical dispersion
 # routing and, before 0.10.0, could not be tested at all -- binegbin() had a
 # single shapex, so shapexone and shapextwo resolved to the same number and no
 # exchange of them was observable.

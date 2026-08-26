@@ -1,0 +1,184 @@
+---
+title: "Choosing priors"
+description: >
+  brms leaves every distributional parameter of a custom family except mu
+  without a prior. What to set instead, in both parameterisations, and where
+  each prior belongs in the class/dpar/nlpar slots.
+bibliography: ../references.bib
+link-citations: true
+---
+
+```{r}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment  = "#>",
+  eval     = FALSE
+)
+```
+
+```{r}
+#| label: libraries
+#| eval: false
+library(brms)
+library(bicountbrms)
+```
+
+brms gives a custom family's `mu` a default `student_t` prior and leaves every
+other distributional parameter flat and improper. For a six-dpar `binegbin()`
+model, `get_prior()` returns
+
+```
+                  prior     class      dpar
+ student_t(3, 1.6, 2.5) Intercept
+                        Intercept lambdaone
+                        Intercept lambdatwo
+                        Intercept    shapes
+                        Intercept shapexone
+                        Intercept shapextwo
+```
+
+An empty `prior` column means an improper uniform on the whole real line. That
+is not brms behaving unusually: for its built-in families the remaining
+parameters are things like a residual standard deviation, for which brms does
+supply a default. A custom family has no such defaults, because brms cannot
+know what its parameters mean. A reader who assumes otherwise, reasonably
+enough from experience with `gaussian()` or `negbinomial()`, has no reason to
+run `get_prior()` at all. That assumption is why this page exists.
+
+## Every parameter identified by the matched rows alone is left improper
+
+Under partial observation the two constructors do not identify every parameter
+equally well. `lambdaone` and `shapexone` appear only on the matched branch of
+the likelihood, as does any between-source bias, so the rows on which the first
+count was recorded are the only rows that inform them. `mu`, `shapes`,
+`lambdatwo` and `shapextwo` appear on both branches, and every row informs them.
+
+Set that division beside the `get_prior()` output above. Every parameter in the
+first group is left without a prior. `shapes` and `shapextwo` are left without
+one as well, although every row informs them, so the containment runs one way
+only. The one parameter brms does supply a prior for, `mu`, is informed by
+every row. Under a design in which few rows are matched, the parameters whose
+posteriors depend most on their priors are all parameters for which no prior
+has been set.
+
+For `bipois_partialobs()` the statement needs one qualification. On an
+unmatched row that family's likelihood involves `mu` only through the sum
+`mu + lambdatwo`, so those rows constrain the total rate of the observed margin
+without dividing it between the shared and the source-specific component.
+Separating `mu` from `lambdatwo`, and so estimating the congruence \eqn{f}, is
+also informed by the matched rows alone.
+
+## The symptom is divergent transitions
+
+Left unregularised, the chains explore the flat tail of an improper prior on a
+log-linked positive parameter, where the likelihood is nearly level and the
+posterior therefore follows the prior. The asymmetric-dispersion fit in
+`tests/testthat/test-binegbin-dispersions.R` required priors on the two rates
+and the three dispersions: run without them it produced 680 divergent
+transitions and a maximum \eqn{\hat{R}} of 1.54, which is to say chains that
+never mixed.
+
+Divergences are the diagnostic to watch here rather than \eqn{\hat{R}} alone.
+This package applies an \eqn{\hat{R}} gate of 1.02 rather than the 1.01 of
+@vehtari2021, for reasons set out in `tests/testthat/helper-coverage.R`, and a
+model can sit inside that gate while still producing divergent transitions.
+
+## A weakly informative prior on each log-scale parameter
+
+Every distributional parameter of every constructor in this package is
+log-linked, so a prior stated on the log scale is lognormal on the natural
+scale.
+
+```{r}
+#| label: prior-recipe
+prior = c(
+  prior(normal(2, 1), class = "Intercept"),                     # log shared rate
+  prior(normal(2, 1), class = "Intercept", dpar = "lambdaone"),
+  prior(normal(2, 1), class = "Intercept", dpar = "lambdatwo"),
+  prior(normal(2, 1), class = "Intercept", dpar = "shapes"),
+  prior(normal(2, 1), class = "Intercept", dpar = "shapexone"),
+  prior(normal(2, 1), class = "Intercept", dpar = "shapextwo")
+)
+```
+
+On the natural scale `normal(2, 1)` places 95% of its mass in roughly
+\eqn{[1, 52]}, which suits rates and dispersions of order 1 to 50.
+`bipois()` and `bipois_partialobs()` have no dispersion parameters, so only the
+three rate lines apply to them.
+
+To adapt these priors to counts on a different scale, shift the **mean** rather
+than widening the standard deviation. Because the link is logarithmic, widening
+a normal prior produces a heavier-tailed lognormal, which places *more* mass in
+the flat region the sampler explores rather than less
+[@smithInstantaneousVsNoninstantaneous2020, supplement 3]. A prior centred at
+the scale of the data and no wider than it needs to be is both more informative
+about what is plausible and better behaved.
+
+## The class, dpar and nlpar slots
+
+The slot a prior occupies depends on how the parameter reached the model, not
+on what the parameter means. A dispersion supplied directly as a distributional
+parameter takes `class = "Intercept"` and `dpar`. A rate supplied through
+`nlf()` takes `class = "b"` and `nlpar`.
+
+```{r}
+#| label: slots
+# lambdaone and lambdatwo tied to one value through a non-linear parameter
+bf(y1 | vint(y2) ~ 1, mu ~ 1,
+   nlf(lambdaone ~ lamx), nlf(lambdatwo ~ lamx),
+   lamx ~ 1, shapes ~ 1, shapexone ~ 1, shapextwo ~ 1, nl = TRUE)
+
+prior = c(
+  prior(normal(2, 1), class = "Intercept"),                     # mu
+  prior(normal(2, 1), class = "b",         nlpar = "lamx"),     # not dpar
+  prior(normal(2, 1), class = "Intercept", dpar  = "shapes")
+)
+```
+
+`get_prior()` on the formula returns the combination each parameter requires,
+and is the reliable way to find it. A prior naming a slot the model does not
+contain is dropped without a warning, which leaves the parameter improper and
+the symptom above unexplained.
+
+That failure mode has one especially easy instance. To impose
+\eqn{\phi_{x1} = \phi_{x2}} the two excess dispersions are routed through a
+single non-linear parameter, described in
+[The families and their parameters](families-and-parameters.html):
+
+```{r}
+#| label: tied
+bf(y1 | vint(y2) ~ 1, mu ~ 1,
+   nlf(shapexone ~ shapexx), nlf(shapextwo ~ shapexx),
+   lamx ~ 1, shapes ~ 1, shapexx ~ 1, nl = TRUE)
+
+prior(normal(0, 1.5), class = "b", nlpar = "shapexx")
+```
+
+Both fields differ from the pre-0.10.0 spelling, which was
+`class = "Intercept", dpar = "shapex"`. A prior written the old way names no
+parameter in the tied model, is dropped silently, and leaves `shapexx` flat.
+
+## Penalised-complexity priors in the (M, f, δ) coordinates
+
+The three rates can be reparameterised as overall level \eqn{M}, congruence
+\eqn{f} and source bias \eqn{\delta}, with each dispersion on the standard
+deviation scale \eqn{\kappa = 1/\sqrt{\phi}}. In those coordinates every
+parameter has a finite null: \eqn{\delta = 0} is no bias between the two
+sources, and \eqn{\kappa = 0} is the Poisson limit exactly, rather than the
+\eqn{\phi \to \infty} of the native scale.
+
+A shrink-to-simpler prior requires a finite null.
+`exponential()` on \eqn{\kappa} and `double_exponential()` on \eqn{\delta} are
+then penalised-complexity priors in the sense of @simpsonPenalisingModelComponent2017:
+they place their mode at the simpler model and require the data to move away
+from it.
+
+[The anatomy of a paired count](paired-count-anatomy.html) sets out that
+argument in full, shows the prior pushforward onto the native scale, and fits a
+model in those coordinates. Read it after this page rather than instead of it:
+the recipes above apply whichever parameterisation is used, because a prior in
+\eqn{(M, f, \delta)} still occupies one of the three slots described here.
+
+## References

@@ -61,7 +61,7 @@ the output can go straight into a `brm()` call or a simulation. That is why
 single `shapex`: no family has had a `shapex` dpar since 0.10.0.
 
 [binegbin_dpars_to_mfd()] is the inverse. It still accepts `shapex`, because
-its input is a stored fit and pre-0.10.0 `binegbin` fits carry that name.
+its input is a stored fit and pre-0.10.0 `binegbin` fits declare that name.
 }
 \details{
 Arguments are recycled to a common length, so this vectorises over posterior
@@ -72,8 +72,8 @@ regardless of `delta` -- the bias becomes unidentifiable, which
 [binegbin_dpars_to_mfd()] reports back as `NA`. This direction is always
 well defined; only the inverse degenerates.
 
-**The two ways to name the excess dispersion.** Both negative-binomial
-constructors carry the pair `shapexone`/`shapextwo`, so that is what this
+**The two spellings of the excess dispersion.** Both negative-binomial
+constructors take the pair `shapexone`/`shapextwo`, so that is what this
 function writes. Supply `kappaxone`/`kappaxtwo` to give the two margins
 different values, or `kappax` to give them the same one -- the symmetric
 model, term for term the pre-0.8.0 likelihood, which a fit reaches by
@@ -85,7 +85,7 @@ Before 0.10.0, `kappax` returned a dpar named `shapex` and
 wanted two different things. There is now one family and one dpar set, so
 both spellings produce it.
 
-**Using these coordinates with the Poisson families.** [bipois()] and
+**These coordinates under the Poisson families.** [bipois()] and
 [bipois_partialobs()] take the same three rates and no dispersion, so call
 this with `M`, `f` and `delta` alone and pass the result straight through.
 There is no `kappa` to supply: the Poisson case is not a dispersion set to a
