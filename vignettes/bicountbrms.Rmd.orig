@@ -224,7 +224,7 @@ knitr::kable(recovery, digits = 2)
 
 The three rates should land tightly on their true values. The three dispersions
 are estimated from an aggregate mean–variance mismatch rather than from any
-directly observed quantity, so their intervals are wider — the two excess
+directly observed quantity, so their intervals are wider; the two excess
 dispersions especially, since they are identified only through the part of the
 pair's spread that the shared component cannot explain. Wide but covering is the
 expected result here, not a warning sign.
@@ -285,9 +285,9 @@ conditional is evaluated over its support $k = 0, \ldots, y_2$ and summed. All
 are exact, and each agrees with the mean of its own `posterior_predict()`
 draws to within Monte Carlo error.
 
-It is returned for every row, including — under `binegbin_partialobs()` and
-`bipois_partialobs()` — those where $y_1$ was never observed. Imputing the
-unobserved margin is what those two constructors are for.
+The conditional expectation is returned for every row, including — under
+`binegbin_partialobs()` and `bipois_partialobs()` — those where $y_1$ was never
+observed. Imputing the unobserved margin is what those two constructors are for.
 
 Call it the ordinary way: `posterior_epred(fit)` dispatches to the family's
 method, as do `fitted()` and `conditional_effects()`. The equivalent direct
@@ -316,7 +316,7 @@ posterior_epred_binegbin(prepare_predictions(fit))
   flag saying whether $y_1$ was recorded. Rows where it was not are scored by
   the integrated-out marginal of this same joint rather than dropped, so they
   still inform $\mu$, $\phi_s$, $\lambda_2$, $\phi_{x2}$ and any group-level
-  effects — and afterwards the fit imputes the missing count conditional on the
+  effects; afterwards the fit imputes the missing count conditional on the
   observed one. Note that $\lambda_1$ and $\phi_{x1}$ are then identified by the
   matched rows alone. Despite its former name, this is unrelated to
   brms's `cens()` addition term, which means a value known to lie in a set.
@@ -326,9 +326,9 @@ posterior_epred_binegbin(prepare_predictions(fit))
   through `nlf()` rather than a separate family, and
   [`binegbin_mfd_to_dpars()`](../reference/binegbin_mfd_to_dpars.html) converts
   between the two. Because $\delta = 0$ and $\kappa = 0$ are finite,
-  interpretable nulls, these coordinates admit penalised-complexity priors
-  [@simpsonPenalisingModelComponent2017], which shrink to the simpler model
-  unless the data support otherwise; the rate parameterisation has no such
+  interpretable nulls, these coordinates admit shrinkage priors towards the
+  simpler model unless the data support otherwise
+  [@simpsonPenalisingModelComponent2017]. The rate parameterisation has no such
   nulls. Worked end to end in the article
   [*The anatomy of a paired count*][anatomy].
 - `bipois_partialobs()` — the same partial observation, equidispersed:

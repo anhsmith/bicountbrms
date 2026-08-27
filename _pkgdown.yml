@@ -21,6 +21,7 @@ articles:
   - articles/partially-observed-fit
 
 - title: Interpretation and history
+  navbar: Interpretation and history
   contents:
   - articles/paired-count-anatomy
   - articles/migration-and-errata

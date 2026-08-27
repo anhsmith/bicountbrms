@@ -18,7 +18,7 @@
 
   `bipois_cens()`, `binegbin_cens()` and the five `binegbin_joint` names are
   **removed outright**. There is no deprecation layer and nothing left to
-  remove at a later version — see the last bullet for what to do if you hold a
+  remove at a later version; see the last bullet for what to do if you hold a
   fit made under those names.
 
 * **`binegbin()` now has six dpars.** `shapex` is gone; both
@@ -75,7 +75,7 @@
 
 * **New tests for the fully paired path.** Most users take the fully paired
   path and, before this release, nothing tested its
-  prediction, expectation or dispersion routing — with a single `shapex` there
+  prediction, expectation or dispersion routing: with a single `shapex` there
   was nothing to get wrong.
 
   - `tests/testthat/test-partialobs-predict.R` replaces `test-cens-predict.R`.
@@ -83,7 +83,7 @@
     each: the same fixtures with `shapexone` and `shapextwo` an order of
     magnitude apart, on a prep with no `vint2`.
   - `tests/testthat/test-unified-vint.R` pins the release criterion that the
-    two shapes agree — for each of `log_lik`, `posterior_predict` and
+    two shapes agree: for each of `log_lik`, `posterior_predict` and
     `posterior_epred`, the one-`vint` path on matched data equals the
     two-`vint` path with the flag set to 1. `log_lik` is the only method that
     reads the flag, so its non-vacuity partner asserts the flag-0 answer
@@ -125,7 +125,7 @@
   symbol to distributional-parameter name, one minimal fit, and links.
 
   Four articles are new, and the site gains an `articles:` section, which it
-  did not have before — neither the get-started vignette nor
+  did not have before: neither the get-started vignette nor
   `paired-count-anatomy` was previously placed on it deliberately.
 
   - *The families and their parameters* — the construction, the moments, the
@@ -134,13 +134,30 @@
     rather than merely bracketed.
   - *Choosing priors* — the improper-defaults fact, the recipes, and which of
     the `class`, `dpar` and `nlpar` slots each prior belongs in. It routes on
-    to `paired-count-anatomy` for penalised-complexity priors in the
+    to `paired-count-anatomy` for shrinkage priors in the
     interpretable coordinates.
   - *A worked partially observed fit* — the first such example in the package.
     A design with 40% of first counts unrecorded is simulated, fitted, and the
     imputed first count scored against the values withheld from the model.
   - *Migration and errata* — what each release changed, the substitutions for
     existing code, and the two corrected numerical results.
+
+* **The recommended priors in the $(M, f, \delta)$ coordinates have changed.**
+  *The anatomy of a paired count* now recommends `normal(0, 0.5)` on `methd`,
+  and `normal(0, 1)` with `lb = 0`, a half-normal, on each of `kappas` and
+  `kappax`. The previous recommendation was `double_exponential(0, 0.5)` and
+  `exponential(1)`. The worked fit in that article was refitted under the new
+  priors: every 90% interval still covers its true value, and no posterior
+  median moved by more than 1%. `exponential(1)` is documented as an
+  alternative of the same shape with a heavier tail.
+
+* **Those priors are no longer called penalised-complexity priors.** They
+  follow the same principles: a base model at zero, and a density decreasing
+  monotonically away from it. The PC construction additionally requires a
+  distance measure derived for the specific model and a constant-rate
+  assumption on that distance, neither of which is established for these
+  families. The wording is corrected in `README.md`, the get-started vignette,
+  *Choosing priors* and *The anatomy of a paired count*.
 
 * **If you hold a fit made with `bipois_cens()`, `binegbin_cens()` or
   `binegbin_joint()`**, install the last version that defined them — 0.9.1 —

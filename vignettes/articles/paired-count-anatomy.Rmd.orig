@@ -2,7 +2,7 @@
 title: "The anatomy of a paired count"
 description: >
   What a pair of counts is made of, and the two coordinate systems you can
-  describe it in — interactively, with every knob linked to every other.
+  describe it in. Interactive, with every knob linked to every other.
 bibliography: ../references.bib
 link-citations: true
 ---
@@ -44,7 +44,7 @@ each driving the other**.
 
 ## Why two coordinate systems
 
-The dpars a family actually takes are three rates — `mu` for the shared
+The dpars a family actually takes are three rates: `mu` for the shared
 component, `lambdaone` and `lambdatwo` for the two excesses. That is what the
 likelihood takes, but it is awkward to reason in: raise the overall level of
 counting and all three move together, so no single one of them answers "how
@@ -56,10 +56,10 @@ Those three questions have their own coordinates:
 | | | |
 |---|---|---|
 | $M$ | overall level | $\mu + (\lambda_1 + \lambda_2)/2$ |
-| $f$ | congruence — the share of $M$ both sources saw | $\mu / M$ |
+| $f$ | congruence, the share of $M$ both sources saw | $\mu / M$ |
 | $\beta$ | source bias, bounded on $[-1,1]$ | $(\lambda_1 - \lambda_2)/(\lambda_1 + \lambda_2)$ |
 
-The map between them is a bijection, so neither set is more "real" — they are
+The map between them is a bijection, so neither set is more "real": they are
 two descriptions of one object. Drag anything below and watch the other five
 respond.
 
@@ -439,7 +439,7 @@ respond.
 ## Things to try
 
 **Turn `f` up towards 1.** Both excess rates fall to zero and the two bars
-converge — the sources agree completely. Now notice what happens to $\beta$: it
+converge: the sources agree completely. Now notice what happens to $\beta$: it
 stops meaning anything. There is no excess left to be biased, so the bias is
 *unidentified*, and the widget flags it and holds the last value rather than
 snapping to zero. Zero would be a claim (the methods are unbiased) that the
@@ -451,24 +451,24 @@ simultaneously. This is exactly why the native coordinates are awkward to
 reason in, and it is much easier to see than to describe.
 
 **Turn $\beta$ up and watch $M$.** The two bars separate, but the $M$ rule
-does not move — it stays at their *average*, touching neither. The average of
+does not move: it stays at their *average*, touching neither. The average of
 the two excess rates is $M(1-f)$ for any $\beta$, so $M$ is pinned to the
 midpoint whatever the bias. $M$ is a midpoint of what the sources *report*, not
 a property of the underlying process.
 
 **Compare $\kappa_A$ against $\kappa_X$.** They are near-orthogonal channels.
-$\kappa_A$ moves the pair up and down *together* — it cannot touch the
-difference, because the shared component cancels from it. $\kappa_X$ pulls the
-pair *apart*, and drives the whole difference.
+$\kappa_A$ moves the pair up and down *together*, and cannot alter the
+difference, because the shared component cancels out of that difference.
+$\kappa_X$ pulls the pair *apart*, and drives the whole difference.
 
 **Push $\kappa_A$ to 0.** The counts do not stop moving. That is the Poisson
 floor, not determinism: there is no parameter setting that stills the stacks.
 
 ## The same map, in R
 
-The widget's arithmetic is not a separate model — it is the package's own map,
-which you can call directly. This is the authoritative version, and it is what
-the JavaScript above is checked against:
+The widget's arithmetic is not a separate model: it is the package's own map,
+which you can call directly. The R code below is the authoritative version, and
+the JavaScript above is checked against it:
 
 ```{r}
 #| label: map
@@ -497,9 +497,9 @@ binegbin_dpars_to_mfd(mu = 12, lambdaone = 0, lambdatwo = 0)$delta
 
 ## Fitting in these coordinates
 
-Nothing above fits anything — those are coordinate transforms. To *fit* in
-$(M, f, \delta)$ you do not need a different family: the reparameterisation is
-reachable through a non-linear formula, with
+Nothing above fits a model: the map and its inverse are coordinate transforms.
+To *fit* in $(M, f, \delta)$ you do not need a different family: the
+reparameterisation is reachable through a non-linear formula, with
 
 $$\eta = \log M, \qquad \mathrm{con} = \operatorname{logit} f,
 \qquad \mathrm{methd} = \delta.$$
@@ -507,11 +507,11 @@ $$\eta = \log M, \qquad \mathrm{con} = \operatorname{logit} f,
 Every dpar is log-linked, so each formula below is written on the log scale and
 the link supplies the `exp()`. That includes the two dispersions: writing
 `shapes` as $-2\log\kappa_s$ gives $\text{shapes} = e^{-2\log\kappa_s} =
-1/\kappa_s^2$, so the model is estimated in $\kappa$ — the SD-scale dispersion
-the widget above uses — rather than in $\phi$.
+1/\kappa_s^2$, so the model is estimated in $\kappa$, the SD-scale dispersion
+the widget above uses, rather than in $\phi$.
 
-That is worth the detour, because a shrink-to-simpler prior requires a finite
-null.
+Estimating in $\kappa$ is worth the detour, because a shrinkage prior requires a
+finite null.
 
 ### Priors that default to the simpler model
 
@@ -521,27 +521,55 @@ For the native distributional parameters — which prior goes in which of the
 default — see [Choosing priors](choosing-priors.html), which is the page to
 read first.
 
-Three of these coordinates have a **null at a finite, interpretable zero**,
-which is the setting penalised-complexity priors are constructed for
-[@simpsonPenalisingModelComponent2017]: an exponential prior is placed on the
-distance from the base model, so the fit shrinks to the simpler model unless the
-data support the more complex one.
+Three of these coordinates have a **null at a finite, interpretable zero**. The
+priors below follow from three statements about that null. Zero is the base
+model: $\kappa = 0$ is a Poisson component, $\delta = 0$ is no bias between the
+two sources. A coordinate's effect on the fit grows as it moves away from zero.
+The prior's density should therefore decrease monotonically away from zero,
+leaving the data rather than the prior to move the estimate off the base model.
+
+The third statement is Occam's razor in the sense of
+@simpsonPenalisingModelComponent2017 (their Principle 1), with the scale chosen
+by what the analyst is willing to permit (their Principle 4). These priors
+follow the same principles as
+penalised-complexity priors: a base model at zero, and a density decaying away
+from it. They are not PC priors in the strict sense, which would require a
+distance measure derived for this family and a constant-rate assumption on that
+distance. Neither is established here.
 
 | coordinate | base model | prior |
 |---|---|---|
-| $\delta$ (`methd`) | $0$ — no method bias, $\lambda_1 = \lambda_2$ | `double_exponential(0, 0.5)` |
-| $\kappa_s$ (`kappas`) | $0$ — Poisson shared component | `exponential(1)`, $\kappa \ge 0$ |
-| $\kappa_x$ (`kappax`) | $0$ — Poisson private components | `exponential(1)`, $\kappa \ge 0$ |
+| $\delta$ (`methd`) | $0$ — no method bias, $\lambda_1 = \lambda_2$ | `normal(0, 0.5)` |
+| $\kappa_s$ (`kappas`) | $0$ — Poisson shared component | `normal(0, 1)`, $\kappa \ge 0$ |
+| $\kappa_x$ (`kappax`) | $0$ — Poisson private components | `normal(0, 1)`, $\kappa \ge 0$ |
 | $\operatorname{logit} f$ (`con`) | none — deliberately, see below | `normal(0, 1.5)` |
 
 Note what changes on the $\kappa$ scale. In $\phi$ the Poisson limit is $\phi \to \infty$,
-so there is no finite point to shrink towards and an exponential prior on $\phi$
-would pull towards *maximum* overdispersion — precisely backwards. In $\kappa$
-the limit is $\kappa = 0$, and the obvious prior does the obvious thing.
+so there is no finite point to shrink towards, and a density decaying from zero
+would pull towards *maximum* overdispersion. In $\kappa$ the limit is $\kappa =
+0$, so the same density shrinks towards Poisson.
 
-Those four **transfer between datasets unchanged**, because every one of them is
-scale-free: a log-ratio, two coefficient-of-variation-like quantities, and a
-proportion. None of them refers to how big the counts are.
+Those four priors **transfer between datasets unchanged**, because every one of
+them is scale-free: a log-ratio, two coefficient-of-variation-like quantities,
+and a proportion. None of them refers to how big the counts are.
+
+**The scale sets what the prior permits.** On $\kappa$, `lb = 0` makes
+`normal(0, 1)` a half-normal, which places 5% of its mass beyond $\kappa =
+1.96$. Since $\kappa$ is the overdispersion standard deviation as a multiple of
+the mean, that permits a component whose excess variation has a standard
+deviation about twice its own mean. Whether that is generous or restrictive
+depends on the counts being modelled. The coordinate is scale-free, so 1.96
+means the same thing whatever the counts; whether it is a plausible upper reach
+for yours is the question to settle before adopting the scale used here.
+
+`exponential(1)` is an alternative of the same shape, with its maximum at zero,
+decaying monotonically, and a heavier tail. The two agree at the median to
+within 3% ($0.693$ against $0.674$) and separate further out: 5.0% of the
+exponential's mass lies beyond $\kappa = 3$, against 0.27% of the
+half-normal's. Either satisfies the three statements above, so the choice is how
+much overdispersion the prior permits before the data are consulted.
+@simpsonPenalisingModelComponent2017 §3.2 discusses heavy tails and their
+numerical behaviour.
 
 **Congruence is deliberately not shrunk either way.** Both ends of $f$ are
 degenerate — at $f = 1$ there is no excess left, so $\delta$ becomes
@@ -549,12 +577,14 @@ unidentified; at $f = 0$ there is no shared component at all — and neither is 
 natural null for a method comparison. `normal(0, 1.5)` on $\operatorname{logit}
 f$ is close to flat over the interior (implied density within 10% of uniform
 across $f \in [0.1, 0.9]$) while falling away at both boundaries, so it declines
-to take a side.
+to take a side. @mcelreath2020 makes the same case for that prior on a
+logit-scale parameter, against the wider normals, which place nearly all their
+mass near $f = 0$ and $f = 1$.
 
-### The level is the one you have to set yourself
+### Setting the prior on $M$ from your own counts
 
-$M$ is the only coordinate on the counts' own scale, so it is the only prior
-here that cannot have a universal default — set it from your own counts.
+$M$ is the only coordinate on the counts' own scale, so its prior is the only
+one here without a universal default. Set that prior from your own counts.
 
 `normal(4, 1.5)` is used below, which covers roughly 3 to 1000 counts per
 sampling unit and suits the simulated data. For sparser data, lower the mean:
@@ -565,12 +595,13 @@ $\log M$, so a normal prior on it is a lognormal on $M$, and widening one pushes
 mass out to implausible values instead of making it neutral
 [@smithInstantaneousVsNoninstantaneous2020, supplement 3].
 
-A prior is weakly informative only on the scale it is stated on. These are
-stated on the linear-predictor scale — $\log M$, $\operatorname{logit} f$ — so
-what matters is the density they imply after the change of variables, on the
-scale being interpreted. Those implied densities are plotted below, with
-$\delta$ shown as the bounded bias $\beta = \tanh\delta$, the fractional
-imbalance of excess between the two sources:
+A prior written on one scale induces a different density on any other. Being
+weakly informative on the first does not make it so on the second. These are
+written on the linear-predictor scale — $\log M$, $\operatorname{logit} f$ — so
+what matters is the density they induce after the change of variables, on the
+scale being interpreted [@mcelreath2020]. Those induced densities are plotted
+below, with $\delta$ shown as the bounded bias $\beta = \tanh\delta$, the
+fractional imbalance of excess between the two sources:
 
 ```{r}
 #| label: prior-pushforward
@@ -579,8 +610,6 @@ imbalance of excess between the two sources:
 #| fig.alt: >
 #|   Four panels showing the implied prior density on the interpretable scale:
 #|   overall level M, congruence f, bounded bias beta, and dispersion kappa.
-dlaplace <- function(x, b) exp(-abs(x) / b) / (2 * b)
-
 op <- par(mfrow = c(2, 2), mar = c(4.1, 4.1, 2.6, 1.1), bty = "n")
 
 # eta ~ normal(4, 1.5) on log M  =>  M is lognormal
@@ -598,19 +627,20 @@ plot(f, dnorm(qlogis(f), 0, 1.5) / (f * (1 - f)), type = "l", lwd = 2,
 abline(h = 1, lty = 3)                      # uniform, for comparison
 mtext("dotted line = uniform", side = 3, line = -1.1, cex = 0.7, adj = 0.97)
 
-# methd ~ double_exponential(0, 0.5) on delta; beta = tanh(delta)
+# methd ~ normal(0, 0.5) on delta; beta = tanh(delta)
 beta <- seq(-0.985, 0.985, length.out = 200)
-plot(beta, dlaplace(atanh(beta), 0.5) / (1 - beta^2), type = "l", lwd = 2,
+plot(beta, dnorm(atanh(beta), 0, 0.5) / (1 - beta^2), type = "l", lwd = 2,
      col = "#C4622D",
      xlab = expression(beta == tanh(delta) ~ "  (method bias)"),
-     ylab = "density", main = "PC prior: shrinks to no bias")
+     ylab = "density", main = "shrinks to no bias")
 abline(v = 0, lty = 3)
 
-# kappas, kappax ~ exponential(1); kappa = 0 IS the Poisson limit
+# kappas, kappax ~ normal(0, 1) with lb = 0, i.e. half-normal;
+# kappa = 0 IS the Poisson limit
 k <- seq(0, 4, length.out = 200)
-plot(k, dexp(k, 1), type = "l", lwd = 2, col = "#6B5D4F",
+plot(k, 2 * dnorm(k, 0, 1), type = "l", lwd = 2, col = "#6B5D4F",
      xlab = expression(kappa ~ "  (dispersion, SD scale)"),
-     ylab = "density", main = "PC prior: shrinks to Poisson")
+     ylab = "density", main = "shrinks to Poisson")
 abline(v = 0, lty = 3)
 mtext(expression(kappa == 0 ~ "is Poisson"), side = 3, line = -1.1,
       cex = 0.7, adj = 0.97)
@@ -618,10 +648,10 @@ mtext(expression(kappa == 0 ~ "is Poisson"), side = 3, line = -1.1,
 par(op)
 ```
 
-The two penalised-complexity priors concentrate mass at the null and decay away
+The priors on $\beta$ and $\kappa$ concentrate mass at the null and decay away
 from it. The prior on $f$ is flat across the interior and declines only where
-the model degenerates. None is tight enough to dominate 400 observations; the
-fit below tests that.
+the model degenerates. None is tight enough to dominate 400 observations, and the
+fit below tests that claim.
 
 Simulate a pair of counts from known coordinates:
 
@@ -679,11 +709,11 @@ fit <- brm(
   stanvars = binegbin_stanvars(),
   data     = dat,
   prior    = c(
-    prior(normal(4, 1.5),             class = "b", nlpar = "eta"),
-    prior(normal(0, 1.5),             class = "b", nlpar = "con"),
-    prior(double_exponential(0, 0.5), class = "b", nlpar = "methd"),
-    prior(exponential(1),             class = "b", nlpar = "kappas", lb = 0),
-    prior(exponential(1),             class = "b", nlpar = "kappax", lb = 0)
+    prior(normal(4, 1.5), class = "b", nlpar = "eta"),
+    prior(normal(0, 1.5), class = "b", nlpar = "con"),
+    prior(normal(0, 0.5), class = "b", nlpar = "methd"),
+    prior(normal(0, 1),   class = "b", nlpar = "kappas", lb = 0),
+    prior(normal(0, 1),   class = "b", nlpar = "kappax", lb = 0)
   ),
   chains  = 2,
   iter    = 2000,
@@ -693,7 +723,7 @@ fit <- brm(
 )
 ```
 
-The coordinates come back off the posterior directly — `eta` exponentiates to
+The coordinates are read off the posterior directly: `eta` exponentiates to
 $M$, `con` inverse-logits to $f$, and `methd` and the two `kappa`s *are* the
 coordinates themselves, with no transformation needed:
 
@@ -719,7 +749,7 @@ knitr::kable(
 ```
 
 Because the map is a bijection, the same posterior can be read in native dpars
-without refitting — push the draws back through
+without refitting: push the draws back through
 [`binegbin_mfd_to_dpars()`](../reference/binegbin_mfd_to_dpars.html):
 
 ```{r}
@@ -749,13 +779,13 @@ changes the level and the congruence at once.
 
 ## A caveat about the widget
 
-The JavaScript is an independent implementation of the *generative* model — it
+The JavaScript is an independent implementation of the *generative* model: it
 draws from the same trivariate reduction, but it is not the likelihood, and no
 part of the package's inference runs in your browser. The rate map it uses is
 the one tested in `test-mfd.R`; the sampler is illustrative. Treat the picture
 as intuition, and the R above as the specification.
 
-It also shows ONE excess-dispersion dial. `binegbin()` estimates two,
+The widget also shows ONE excess-dispersion dial. `binegbin()` estimates two,
 `shapexone` and `shapextwo`, and the (M, f, delta) coordinates this article
 is about use one `kappax` for both -- so the dial sets both to the same
 value, which is the symmetric special case. Freeing them means giving each

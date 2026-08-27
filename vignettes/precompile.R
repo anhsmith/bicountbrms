@@ -33,6 +33,26 @@ stopifnot(
     requireNamespace("rstan", quietly = TRUE)
 )
 
+# STALE INSTALL. A knit against an out-of-date installed bicountbrms does not
+# fail. knitr captures the errors as chunk output and exits 0, so the result is
+# an article carrying `#> Error` where the fitted numbers should be. That
+# happened at 0.10.0 against an installed 0.9.0, whose binegbin() still declared
+# five dpars and whose binegbin_mfd_to_dpars() still emitted `shapex`; the knit
+# reported success and the article was wrong. Compare the versions rather than
+# trusting the exit code.
+if (!requireNamespace("bicountbrms", quietly = TRUE)) {
+  stop("bicountbrms is not installed. Run R CMD INSTALL . first.", call. = FALSE)
+}
+local({
+  installed <- as.character(utils::packageVersion("bicountbrms"))
+  declared  <- as.character(read.dcf("DESCRIPTION")[1, "Version"])
+  if (!identical(installed, declared)) {
+    stop(sprintf(
+      "installed bicountbrms is %s but DESCRIPTION declares %s.\n  Run R CMD INSTALL . before precompiling.",
+      installed, declared), call. = FALSE)
+  }
+})
+
 # input/output are relative to the directory each pair lives in, so knitr
 # resolves any relative paths inside the document the same way a build would.
 # Every target here fits at least one model, which is why it is precompiled.

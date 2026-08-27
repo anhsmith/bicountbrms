@@ -89,6 +89,9 @@
 #     NB2(k | mu, shapes) NB2(x-k | lambdaone, shapexone)
 #                         NB2(y-k | lambdatwo, shapextwo)
 #
+# The Poisson form of this sum is Campbell (1934) eq. (2.2); replacing each
+# Poisson factor with NB2 is the generalisation this package implements.
+#
 # This is NOT a "two stacked marginalisations" problem
 # (Gamma-mixing a Poisson while keeping it Poisson): the components are
 # DIRECTLY NegBin, so the marginalisation sum is the same finite sum as

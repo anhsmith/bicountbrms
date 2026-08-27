@@ -21,6 +21,9 @@
 #   P(y1=x, y2=y) = sum_{k=0}^{min(x,y)}
 #     P(N_shared=k) P(N1=x-k) P(N2=y-k)
 #
+# which is Campbell (1934) eq. (2.2): Campbell, J. T., The Poisson correlation
+# function, Proc. Edin. Math. Soc. (2) 4:18-26.
+#
 # rather than evaluated as a naive per-k sum of three separate Poisson
 # lpmfs, the Stan implementation below uses the cited bipois2 incremental
 # recurrence: the k=0 term is computed directly, and each subsequent term

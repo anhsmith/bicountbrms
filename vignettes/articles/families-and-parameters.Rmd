@@ -42,7 +42,8 @@ P(y_1 = x,\ y_2 = y) = \sum_{k=0}^{\min(x,y)}
 $$
 
 where \eqn{f_{\text{s}}}, \eqn{f_1} and \eqn{f_2} are the probability mass
-functions of the three latent counts. The first source is the modelled
+functions of the three latent counts. With Poisson components this sum is
+Campbell's [-@campbell1934] equation (2.2). The first source is the modelled
 response; the second is supplied as supplementary integer data through
 `vint()`, because `brms::custom_family()` declares a single response column.
 
@@ -104,6 +105,23 @@ excess dispersions therefore changes both margins and the difference, and
 leaves the covariance unchanged; the correlation moves only through its
 denominator.
 
+Two features of that covariance bound what the construction can represent. The
+covariance is a variance, so it cannot be negative: both families represent
+non-negative association only. It is also bounded above, because the shared
+count contributes to both observed variances,
+
+$$
+0 \le \rho \le
+  \min\!\left(\sqrt{V_1 / V_2},\ \sqrt{V_2 / V_1}\right),
+$$
+
+for \eqn{V_1} and \eqn{V_2} the variances of the two observed counts, with the
+upper bound attained only when one source has no private component. In the
+Poisson case each variance equals its mean, and this is the ceiling Holgate
+[-@holgate1964] states and calls the drawback. A construction admitting negative
+correlation gives up the shared latent count, which is the quantity these
+families estimate.
+
 An observation-level random effect on the source-specific components would be
 the obvious alternative to a scalar dispersion, and it fails synthetic
 recovery. With one observed pair per unit but three latent deviates per unit,
@@ -141,16 +159,16 @@ shapexone[n] = exp(nlp_shapexx[n]);
 shapextwo[n] = exp(nlp_shapexx[n]);
 ```
 
-That is worth checking rather than assuming, because an untied model would
-still compile and still sample: it would quietly fit the six-parameter model
-the formula was meant to constrain.
+The tie is worth checking in the generated code rather than assuming, because an
+untied model would still compile and still sample: it would quietly fit the
+six-parameter model the formula was meant to constrain.
 `tests/testthat/test-stancode-shape.R` pins both lines.
 
 A prior on the tied parameter is written with `class = "b"` and
 `nlpar = "shapexx"`. Both fields differ from the pre-0.10.0 spelling, which was
 `class = "Intercept"` with `dpar = "shapex"`. A prior written the old way names
 no parameter in the tied model and is dropped without a warning, which leaves
-the dispersion improper — see [Choosing priors](choosing-priors.html).
+the dispersion improper; see [Choosing priors](choosing-priors.html).
 
 Under full pairing every row informs both dispersions. Under partial
 observation the two are not equally identified: `shapextwo` governs the
@@ -283,8 +301,8 @@ c(true_log_ratio = log(truth$shapexone) - log(truth$shapextwo),
 ```
 
 The 95% posterior interval for \eqn{\log \phi_{x1} - \log \phi_{x2}} excludes
-zero, so the data separate the two dispersions rather than the priors doing so —
-both priors are identical, and centred at a log ratio of zero.
+zero, so the data separate the two dispersions rather than the priors: both
+priors are identical, and centred at a log ratio of zero.
 
 
 ``` r

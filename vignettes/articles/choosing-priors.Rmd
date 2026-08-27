@@ -88,8 +88,9 @@ model can sit inside that gate while still producing divergent transitions.
 ## A weakly informative prior on each log-scale parameter
 
 Every distributional parameter of every constructor in this package is
-log-linked, so a prior stated on the log scale is lognormal on the natural
-scale.
+log-linked, so a prior written on the log scale is lognormal on the natural
+scale. Check its quantiles on the natural scale, where the parameter is
+interpreted [@mcelreath2020].
 
 ```{r}
 #| label: prior-recipe
@@ -160,7 +161,7 @@ Both fields differ from the pre-0.10.0 spelling, which was
 `class = "Intercept", dpar = "shapex"`. A prior written the old way names no
 parameter in the tied model, is dropped silently, and leaves `shapexx` flat.
 
-## Penalised-complexity priors in the (M, f, δ) coordinates
+## Shrinkage priors in the (M, f, δ) coordinates
 
 The three rates can be reparameterised as overall level \eqn{M}, congruence
 \eqn{f} and source bias \eqn{\delta}, with each dispersion on the standard
@@ -169,11 +170,12 @@ parameter has a finite null: \eqn{\delta = 0} is no bias between the two
 sources, and \eqn{\kappa = 0} is the Poisson limit exactly, rather than the
 \eqn{\phi \to \infty} of the native scale.
 
-A shrink-to-simpler prior requires a finite null.
-`exponential()` on \eqn{\kappa} and `double_exponential()` on \eqn{\delta} are
-then penalised-complexity priors in the sense of @simpsonPenalisingModelComponent2017:
-they place their mode at the simpler model and require the data to move away
-from it.
+A shrinkage prior requires a finite null. A half-normal on \eqn{\kappa}
+and a normal on \eqn{\delta} place their maximum at the simpler model and decay
+away from it, so the data rather than the prior must move the fit. They follow
+the principles of @simpsonPenalisingModelComponent2017, a base model at zero and
+a density decaying away from it, without being penalised-complexity priors in
+the strict sense.
 
 [The anatomy of a paired count](paired-count-anatomy.html) sets out that
 argument in full, shows the prior pushforward onto the native scale, and fits a

@@ -103,7 +103,7 @@ side of the formula; the labelling means nothing further.
 - [A worked partially observed fit][partial] — imputing a count that was never
   recorded, scored against values withheld from the model.
 - [The anatomy of a paired count][anatomy] — overall level, congruence and
-  source bias as coordinates, with penalised-complexity priors.
+  source bias as coordinates, with shrinkage priors.
 - [Migration and errata][migration] — what each release changed, and two
   corrected results.
 
@@ -121,8 +121,9 @@ packages were formerly distributed together as `pairedcountbrms`; see
 citation("bicountbrms")
 ```
 
-The construction is due to Holgate (1964), and its regression form to Karlis
-and Ntzoufras (2003, 2006). Full references are given in [The families and
+Holgate (1964) states the trivariate-reduction representation and gives
+maximum-likelihood estimation for it; the regression form is due to Karlis and
+Ntzoufras (2003). Full references are given in [The families and
 their parameters][families].
 
 [started]: https://anhsmith.github.io/bicountbrms/articles/bicountbrms.html
