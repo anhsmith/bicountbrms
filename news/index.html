@@ -23,7 +23,9 @@
     <li><a class="dropdown-item" href="../articles/choosing-priors.html">Choosing priors</a></li>
     <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Interpretation and history</h6></li>
+    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+    <li><a class="dropdown-item" href="../articles/migration-and-errata.html">Migration and errata</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -54,7 +56,7 @@
 <td><code><a href="../reference/binegbin.html">binegbin()</a></code></td>
 <td><code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code></td>
 </tr></tbody></table><p>Both constructors of a pair return the <em>same</em> <code>custom_family</code> name, so there is one Stan <code>_lpmf</code> and one set of <code>log_lik_*</code> / <code>posterior_predict_*</code> / <code>posterior_epred_*</code> methods per component distribution. They differ only in whether the observation flag reaches the likelihood as data or as a constant. A user fitting fully paired data never has to supply the flag, or know it exists.</p>
-<p><code>bipois_cens()</code>, <code>binegbin_cens()</code> and the five <code>binegbin_joint</code> names are <strong>removed outright</strong>. There is no deprecation layer and nothing left to remove at a later version — see the last bullet for what to do if you hold a fit made under those names.</p>
+<p><code>bipois_cens()</code>, <code>binegbin_cens()</code> and the five <code>binegbin_joint</code> names are <strong>removed outright</strong>. There is no deprecation layer and nothing left to remove at a later version; see the last bullet for what to do if you hold a fit made under those names.</p>
 </li>
 <li>
 <p><strong><code><a href="../reference/binegbin.html">binegbin()</a></code> now has six dpars.</strong> <code>shapex</code> is gone; both excess components have their own dispersion, <code>shapexone</code> and <code>shapextwo</code>, as <code>binegbin_cens()</code> has had since 0.8.0. This is the change the release exists for. The capability was on the wrong family: in a partially paired design the unmatched rows inform only <code>shapextwo</code>, so <code>shapexone</code> is identified by the matched rows alone, whereas in a fully paired design every row informs both and they are as easy to identify as they ever get.</p>
@@ -74,11 +76,11 @@ binegbin_partialobs()  target += binegbin_lpmf(Y[n] | ..., vint1[n], vint2[n]);<
 <p>That pasting behaviour is not a documented brms guarantee, so <code>tests/testthat/test-stancode-shape.R</code> pins it: it asserts the exact call each constructor generates and that the one-<code>vint</code> <code><a href="https://paulbuerkner.com/brms/reference/standata.html" class="external-link">standata()</a></code> contains no <code>vint2</code>. It needs brms but no Stan toolchain, so it runs in the fast suite.</p>
 </li>
 <li>
-<p><strong>New tests for the fully paired path.</strong> Most users take the fully paired path and, before this release, nothing tested its prediction, expectation or dispersion routing — with a single <code>shapex</code> there was nothing to get wrong.</p>
+<p><strong>New tests for the fully paired path.</strong> Most users take the fully paired path and, before this release, nothing tested its prediction, expectation or dispersion routing: with a single <code>shapex</code> there was nothing to get wrong.</p>
 <ul><li>
 <code>tests/testthat/test-partialobs-predict.R</code> replaces <code>test-cens-predict.R</code>. It keeps all five of that file’s blocks and adds a one-<code>vint</code> mirror of each: the same fixtures with <code>shapexone</code> and <code>shapextwo</code> an order of magnitude apart, on a prep with no <code>vint2</code>.</li>
 <li>
-<code>tests/testthat/test-unified-vint.R</code> pins the release criterion that the two shapes agree — for each of <code>log_lik</code>, <code>posterior_predict</code> and <code>posterior_epred</code>, the one-<code>vint</code> path on matched data equals the two-<code>vint</code> path with the flag set to 1. <code>log_lik</code> is the only method that reads the flag, so its non-vacuity partner asserts the flag-0 answer <em>differs</em>; the other two ignore the flag by design, and that is asserted rather than left implicit.</li>
+<code>tests/testthat/test-unified-vint.R</code> pins the release criterion that the two shapes agree: for each of <code>log_lik</code>, <code>posterior_predict</code> and <code>posterior_epred</code>, the one-<code>vint</code> path on matched data equals the two-<code>vint</code> path with the flag set to 1. <code>log_lik</code> is the only method that reads the flag, so its non-vacuity partner asserts the flag-0 answer <em>differs</em>; the other two ignore the flag by design, and that is asserted rather than left implicit.</li>
 <li>
 <code>tests/testthat/test-dpar-compat.R</code> gains the stored-fit shape (below).</li>
 </ul></li>
@@ -89,16 +91,18 @@ binegbin_partialobs()  target += binegbin_lpmf(Y[n] | ..., vint1[n], vint2[n]);<
 </li>
 <li>
 <p><strong>The README is now an orientation page.</strong> It ran to about 5,700 words, which is not a length anyone reads, and it set out the construction, the moments, prior guidance, validation and the release history. It is now about 800: what the package is, how to install it, the four constructors in a table, the notation bridge from symbol to distributional-parameter name, one minimal fit, and links.</p>
-<p>Four articles are new, and the site gains an <code>articles:</code> section, which it did not have before — neither the get-started vignette nor <code>paired-count-anatomy</code> was previously placed on it deliberately.</p>
+<p>Four articles are new, and the site gains an <code>articles:</code> section, which it did not have before: neither the get-started vignette nor <code>paired-count-anatomy</code> was previously placed on it deliberately.</p>
 <ul><li>
 <em>The families and their parameters</em> — the construction, the moments, the native distributional parameters, and a fitted demonstration that two excess dispersions an order of magnitude apart are resolved as different rather than merely bracketed.</li>
 <li>
-<em>Choosing priors</em> — the improper-defaults fact, the recipes, and which of the <code>class</code>, <code>dpar</code> and <code>nlpar</code> slots each prior belongs in. It routes on to <code>paired-count-anatomy</code> for penalised-complexity priors in the interpretable coordinates.</li>
+<em>Choosing priors</em> — the improper-defaults fact, the recipes, and which of the <code>class</code>, <code>dpar</code> and <code>nlpar</code> slots each prior belongs in. It routes on to <code>paired-count-anatomy</code> for shrinkage priors in the interpretable coordinates.</li>
 <li>
 <em>A worked partially observed fit</em> — the first such example in the package. A design with 40% of first counts unrecorded is simulated, fitted, and the imputed first count scored against the values withheld from the model.</li>
 <li>
 <em>Migration and errata</em> — what each release changed, the substitutions for existing code, and the two corrected numerical results.</li>
 </ul></li>
+<li><p><strong>The recommended priors in the <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mo>,</mo><mi>f</mi><mo>,</mo><mi>δ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(M, f, \delta)</annotation></semantics></math> coordinates have changed.</strong> <em>The anatomy of a paired count</em> now recommends <code>normal(0, 0.5)</code> on <code>methd</code>, and <code>normal(0, 1)</code> with <code>lb = 0</code>, a half-normal, on each of <code>kappas</code> and <code>kappax</code>. The previous recommendation was <code>double_exponential(0, 0.5)</code> and <code>exponential(1)</code>. The worked fit in that article was refitted under the new priors: every 90% interval still covers its true value, and no posterior median moved by more than 1%. <code>exponential(1)</code> is documented as an alternative of the same shape with a heavier tail.</p></li>
+<li><p><strong>Those priors are no longer called penalised-complexity priors.</strong> They follow the same principles: a base model at zero, and a density decreasing monotonically away from it. The PC construction additionally requires a distance measure derived for the specific model and a constant-rate assumption on that distance, neither of which is established for these families. The wording is corrected in <code>README.md</code>, the get-started vignette, <em>Choosing priors</em> and <em>The anatomy of a paired count</em>.</p></li>
 <li><p><strong>If you hold a fit made with <code>bipois_cens()</code>, <code>binegbin_cens()</code> or <code>binegbin_joint()</code></strong>, install the last version that defined them — 0.9.1 — and keep it on the search path for that fit. brms resolves post-processing late, by looking up <code>log_lik_&lt;name&gt;</code> from the stored family name at call time, so <code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code> and <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> need the methods of the version the fit was made under. No argument to those calls can route around it, and 0.10.0 deliberately ships no shim: pinning the whole package is a stronger guarantee than a hand-picked subset of forwarders, and the one project with such fits already pins 0.9.1 in its own <code>renv.lock</code>. # bicountbrms 0.9.1</p></li>
 <li><p><strong>No behaviour change.</strong> Nothing in the four families’ likelihoods, predictions or expectations differs from 0.9.0. This release adds test coverage that was missing and corrects a claim in the README the suite did not support. No fitted model is affected and no code needs changing.</p></li>
 <li>

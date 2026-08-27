@@ -114,7 +114,7 @@ side of the formula; the labelling means nothing further.
 - [The anatomy of a paired
   count](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html)
   — overall level, congruence and source bias as coordinates, with
-  penalised-complexity priors.
+  shrinkage priors.
 - [Migration and
   errata](https://anhsmith.github.io/bicountbrms/articles/migration-and-errata.html)
   — what each release changed, and two corrected results.
@@ -136,9 +136,10 @@ errata](https://anhsmith.github.io/bicountbrms/articles/migration-and-errata.htm
 citation("bicountbrms")
 ```
 
-The construction is due to Holgate (1964), and its regression form to
-Karlis and Ntzoufras (2003, 2006). Full references are given in [The
-families and their
+Holgate (1964) states the trivariate-reduction representation and gives
+maximum-likelihood estimation for it; the regression form is due to
+Karlis and Ntzoufras (2003). Full references are given in [The families
+and their
 parameters](https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.html).
 
 # Package index
@@ -228,7 +229,7 @@ coordinates of overall level, congruence, and source bias.
   count](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.md):
 
   What a pair of counts is made of, and the two coordinate systems you
-  can describe it in — interactively, with every knob linked to every
+  can describe it in. Interactive, with every knob linked to every
   other.
 
 - [Migration and

@@ -227,7 +227,7 @@ knitr::kable(recovery, digits = 2)
 The three rates should land tightly on their true values. The three
 dispersions are estimated from an aggregate mean–variance mismatch
 rather than from any directly observed quantity, so their intervals are
-wider — the two excess dispersions especially, since they are identified
+wider; the two excess dispersions especially, since they are identified
 only through the part of the pair’s spread that the shared component
 cannot explain. Wide but covering is the expected result here, not a
 warning sign.
@@ -316,7 +316,7 @@ agrees with the mean of its own
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
 draws to within Monte Carlo error.
 
-It is returned for every row, including — under
+The conditional expectation is returned for every row, including — under
 [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
 and
 [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
@@ -354,11 +354,11 @@ posterior_epred_binegbin(prepare_predictions(fit))
   saying whether $`y_1`$ was recorded. Rows where it was not are scored
   by the integrated-out marginal of this same joint rather than dropped,
   so they still inform $`\mu`$, $`\phi_s`$, $`\lambda_2`$, $`\phi_{x2}`$
-  and any group-level effects — and afterwards the fit imputes the
-  missing count conditional on the observed one. Note that $`\lambda_1`$
-  and $`\phi_{x1}`$ are then identified by the matched rows alone.
-  Despite its former name, this is unrelated to brms’s `cens()` addition
-  term, which means a value known to lie in a set.
+  and any group-level effects; afterwards the fit imputes the missing
+  count conditional on the observed one. Note that $`\lambda_1`$ and
+  $`\phi_{x1}`$ are then identified by the matched rows alone. Despite
+  its former name, this is unrelated to brms’s `cens()` addition term,
+  which means a value known to lie in a set.
 - The $`(M, f, \delta)`$**reparameterisation** — overall level $`M`$,
   congruence $`f`$, and source bias $`\delta`$, with the dispersions on
   an SD scale $`\kappa = 1/\sqrt{\phi}`$ where $`\kappa = 0`$ is the
@@ -367,12 +367,11 @@ posterior_epred_binegbin(prepare_predictions(fit))
   rather than a separate family, and
   [`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_mfd_to_dpars.md)
   converts between the two. Because $`\delta = 0`$ and $`\kappa = 0`$
-  are finite, interpretable nulls, these coordinates admit
-  penalised-complexity priors ([Simpson et al.
-  2017](#ref-simpsonPenalisingModelComponent2017)), which shrink to the
-  simpler model unless the data support otherwise; the rate
-  parameterisation has no such nulls. Worked end to end in the article
-  [*The anatomy of a paired
+  are finite, interpretable nulls, these coordinates admit shrinkage
+  priors towards the simpler model unless the data support otherwise
+  ([Simpson et al. 2017](#ref-simpsonPenalisingModelComponent2017)). The
+  rate parameterisation has no such nulls. Worked end to end in the
+  article [*The anatomy of a paired
   count*](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html).
 - [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
   — the same partial observation, equidispersed:

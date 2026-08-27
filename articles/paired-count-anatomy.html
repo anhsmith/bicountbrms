@@ -11,9 +11,9 @@
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="The anatomy of a paired count">
-<meta name="description" content="What a pair of counts is made of, and the two coordinate systems you can describe it in — interactively, with every knob linked to every other.
+<meta name="description" content="What a pair of counts is made of, and the two coordinate systems you can describe it in. Interactive, with every knob linked to every other.
 ">
-<meta property="og:description" content="What a pair of counts is made of, and the two coordinate systems you can describe it in — interactively, with every knob linked to every other.
+<meta property="og:description" content="What a pair of counts is made of, and the two coordinate systems you can describe it in. Interactive, with every knob linked to every other.
 ">
 <meta property="og:image" content="https://anhsmith.github.io/bicountbrms/logo.svg">
 </head>
@@ -43,7 +43,9 @@
     <li><a class="dropdown-item" href="../articles/choosing-priors.html">Choosing priors</a></li>
     <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Interpretation and history</h6></li>
+    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+    <li><a class="dropdown-item" href="../articles/migration-and-errata.html">Migration and errata</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -93,7 +95,7 @@ systems at once, each driving the other</strong>.</p>
 <div class="section level2">
 <h2 id="why-two-coordinate-systems">Why two coordinate systems<a class="anchor" aria-label="anchor" href="#why-two-coordinate-systems"></a>
 </h2>
-<p>The dpars a family actually takes are three rates — <code>mu</code>
+<p>The dpars a family actually takes are three rates: <code>mu</code>
 for the shared component, <code>lambdaone</code> and
 <code>lambdatwo</code> for the two excesses. That is what the likelihood
 takes, but it is awkward to reason in: raise the overall level of
@@ -115,7 +117,7 @@ source ran high”.</p>
 </tr>
 <tr class="even">
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math></td>
-<td>congruence — the share of
+<td>congruence, the share of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
 both sources saw</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mi>/</mi><mi>M</mi></mrow><annotation encoding="application/x-tex">\mu / M</annotation></semantics></math></td>
@@ -129,7 +131,7 @@ both sources saw</td>
 </tr>
 </tbody>
 </table>
-<p>The map between them is a bijection, so neither set is more “real” —
+<p>The map between them is a bijection, so neither set is more “real”:
 they are two descriptions of one object. Drag anything below and watch
 the other five respond.</p>
 <style>
@@ -506,7 +508,7 @@ the other five respond.</p>
 <h2 id="things-to-try">Things to try<a class="anchor" aria-label="anchor" href="#things-to-try"></a>
 </h2>
 <p><strong>Turn <code>f</code> up towards 1.</strong> Both excess rates
-fall to zero and the two bars converge — the sources agree completely.
+fall to zero and the two bars converge: the sources agree completely.
 Now notice what happens to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>:
 it stops meaning anything. There is no excess left to be biased, so the
@@ -528,7 +530,7 @@ up and watch
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>.</strong>
 The two bars separate, but the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
-rule does not move — it stays at their <em>average</em>, touching
+rule does not move: it stays at their <em>average</em>, touching
 neither. The average of the two excess rates is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>f</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">M(1-f)</annotation></semantics></math>
 for any
@@ -545,8 +547,8 @@ against
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>κ</mi><mi>X</mi></msub><annotation encoding="application/x-tex">\kappa_X</annotation></semantics></math>.</strong>
 They are near-orthogonal channels.
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>κ</mi><mi>A</mi></msub><annotation encoding="application/x-tex">\kappa_A</annotation></semantics></math>
-moves the pair up and down <em>together</em> — it cannot touch the
-difference, because the shared component cancels from it.
+moves the pair up and down <em>together</em>, and cannot alter the
+difference, because the shared component cancels out of that difference.
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>κ</mi><mi>X</mi></msub><annotation encoding="application/x-tex">\kappa_X</annotation></semantics></math>
 pulls the pair <em>apart</em>, and drives the whole difference.</p>
 <p><strong>Push
@@ -558,9 +560,10 @@ stacks.</p>
 <div class="section level2">
 <h2 id="the-same-map-in-r">The same map, in R<a class="anchor" aria-label="anchor" href="#the-same-map-in-r"></a>
 </h2>
-<p>The widget’s arithmetic is not a separate model — it is the package’s
-own map, which you can call directly. This is the authoritative version,
-and it is what the JavaScript above is checked against:</p>
+<p>The widget’s arithmetic is not a separate model: it is the package’s
+own map, which you can call directly. The R code below is the
+authoritative version, and the JavaScript above is checked against
+it:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/anhsmith/bicountbrms" class="external-link">bicountbrms</a></span><span class="op">)</span></span>
 <span></span>
@@ -611,8 +614,8 @@ Going back the other way:</p>
 <div class="section level2">
 <h2 id="fitting-in-these-coordinates">Fitting in these coordinates<a class="anchor" aria-label="anchor" href="#fitting-in-these-coordinates"></a>
 </h2>
-<p>Nothing above fits anything — those are coordinate transforms. To
-<em>fit</em> in
+<p>Nothing above fits a model: the map and its inverse are coordinate
+transforms. To <em>fit</em> in
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mo>,</mo><mi>f</mi><mo>,</mo><mi>δ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(M, f, \delta)</annotation></semantics></math>
 you do not need a different family: the reparameterisation is reachable
 through a non-linear formula, with</p>
@@ -626,11 +629,13 @@ gives
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">shapes</mtext><mo>=</mo><msup><mi>e</mi><mrow><mi>−</mi><mn>2</mn><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><msub><mi>κ</mi><mi>s</mi></msub></mrow></msup><mo>=</mo><mn>1</mn><mi>/</mi><msubsup><mi>κ</mi><mi>s</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">\text{shapes} = e^{-2\log\kappa_s} =
 1/\kappa_s^2</annotation></semantics></math>, so the model is estimated
 in
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
-— the SD-scale dispersion the widget above uses — rather than in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>,
+the SD-scale dispersion the widget above uses, rather than in
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>.</p>
-<p>That is worth the detour, because a shrink-to-simpler prior requires
-a finite null.</p>
+<p>Estimating in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
+is worth the detour, because a shrinkage prior requires a finite
+null.</p>
 <div class="section level3">
 <h3 id="priors-that-default-to-the-simpler-model">Priors that default to the simpler model<a class="anchor" aria-label="anchor" href="#priors-that-default-to-the-simpler-model"></a>
 </h3>
@@ -640,11 +645,23 @@ distributional parameters — which prior goes in which of the
 why brms supplies none of them by default — see <a href="choosing-priors.html">Choosing priors</a>, which is the page to
 read first.</p>
 <p>Three of these coordinates have a <strong>null at a finite,
-interpretable zero</strong>, which is the setting penalised-complexity
-priors are constructed for <span class="citation">(<a href="#ref-simpsonPenalisingModelComponent2017">Simpson et al.
-2017</a>)</span>: an exponential prior is placed on the distance from
-the base model, so the fit shrinks to the simpler model unless the data
-support the more complex one.</p>
+interpretable zero</strong>. The priors below follow from three
+statements about that null. Zero is the base model:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\kappa = 0</annotation></semantics></math>
+is a Poisson component,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\delta = 0</annotation></semantics></math>
+is no bias between the two sources. A coordinate’s effect on the fit
+grows as it moves away from zero. The prior’s density should therefore
+decrease monotonically away from zero, leaving the data rather than the
+prior to move the estimate off the base model.</p>
+<p>The third statement is Occam’s razor in the sense of <span class="citation">Simpson et al. (<a href="#ref-simpsonPenalisingModelComponent2017">2017</a>)</span> (their
+Principle 1), with the scale chosen by what the analyst is willing to
+permit (their Principle 4). These priors follow the same principles as
+penalised-complexity priors: a base model at zero, and a density
+decaying away from it. They are not PC priors in the strict sense, which
+would require a distance measure derived for this family and a
+constant-rate assumption on that distance. Neither is established
+here.</p>
 <table class="table">
 <colgroup>
 <col width="33%">
@@ -666,7 +683,7 @@ support the more complex one.</p>
 — no method bias,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mn>1</mn></msub><mo>=</mo><msub><mi>λ</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\lambda_1 = \lambda_2</annotation></semantics></math>
 </td>
-<td><code>double_exponential(0, 0.5)</code></td>
+<td><code>normal(0, 0.5)</code></td>
 </tr>
 <tr class="even">
 <td>
@@ -676,7 +693,7 @@ support the more complex one.</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math>
 — Poisson shared component</td>
 <td>
-<code>exponential(1)</code>,
+<code>normal(0, 1)</code>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\kappa \ge 0</annotation></semantics></math>
 </td>
 </tr>
@@ -688,7 +705,7 @@ support the more complex one.</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0</mn><annotation encoding="application/x-tex">0</annotation></semantics></math>
 — Poisson private components</td>
 <td>
-<code>exponential(1)</code>,
+<code>normal(0, 1)</code>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>≥</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\kappa \ge 0</annotation></semantics></math>
 </td>
 </tr>
@@ -707,19 +724,44 @@ scale. In
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>
 the Poisson limit is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">\phi \to \infty</annotation></semantics></math>,
-so there is no finite point to shrink towards and an exponential prior
-on
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>
-would pull towards <em>maximum</em> overdispersion — precisely
-backwards. In
+so there is no finite point to shrink towards, and a density decaying
+from zero would pull towards <em>maximum</em> overdispersion. In
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
 the limit is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\kappa = 0</annotation></semantics></math>,
-and the obvious prior does the obvious thing.</p>
-<p>Those four <strong>transfer between datasets unchanged</strong>,
-because every one of them is scale-free: a log-ratio, two
-coefficient-of-variation-like quantities, and a proportion. None of them
-refers to how big the counts are.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\kappa =
+0</annotation></semantics></math>, so the same density shrinks towards
+Poisson.</p>
+<p>Those four priors <strong>transfer between datasets
+unchanged</strong>, because every one of them is scale-free: a
+log-ratio, two coefficient-of-variation-like quantities, and a
+proportion. None of them refers to how big the counts are.</p>
+<p><strong>The scale sets what the prior permits.</strong> On
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>,
+<code>lb = 0</code> makes <code>normal(0, 1)</code> a half-normal, which
+places 5% of its mass beyond
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>1.96</mn></mrow><annotation encoding="application/x-tex">\kappa =
+1.96</annotation></semantics></math>. Since
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
+is the overdispersion standard deviation as a multiple of the mean, that
+permits a component whose excess variation has a standard deviation
+about twice its own mean. Whether that is generous or restrictive
+depends on the counts being modelled. The coordinate is scale-free, so
+1.96 means the same thing whatever the counts; whether it is a plausible
+upper reach for yours is the question to settle before adopting the
+scale used here.</p>
+<p><code>exponential(1)</code> is an alternative of the same shape, with
+its maximum at zero, decaying monotonically, and a heavier tail. The two
+agree at the median to within 3%
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0.693</mn><annotation encoding="application/x-tex">0.693</annotation></semantics></math>
+against
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>0.674</mn><annotation encoding="application/x-tex">0.674</annotation></semantics></math>)
+and separate further out: 5.0% of the exponential’s mass lies beyond
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>3</mn></mrow><annotation encoding="application/x-tex">\kappa = 3</annotation></semantics></math>,
+against 0.27% of the half-normal’s. Either satisfies the three
+statements above, so the choice is how much overdispersion the prior
+permits before the data are consulted. <span class="citation">Simpson et
+al. (<a href="#ref-simpsonPenalisingModelComponent2017">2017</a>)</span>
+§3.2 discusses heavy tails and their numerical behaviour.</p>
 <p><strong>Congruence is deliberately not shrunk either way.</strong>
 Both ends of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
@@ -735,15 +777,22 @@ a method comparison. <code>normal(0, 1.5)</code> on
 f</annotation></semantics></math> is close to flat over the interior
 (implied density within 10% of uniform across
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><mn>0.1</mn><mo>,</mo><mn>0.9</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">f \in [0.1, 0.9]</annotation></semantics></math>)
-while falling away at both boundaries, so it declines to take a
-side.</p>
+while falling away at both boundaries, so it declines to take a side.
+<span class="citation">McElreath (<a href="#ref-mcelreath2020">2020</a>)</span> makes the same case for that
+prior on a logit-scale parameter, against the wider normals, which place
+nearly all their mass near
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">f = 0</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">f = 1</annotation></semantics></math>.</p>
 </div>
 <div class="section level3">
-<h3 id="the-level-is-the-one-you-have-to-set-yourself">The level is the one you have to set yourself<a class="anchor" aria-label="anchor" href="#the-level-is-the-one-you-have-to-set-yourself"></a>
+<h3 id="setting-the-prior-on-m-from-your-own-counts">Setting the prior on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+from your own counts<a class="anchor" aria-label="anchor" href="#setting-the-prior-on-m-from-your-own-counts"></a>
 </h3>
 <p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
-is the only coordinate on the counts’ own scale, so it is the only prior
-here that cannot have a universal default — set it from your own
+is the only coordinate on the counts’ own scale, so its prior is the
+only one here without a universal default. Set that prior from your own
 counts.</p>
 <p><code>normal(4, 1.5)</code> is used below, which covers roughly 3 to
 1000 counts per sampling unit and suits the simulated data. For sparser
@@ -757,21 +806,20 @@ so a normal prior on it is a lognormal on
 and widening one pushes mass out to implausible values instead of making
 it neutral <span class="citation">(<a href="#ref-smithInstantaneousVsNoninstantaneous2020">Smith et al.
 2020</a>, supplement 3)</span>.</p>
-<p>A prior is weakly informative only on the scale it is stated on.
-These are stated on the linear-predictor scale —
+<p>A prior written on one scale induces a different density on any
+other. Being weakly informative on the first does not make it so on the
+second. These are written on the linear-predictor scale —
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mi>M</mi></mrow><annotation encoding="application/x-tex">\log M</annotation></semantics></math>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">logit</mi><mo>⁡</mo></mrow><mi>f</mi></mrow><annotation encoding="application/x-tex">\operatorname{logit} f</annotation></semantics></math>
-— so what matters is the density they imply after the change of
-variables, on the scale being interpreted. Those implied densities are
-plotted below, with
+— so what matters is the density they induce after the change of
+variables, on the scale being interpreted <span class="citation">(<a href="#ref-mcelreath2020">McElreath 2020</a>)</span>. Those induced
+densities are plotted below, with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
 shown as the bounded bias
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>=</mo><mrow><mi mathvariant="normal">tanh</mi><mo>⁡</mo></mrow><mi>δ</mi></mrow><annotation encoding="application/x-tex">\beta = \tanh\delta</annotation></semantics></math>,
 the fractional imbalance of excess between the two sources:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">dlaplace</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">b</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">/</span> <span class="va">b</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">b</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4.1</span>, <span class="fl">4.1</span>, <span class="fl">2.6</span>, <span class="fl">1.1</span><span class="op">)</span>, bty <span class="op">=</span> <span class="st">"n"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4.1</span>, <span class="fl">4.1</span>, <span class="fl">2.6</span>, <span class="fl">1.1</span><span class="op">)</span>, bty <span class="op">=</span> <span class="st">"n"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># eta ~ normal(4, 1.5) on log M  =&gt;  M is lognormal</span></span>
 <span><span class="va">M</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">250</span>, length.out <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
@@ -788,19 +836,20 @@ the fractional imbalance of excess between the two sources:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>h <span class="op">=</span> <span class="fl">1</span>, lty <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>                      <span class="co"># uniform, for comparison</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/mtext.html" class="external-link">mtext</a></span><span class="op">(</span><span class="st">"dotted line = uniform"</span>, side <span class="op">=</span> <span class="fl">3</span>, line <span class="op">=</span> <span class="op">-</span><span class="fl">1.1</span>, cex <span class="op">=</span> <span class="fl">0.7</span>, adj <span class="op">=</span> <span class="fl">0.97</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># methd ~ double_exponential(0, 0.5) on delta; beta = tanh(delta)</span></span>
+<span><span class="co"># methd ~ normal(0, 0.5) on delta; beta = tanh(delta)</span></span>
 <span><span class="va">beta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.985</span>, <span class="fl">0.985</span>, length.out <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">beta</span>, <span class="fu">dlaplace</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Hyperbolic.html" class="external-link">atanh</a></span><span class="op">(</span><span class="va">beta</span><span class="op">)</span>, <span class="fl">0.5</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">beta</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"l"</span>, lwd <span class="op">=</span> <span class="fl">2</span>,</span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">beta</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Hyperbolic.html" class="external-link">atanh</a></span><span class="op">(</span><span class="va">beta</span><span class="op">)</span>, <span class="fl">0</span>, <span class="fl">0.5</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">beta</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"l"</span>, lwd <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>     col <span class="op">=</span> <span class="st">"#C4622D"</span>,</span>
 <span>     xlab <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="va">beta</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Hyperbolic.html" class="external-link">tanh</a></span><span class="op">(</span><span class="va">delta</span><span class="op">)</span> <span class="op">~</span> <span class="st">"  (method bias)"</span><span class="op">)</span>,</span>
-<span>     ylab <span class="op">=</span> <span class="st">"density"</span>, main <span class="op">=</span> <span class="st">"PC prior: shrinks to no bias"</span><span class="op">)</span></span>
+<span>     ylab <span class="op">=</span> <span class="st">"density"</span>, main <span class="op">=</span> <span class="st">"shrinks to no bias"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>v <span class="op">=</span> <span class="fl">0</span>, lty <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># kappas, kappax ~ exponential(1); kappa = 0 IS the Poisson limit</span></span>
+<span><span class="co"># kappas, kappax ~ normal(0, 1) with lb = 0, i.e. half-normal;</span></span>
+<span><span class="co"># kappa = 0 IS the Poisson limit</span></span>
 <span><span class="va">k</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">4</span>, length.out <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">k</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">dexp</a></span><span class="op">(</span><span class="va">k</span>, <span class="fl">1</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"l"</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="st">"#6B5D4F"</span>,</span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">k</span>, <span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">k</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"l"</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="st">"#6B5D4F"</span>,</span>
 <span>     xlab <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="va">kappa</span> <span class="op">~</span> <span class="st">"  (dispersion, SD scale)"</span><span class="op">)</span>,</span>
-<span>     ylab <span class="op">=</span> <span class="st">"density"</span>, main <span class="op">=</span> <span class="st">"PC prior: shrinks to Poisson"</span><span class="op">)</span></span>
+<span>     ylab <span class="op">=</span> <span class="st">"density"</span>, main <span class="op">=</span> <span class="st">"shrinks to Poisson"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>v <span class="op">=</span> <span class="fl">0</span>, lty <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/mtext.html" class="external-link">mtext</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="va">kappa</span> <span class="op">==</span> <span class="fl">0</span> <span class="op">~</span> <span class="st">"is Poisson"</span><span class="op">)</span>, side <span class="op">=</span> <span class="fl">3</span>, line <span class="op">=</span> <span class="op">-</span><span class="fl">1.1</span>,</span>
 <span>      cex <span class="op">=</span> <span class="fl">0.7</span>, adj <span class="op">=</span> <span class="fl">0.97</span><span class="op">)</span></span></code></pre></div>
@@ -812,15 +861,19 @@ plot of chunk prior-pushforward
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
-<p>The two penalised-complexity priors concentrate mass at the null and
-decay away from it. The prior on
+<p>The priors on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
+concentrate mass at the null and decay away from it. The prior on
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
 is flat across the interior and declines only where the model
-degenerates. None is tight enough to dominate 400 observations; the fit
-below tests that.</p>
+degenerates. None is tight enough to dominate 400 observations, and the
+fit below tests that claim.</p>
 <p>Simulate a pair of counts from known coordinates:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paul-buerkner/brms" class="external-link">brms</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: package 'Rcpp' was built under R version 4.6.1</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/anhsmith/bicountbrms" class="external-link">bicountbrms</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">20260731</span><span class="op">)</span></span>
@@ -867,11 +920,11 @@ rather than echoed from the prior:</p>
 <span>  stanvars <span class="op">=</span> <span class="fu"><a href="../reference/binegbin.html">binegbin_stanvars</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  data     <span class="op">=</span> <span class="va">dat</span>,</span>
 <span>  prior    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">4</span>, <span class="fl">1.5</span><span class="op">)</span>,             class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"eta"</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.5</span><span class="op">)</span>,             class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"con"</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">double_exponential</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"methd"</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsfamily.html" class="external-link">exponential</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>,             class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"kappas"</span>, lb <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsfamily.html" class="external-link">exponential</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>,             class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"kappax"</span>, lb <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">4</span>, <span class="fl">1.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"eta"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"con"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"methd"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,   class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"kappas"</span>, lb <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,   class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"kappax"</span>, lb <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  chains  <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  iter    <span class="op">=</span> <span class="fl">2000</span>,</span>
@@ -879,8 +932,8 @@ rather than echoed from the prior:</p>
 <span>  refresh <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  seed    <span class="op">=</span> <span class="fl">20260731</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>The coordinates come back off the posterior directly —
-<code>eta</code> exponentiates to
+<p>The coordinates are read off the posterior directly: <code>eta</code>
+exponentiates to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>,
 <code>con</code> inverse-logits to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>,
@@ -916,42 +969,42 @@ coordinates themselves, with no transformation needed:</p>
 <tr class="odd">
 <td align="left">M</td>
 <td align="right">12.00</td>
-<td align="right">12.193</td>
-<td align="right">11.752</td>
-<td align="right">12.629</td>
+<td align="right">12.185</td>
+<td align="right">11.764</td>
+<td align="right">12.636</td>
 </tr>
 <tr class="even">
 <td align="left">f</td>
 <td align="right">0.67</td>
-<td align="right">0.661</td>
-<td align="right">0.596</td>
+<td align="right">0.662</td>
+<td align="right">0.598</td>
 <td align="right">0.709</td>
 </tr>
 <tr class="odd">
 <td align="left">delta</td>
 <td align="right">0.30</td>
-<td align="right">0.280</td>
-<td align="right">0.220</td>
-<td align="right">0.348</td>
+<td align="right">0.282</td>
+<td align="right">0.222</td>
+<td align="right">0.346</td>
 </tr>
 <tr class="even">
 <td align="left">kappas</td>
 <td align="right">0.50</td>
-<td align="right">0.510</td>
-<td align="right">0.446</td>
-<td align="right">0.588</td>
+<td align="right">0.509</td>
+<td align="right">0.444</td>
+<td align="right">0.589</td>
 </tr>
 <tr class="odd">
 <td align="left">kappax</td>
 <td align="right">0.60</td>
-<td align="right">0.537</td>
-<td align="right">0.414</td>
-<td align="right">0.666</td>
+<td align="right">0.541</td>
+<td align="right">0.417</td>
+<td align="right">0.674</td>
 </tr>
 </tbody>
 </table>
 <p>Because the map is a bijection, the same posterior can be read in
-native dpars without refitting — push the draws back through <a href="../reference/binegbin_mfd_to_dpars.html"><code>binegbin_mfd_to_dpars()</code></a>:</p>
+native dpars without refitting: push the draws back through <a href="../reference/binegbin_mfd_to_dpars.html"><code>binegbin_mfd_to_dpars()</code></a>:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">back</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/binegbin_mfd_to_dpars.html">binegbin_mfd_to_dpars</a></span><span class="op">(</span></span>
 <span>  M     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">post</span><span class="op">$</span><span class="va">b_eta_Intercept</span><span class="op">)</span>,</span>
@@ -978,17 +1031,17 @@ native dpars without refitting — push the draws back through <a href="../refer
 <tr class="odd">
 <td align="left">mu</td>
 <td align="right">8.040</td>
-<td align="right">8.041</td>
+<td align="right">8.084</td>
 </tr>
 <tr class="even">
 <td align="left">lambdaone</td>
 <td align="right">5.114</td>
-<td align="right">5.292</td>
+<td align="right">5.258</td>
 </tr>
 <tr class="odd">
 <td align="left">lambdatwo</td>
 <td align="right">2.806</td>
-<td align="right">3.013</td>
+<td align="right">2.978</td>
 </tr>
 </tbody>
 </table>
@@ -1004,18 +1057,18 @@ the level and the congruence at once.</p>
 <h2 id="a-caveat-about-the-widget">A caveat about the widget<a class="anchor" aria-label="anchor" href="#a-caveat-about-the-widget"></a>
 </h2>
 <p>The JavaScript is an independent implementation of the
-<em>generative</em> model — it draws from the same trivariate reduction,
+<em>generative</em> model: it draws from the same trivariate reduction,
 but it is not the likelihood, and no part of the package’s inference
 runs in your browser. The rate map it uses is the one tested in
 <code>test-mfd.R</code>; the sampler is illustrative. Treat the picture
 as intuition, and the R above as the specification.</p>
-<p>It also shows ONE excess-dispersion dial. <code><a href="../reference/binegbin.html">binegbin()</a></code>
-estimates two, <code>shapexone</code> and <code>shapextwo</code>, and
-the (M, f, delta) coordinates this article is about use one
-<code>kappax</code> for both – so the dial sets both to the same value,
-which is the symmetric special case. Freeing them means giving each its
-own <code><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf()</a></code> line, as the fit above would if the two margins
-were allowed to differ.</p>
+<p>The widget also shows ONE excess-dispersion dial.
+<code><a href="../reference/binegbin.html">binegbin()</a></code> estimates two, <code>shapexone</code> and
+<code>shapextwo</code>, and the (M, f, delta) coordinates this article
+is about use one <code>kappax</code> for both – so the dial sets both to
+the same value, which is the symmetric special case. Freeing them means
+giving each its own <code><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf()</a></code> line, as the fit above would if
+the two margins were allowed to differ.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
@@ -1031,6 +1084,11 @@ Karlis, Dimitris, and Ioannis Ntzoufras. 2003. <span>“Analysis of Sports
 Data by Using Bivariate <span>Poisson</span> Models.”</span> <em>Journal
 of the Royal Statistical Society: Series D (The Statistician)</em> 52
 (3): 381–93. <a href="https://doi.org/10.1111/1467-9884.00366" class="external-link">https://doi.org/10.1111/1467-9884.00366</a>.
+</div>
+<div id="ref-mcelreath2020" class="csl-entry">
+McElreath, Richard. 2020. <em>Statistical Rethinking: A
+<span>Bayesian</span> Course with Examples in <span>R</span> and
+<span>Stan</span></em>. 2nd ed. Chapman; Hall/CRC. <a href="https://doi.org/10.1201/9780429029608" class="external-link">https://doi.org/10.1201/9780429029608</a>.
 </div>
 <div id="ref-simpsonPenalisingModelComponent2017" class="csl-entry">
 Simpson, Daniel, Håvard Rue, Andrea Riebler, Thiago G. Martins, and

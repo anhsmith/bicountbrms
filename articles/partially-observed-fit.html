@@ -43,7 +43,9 @@
     <li><a class="dropdown-item" href="../articles/choosing-priors.html">Choosing priors</a></li>
     <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Interpretation and history</h6></li>
+    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+    <li><a class="dropdown-item" href="../articles/migration-and-errata.html">Migration and errata</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -83,10 +85,10 @@ admits both kinds of row under one likelihood: a matched row contributes
 the full joint probability of the pair, and a row whose first count was
 never recorded contributes the second count’s marginal, taken from that
 same joint model.</p>
-<p>This is not censoring in the sense of brms’s <code>cens()</code>
-addition term, which describes a value known to lie in a set. Here the
-first count was not observed at all, and the likelihood marginalises
-over its whole support.</p>
+<p>Partial observation is not censoring in the sense of brms’s
+<code>cens()</code> addition term, which describes a value known to lie
+in a set. Here the first count was not observed at all, and the
+likelihood marginalises over its whole support.</p>
 <div class="section level2">
 <h2 id="simulating-a-design-with-40-of-first-counts-unrecorded">Simulating a design with 40% of first counts unrecorded<a class="anchor" aria-label="anchor" href="#simulating-a-design-with-40-of-first-counts-unrecorded"></a>
 </h2>
@@ -184,8 +186,9 @@ different model from the one the matched rows are fitted to.</p>
 <p>Two consequences follow. An unmatched row informs , , , and any
 group-level effects. It does not inform or , which appear only in the
 matched branch.</p>
-<p>That is a statement about the likelihood rather than about this fit.
-What it implies for a particular design is taken up further down.</p>
+<p>Which parameters an unmatched row informs is a property of the
+likelihood rather than of this fit. What that property implies for a
+particular design is taken up further down.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">draws</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span></span>
@@ -272,14 +275,14 @@ What it implies for a particular design is taken up further down.</p>
 <p>Five of the six intervals contain their true value. The sixth, , does
 not: its interval runs from 2.03 to 10.07 against a truth of 2, so it
 misses at the lower end by 0.03.</p>
-<p>That is worth stating rather than reseeding until it goes away. A 95%
-interval from a correctly specified model excludes the truth 5% of the
-time by construction, and across six parameters the chance that at least
-one interval misses is about 26%. One near miss in six is therefore the
-expected behaviour of a working implementation, not evidence against it.
-The calibration evidence in this article is the coverage check further
-down, which is taken over 157 withheld counts rather than over one
-fit.</p>
+<p>The miss is worth stating rather than reseeding until it goes away. A
+95% interval from a correctly specified model excludes the truth 5% of
+the time by construction, and across six parameters the chance that at
+least one interval misses is about 26%. One near miss in six is
+therefore the expected behaviour of a working implementation, not
+evidence against it. The calibration evidence in this article is the
+coverage check further down, which is taken over 157 withheld counts
+rather than over one fit.</p>
 <p>The three dispersions have much the wider intervals, because each is
 estimated from an aggregate mean–variance mismatch rather than from any
 directly observed quantity.</p>
@@ -332,16 +335,21 @@ see.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/mtext.html" class="external-link">mtext</a></span><span class="op">(</span><span class="st">"segments = 90% predictive interval; line = one to one"</span>,</span>
 <span>      side <span class="op">=</span> <span class="fl">3</span>, line <span class="op">=</span> <span class="op">-</span><span class="fl">1.1</span>, cex <span class="op">=</span> <span class="fl">0.75</span>, adj <span class="op">=</span> <span class="fl">0.97</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="figure/imputation-check-1.svg" alt="Withheld first counts on the horizontal axis against their predicted values on the vertical, with 90% predictive intervals as vertical segments and a one-to-one line. Points scatter about the line and most intervals cross it."><p class="caption">
+<img src="figure/imputation-check-1.svg" alt="Withheld first counts on the horizontal axis against their predicted values on the vertical, with 90% predictive intervals as vertical segments and a one-to-one line. The points follow a flatter trend than the line, lying above it at low counts and below it at high counts. Most intervals cross the line."><p class="caption">
 plot of chunk imputation-check
 </p>
 </div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
 <p>The prediction is conditional on the second count, not on the
-withheld first count, so the points scatter about the one-to-one line
-rather than lying on it. The spread of that scatter is what the second
-count leaves undetermined about the first.</p>
+withheld first count. The two counts have only the shared component in
+common, so the second count constrains the first only through that
+component and the prediction is shrunk towards the marginal mean of the
+first count, , here 10. High withheld counts are therefore
+under-predicted and low ones over-predicted: at the true parameters the
+prediction regressed on the withheld count has slope 0.37 rather than 1.
+The vertical spread measures what the second count leaves undetermined
+about the first.</p>
 </div>
 <div class="section level2">
 <h2 id="choosing-a-matched-fraction">Choosing a matched fraction<a class="anchor" aria-label="anchor" href="#choosing-a-matched-fraction"></a>

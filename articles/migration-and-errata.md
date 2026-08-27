@@ -134,10 +134,10 @@ change.
 
 A fit stored under the name `binegbin` is the exception. It declares the
 name 0.10.0 keeps, so it is post-processed by the current methods
-whatever version is pinned — and it works. Such fits exist in quantity:
-a scan of the project this package was written for found 103 of them,
-each declaring the pre-0.7.0 rate names `lambdaem` and `lambdalb`
-together with the single `shapex`.
+whatever version is pinned, and it works. Such fits exist in quantity: a
+scan of the project this package was written for found 103 of them, each
+declaring the pre-0.7.0 rate names `lambdaem` and `lambdalb` together
+with the single `shapex`.
 
 Three fallbacks apply together to make that work.
 

@@ -38,7 +38,9 @@
     <li><a class="dropdown-item" href="../articles/choosing-priors.html">Choosing priors</a></li>
     <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Interpretation and history</h6></li>
+    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+    <li><a class="dropdown-item" href="../articles/migration-and-errata.html">Migration and errata</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -358,7 +360,7 @@ exponentiates back onto the natural scale.</p>
 <p>The three rates should land tightly on their true values. The three
 dispersions are estimated from an aggregate mean–variance mismatch
 rather than from any directly observed quantity, so their intervals are
-wider — the two excess dispersions especially, since they are identified
+wider; the two excess dispersions especially, since they are identified
 only through the part of the pair’s spread that the shared component
 cannot explain. Wide but covering is the expected result here, not a
 warning sign.</p>
@@ -453,9 +455,9 @@ evaluated over its support
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>0</mn><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">k = 0, \ldots, y_2</annotation></semantics></math>
 and summed. All are exact, and each agrees with the mean of its own
 <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> draws to within Monte Carlo error.</p>
-<p>It is returned for every row, including — under
-<code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code> and <code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code>
-— those where
+<p>The conditional expectation is returned for every row, including —
+under <code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code> and
+<code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code> — those where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math>
 was never observed. Imputing the unobserved margin is what those two
 constructors are for.</p>
@@ -496,7 +498,7 @@ marginal of this same joint rather than dropped, so they still inform
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>s</mi></msub><annotation encoding="application/x-tex">\phi_s</annotation></semantics></math>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x2}</annotation></semantics></math>
-and any group-level effects — and afterwards the fit imputes the missing
+and any group-level effects; afterwards the fit imputes the missing
 count conditional on the observed one. Note that
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>
 and
@@ -521,10 +523,9 @@ converts between the two. Because
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\delta = 0</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\kappa = 0</annotation></semantics></math>
-are finite, interpretable nulls, these coordinates admit
-penalised-complexity priors <span class="citation">(<a href="#ref-simpsonPenalisingModelComponent2017">Simpson et al.
-2017</a>)</span>, which shrink to the simpler model unless the data
-support otherwise; the rate parameterisation has no such nulls. Worked
+are finite, interpretable nulls, these coordinates admit shrinkage
+priors towards the simpler model unless the data support otherwise <span class="citation">(<a href="#ref-simpsonPenalisingModelComponent2017">Simpson et al.
+2017</a>)</span>. The rate parameterisation has no such nulls. Worked
 end to end in the article <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html"><em>The
 anatomy of a paired count</em></a>.</li>
 <li>

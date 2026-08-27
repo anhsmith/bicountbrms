@@ -33,7 +33,7 @@
   count](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.md):
 
   What a pair of counts is made of, and the two coordinate systems you
-  can describe it in — interactively, with every knob linked to every
+  can describe it in. Interactive, with every knob linked to every
   other.
 
 - [Migration and

@@ -14,10 +14,10 @@ the full joint probability of the pair, and a row whose first count was
 never recorded contributes the second count’s marginal, taken from that
 same joint model.
 
-This is not censoring in the sense of brms’s `cens()` addition term,
-which describes a value known to lie in a set. Here the first count was
-not observed at all, and the likelihood marginalises over its whole
-support.
+Partial observation is not censoring in the sense of brms’s `cens()`
+addition term, which describes a value known to lie in a set. Here the
+first count was not observed at all, and the likelihood marginalises
+over its whole support.
 
 ## Simulating a design with 40% of first counts unrecorded
 
@@ -125,8 +125,9 @@ Two consequences follow. An unmatched row informs , , , and any
 group-level effects. It does not inform or , which appear only in the
 matched branch.
 
-That is a statement about the likelihood rather than about this fit.
-What it implies for a particular design is taken up further down.
+Which parameters an unmatched row informs is a property of the
+likelihood rather than of this fit. What that property implies for a
+particular design is taken up further down.
 
 ``` r
 
@@ -167,13 +168,14 @@ Five of the six intervals contain their true value. The sixth, , does
 not: its interval runs from 2.03 to 10.07 against a truth of 2, so it
 misses at the lower end by 0.03.
 
-That is worth stating rather than reseeding until it goes away. A 95%
-interval from a correctly specified model excludes the truth 5% of the
-time by construction, and across six parameters the chance that at least
-one interval misses is about 26%. One near miss in six is therefore the
-expected behaviour of a working implementation, not evidence against it.
-The calibration evidence in this article is the coverage check further
-down, which is taken over 157 withheld counts rather than over one fit.
+The miss is worth stating rather than reseeding until it goes away. A
+95% interval from a correctly specified model excludes the truth 5% of
+the time by construction, and across six parameters the chance that at
+least one interval misses is about 26%. One near miss in six is
+therefore the expected behaviour of a working implementation, not
+evidence against it. The calibration evidence in this article is the
+coverage check further down, which is taken over 157 withheld counts
+rather than over one fit.
 
 The three dispersions have much the wider intervals, because each is
 estimated from an aggregate mean–variance mismatch rather than from any
@@ -234,8 +236,9 @@ mtext("segments = 90% predictive interval; line = one to one",
 
 ![Withheld first counts on the horizontal axis against their predicted
 values on the vertical, with 90% predictive intervals as vertical
-segments and a one-to-one line. Points scatter about the line and most
-intervals cross it.](figure/imputation-check-1.svg)
+segments and a one-to-one line. The points follow a flatter trend than
+the line, lying above it at low counts and below it at high counts. Most
+intervals cross the line.](figure/imputation-check-1.svg)
 
 plot of chunk imputation-check
 
@@ -245,9 +248,13 @@ par(op)
 ```
 
 The prediction is conditional on the second count, not on the withheld
-first count, so the points scatter about the one-to-one line rather than
-lying on it. The spread of that scatter is what the second count leaves
-undetermined about the first.
+first count. The two counts have only the shared component in common, so
+the second count constrains the first only through that component and
+the prediction is shrunk towards the marginal mean of the first count, ,
+here 10. High withheld counts are therefore under-predicted and low ones
+over-predicted: at the true parameters the prediction regressed on the
+withheld count has slope 0.37 rather than 1. The vertical spread
+measures what the second count leaves undetermined about the first.
 
 ## Choosing a matched fraction
 

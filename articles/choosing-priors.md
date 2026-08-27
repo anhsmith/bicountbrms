@@ -81,8 +81,9 @@ while still producing divergent transitions.
 ## A weakly informative prior on each log-scale parameter
 
 Every distributional parameter of every constructor in this package is
-log-linked, so a prior stated on the log scale is lognormal on the
-natural scale.
+log-linked, so a prior written on the log scale is lognormal on the
+natural scale. Check its quantiles on the natural scale, where the
+parameter is interpreted ([McElreath 2020](#ref-mcelreath2020)).
 
 ``` r
 
@@ -161,7 +162,7 @@ Both fields differ from the pre-0.10.0 spelling, which was
 names no parameter in the tied model, is dropped silently, and leaves
 `shapexx` flat.
 
-## Penalised-complexity priors in the (M, f, δ) coordinates
+## Shrinkage priors in the (M, f, δ) coordinates
 
 The three rates can be reparameterised as overall level , congruence and
 source bias , with each dispersion on the standard deviation scale . In
@@ -169,12 +170,13 @@ those coordinates every parameter has a finite null: is no bias between
 the two sources, and is the Poisson limit exactly, rather than the of
 the native scale.
 
-A shrink-to-simpler prior requires a finite null.
-[`exponential()`](https://paulbuerkner.com/brms/reference/brmsfamily.html)
-on and `double_exponential()` on are then penalised-complexity priors in
-the sense of Simpson et al.
-([2017](#ref-simpsonPenalisingModelComponent2017)): they place their
-mode at the simpler model and require the data to move away from it.
+A shrinkage prior requires a finite null. A half-normal on and a normal
+on place their maximum at the simpler model and decay away from it, so
+the data rather than the prior must move the fit. They follow the
+principles of Simpson et al.
+([2017](#ref-simpsonPenalisingModelComponent2017)), a base model at zero
+and a density decaying away from it, without being penalised-complexity
+priors in the strict sense.
 
 [The anatomy of a paired
 count](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.md)
@@ -185,6 +187,10 @@ parameterisation is used, because a prior in still occupies one of the
 three slots described here.
 
 ## References
+
+McElreath, Richard. 2020. *Statistical Rethinking: A Bayesian Course
+with Examples in R and Stan*. 2nd ed. Chapman; Hall/CRC.
+<https://doi.org/10.1201/9780429029608>.
 
 Simpson, Daniel, Håvard Rue, Andrea Riebler, Thiago G. Martins, and
 Sigrunn H. Sørbye. 2017. “Penalising Model Component Complexity: A

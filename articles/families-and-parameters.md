@@ -35,8 +35,10 @@ P(y_1 = x,\ y_2 = y) = \sum_{k=0}^{\min(x,y)}
 ```
 
 where , and are the probability mass functions of the three latent
-counts. The first source is the modelled response; the second is
-supplied as supplementary integer data through `vint()`, because
+counts. With Poisson components this sum is Campbell’s
+([1934](#ref-campbell1934)) equation (2.2). The first source is the
+modelled response; the second is supplied as supplementary integer data
+through `vint()`, because
 [`brms::custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
 declares a single response column.
 
@@ -103,6 +105,23 @@ dispersion appears in it: . Freeing the two excess dispersions therefore
 changes both margins and the difference, and leaves the covariance
 unchanged; the correlation moves only through its denominator.
 
+Two features of that covariance bound what the construction can
+represent. The covariance is a variance, so it cannot be negative: both
+families represent non-negative association only. It is also bounded
+above, because the shared count contributes to both observed variances,
+
+``` math
+0 \le \rho \le
+  \min\!\left(\sqrt{V_1 / V_2},\ \sqrt{V_2 / V_1}\right),
+```
+
+for and the variances of the two observed counts, with the upper bound
+attained only when one source has no private component. In the Poisson
+case each variance equals its mean, and this is the ceiling Holgate
+([1964](#ref-holgate1964)) states and calls the drawback. A construction
+admitting negative correlation gives up the shared latent count, which
+is the quantity these families estimate.
+
 An observation-level random effect on the source-specific components
 would be the obvious alternative to a scalar dispersion, and it fails
 synthetic recovery. With one observed pair per unit but three latent
@@ -139,16 +158,16 @@ contains one free dispersion rather than two:
     shapexone[n] = exp(nlp_shapexx[n]);
     shapextwo[n] = exp(nlp_shapexx[n]);
 
-That is worth checking rather than assuming, because an untied model
-would still compile and still sample: it would quietly fit the
-six-parameter model the formula was meant to constrain.
+The tie is worth checking in the generated code rather than assuming,
+because an untied model would still compile and still sample: it would
+quietly fit the six-parameter model the formula was meant to constrain.
 `tests/testthat/test-stancode-shape.R` pins both lines.
 
 A prior on the tied parameter is written with `class = "b"` and
 `nlpar = "shapexx"`. Both fields differ from the pre-0.10.0 spelling,
 which was `class = "Intercept"` with `dpar = "shapex"`. A prior written
 the old way names no parameter in the tied model and is dropped without
-a warning, which leaves the dispersion improper — see [Choosing
+a warning, which leaves the dispersion improper; see [Choosing
 priors](https://anhsmith.github.io/bicountbrms/articles/choosing-priors.md).
 
 Under full pairing every row informs both dispersions. Under partial
@@ -282,8 +301,8 @@ c(true_log_ratio = log(truth$shapexone) - log(truth$shapextwo),
 ```
 
 The 95% posterior interval for excludes zero, so the data separate the
-two dispersions rather than the priors doing so — both priors are
-identical, and centred at a log ratio of zero.
+two dispersions rather than the priors: both priors are identical, and
+centred at a log ratio of zero.
 
 ``` r
 
@@ -395,6 +414,10 @@ excess dispersions anywhere they are routed produces a detectably
 different answer.
 
 ## References
+
+Campbell, J. T. 1934. “The Poisson Correlation Function.” *Proceedings
+of the Edinburgh Mathematical Society*, 2nd series, vol. 4 (1): 18–26.
+<https://doi.org/10.1017/S0013091500024135>.
 
 Holgate, P. 1964. “Estimation for the Bivariate Poisson Distribution.”
 *Biometrika* 51 (1–2): 241–45. <https://doi.org/10.2307/2334210>.

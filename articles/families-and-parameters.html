@@ -43,7 +43,9 @@
     <li><a class="dropdown-item" href="../articles/choosing-priors.html">Choosing priors</a></li>
     <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Interpretation and history</h6></li>
+    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+    <li><a class="dropdown-item" href="../articles/migration-and-errata.html">Migration and errata</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -100,9 +102,10 @@ P(y_1 = x,\ y_2 = y) = \sum_{k=0}^{\min(x,y)}
   f_{\text{s}}(k)\, f_1(x-k)\, f_2(y-k),
 </annotation></semantics></math></p>
 <p>where , and are the probability mass functions of the three latent
-counts. The first source is the modelled response; the second is
-supplied as supplementary integer data through <code>vint()</code>,
-because <code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">brms::custom_family()</a></code> declares a single response
+counts. With Poisson components this sum is Campbell’s <span class="citation">(<a href="#ref-campbell1934">1934</a>)</span> equation
+(2.2). The first source is the modelled response; the second is supplied
+as supplementary integer data through <code>vint()</code>, because
+<code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">brms::custom_family()</a></code> declares a single response
 column.</p>
 <p>The shared latent count enters both observed counts and therefore
 induces their covariance, . It cancels from the difference,</p>
@@ -191,6 +194,21 @@ excess dispersion appears in it: . Freeing the two excess dispersions
 therefore changes both margins and the difference, and leaves the
 covariance unchanged; the correlation moves only through its
 denominator.</p>
+<p>Two features of that covariance bound what the construction can
+represent. The covariance is a variance, so it cannot be negative: both
+families represent non-negative association only. It is also bounded
+above, because the shared count contributes to both observed
+variances,</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>≤</mo><mi>ρ</mi><mo>≤</mo><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><msqrt><mrow><msub><mi>V</mi><mn>1</mn></msub><mi>/</mi><msub><mi>V</mi><mn>2</mn></msub></mrow></msqrt><mo>,</mo><mspace width="0.222em"></mspace><msqrt><mrow><msub><mi>V</mi><mn>2</mn></msub><mi>/</mi><msub><mi>V</mi><mn>1</mn></msub></mrow></msqrt><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+0 \le \rho \le
+  \min\!\left(\sqrt{V_1 / V_2},\ \sqrt{V_2 / V_1}\right),
+</annotation></semantics></math></p>
+<p>for and the variances of the two observed counts, with the upper
+bound attained only when one source has no private component. In the
+Poisson case each variance equals its mean, and this is the ceiling
+Holgate <span class="citation">(<a href="#ref-holgate1964">1964</a>)</span> states and calls the drawback.
+A construction admitting negative correlation gives up the shared latent
+count, which is the quantity these families estimate.</p>
 <p>An observation-level random effect on the source-specific components
 would be the obvious alternative to a scalar dispersion, and it fails
 synthetic recovery. With one observed pair per unit but three latent
@@ -221,16 +239,16 @@ parameters are assigned from the same non-linear predictor, so the model
 contains one free dispersion rather than two:</p>
 <pre><code><span><span class="va">shapexone</span><span class="op">[</span><span class="va">n</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">nlp_shapexx</span><span class="op">[</span><span class="va">n</span><span class="op">]</span><span class="op">)</span>;</span>
 <span><span class="va">shapextwo</span><span class="op">[</span><span class="va">n</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">nlp_shapexx</span><span class="op">[</span><span class="va">n</span><span class="op">]</span><span class="op">)</span>;</span></code></pre>
-<p>That is worth checking rather than assuming, because an untied model
-would still compile and still sample: it would quietly fit the
-six-parameter model the formula was meant to constrain.
+<p>The tie is worth checking in the generated code rather than assuming,
+because an untied model would still compile and still sample: it would
+quietly fit the six-parameter model the formula was meant to constrain.
 <code>tests/testthat/test-stancode-shape.R</code> pins both lines.</p>
 <p>A prior on the tied parameter is written with
 <code>class = "b"</code> and <code>nlpar = "shapexx"</code>. Both fields
 differ from the pre-0.10.0 spelling, which was
 <code>class = "Intercept"</code> with <code>dpar = "shapex"</code>. A
 prior written the old way names no parameter in the tied model and is
-dropped without a warning, which leaves the dispersion improper — see <a href="choosing-priors.html">Choosing priors</a>.</p>
+dropped without a warning, which leaves the dispersion improper; see <a href="choosing-priors.html">Choosing priors</a>.</p>
 <p>Under full pairing every row informs both dispersions. Under partial
 observation the two are not equally identified: <code>shapextwo</code>
 governs the always-observed margin and appears on both branches of the
@@ -370,8 +388,8 @@ is the next one:</p>
 <span><span class="co">#&gt; true_log_ratio         median          lower          upper </span></span>
 <span><span class="co">#&gt;      -2.148434      -1.917969      -2.513566      -1.417690</span></span></code></pre></div>
 <p>The 95% posterior interval for excludes zero, so the data separate
-the two dispersions rather than the priors doing so — both priors are
-identical, and centred at a log ratio of zero.</p>
+the two dispersions rather than the priors: both priors are identical,
+and centred at a log ratio of zero.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>divergences <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://mc-stan.org/bayesplot/reference/bayesplot-extractors.html" class="external-link">nuts_params</a></span><span class="op">(</span><span class="va">fit</span>, pars <span class="op">=</span> <span class="st">"divergent__"</span><span class="op">)</span><span class="op">$</span><span class="va">Value</span><span class="op">)</span>,</span>
 <span>  max_rhat    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/rhat.html" class="external-link">rhat</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
@@ -467,6 +485,11 @@ detectably different answer.</p>
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-campbell1934" class="csl-entry">
+Campbell, J. T. 1934. <span>“The <span>Poisson</span> Correlation
+Function.”</span> <em>Proceedings of the Edinburgh Mathematical
+Society</em>, 2nd series, vol. 4 (1): 18–26. <a href="https://doi.org/10.1017/S0013091500024135" class="external-link">https://doi.org/10.1017/S0013091500024135</a>.
+</div>
 <div id="ref-holgate1964" class="csl-entry">
 Holgate, P. 1964. <span>“Estimation for the Bivariate
 <span>Poisson</span> Distribution.”</span> <em>Biometrika</em> 51 (1–2):

@@ -43,7 +43,9 @@
     <li><a class="dropdown-item" href="../articles/choosing-priors.html">Choosing priors</a></li>
     <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Interpretation and history</h6></li>
+    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+    <li><a class="dropdown-item" href="../articles/migration-and-errata.html">Migration and errata</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -146,8 +148,9 @@ inside that gate while still producing divergent transitions.</p>
 <h2 id="a-weakly-informative-prior-on-each-log-scale-parameter">A weakly informative prior on each log-scale parameter<a class="anchor" aria-label="anchor" href="#a-weakly-informative-prior-on-each-log-scale-parameter"></a>
 </h2>
 <p>Every distributional parameter of every constructor in this package
-is log-linked, so a prior stated on the log scale is lognormal on the
-natural scale.</p>
+is log-linked, so a prior written on the log scale is lognormal on the
+natural scale. Check its quantiles on the natural scale, where the
+parameter is interpreted <span class="citation">(<a href="#ref-mcelreath2020">McElreath 2020</a>)</span>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prior</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span><span class="op">)</span>,                     <span class="co"># log shared rate</span></span>
@@ -209,18 +212,19 @@ old way names no parameter in the tied model, is dropped silently, and
 leaves <code>shapexx</code> flat.</p>
 </div>
 <div class="section level2">
-<h2 id="penalised-complexity-priors-in-the-m-f-δ-coordinates">Penalised-complexity priors in the (M, f, δ) coordinates<a class="anchor" aria-label="anchor" href="#penalised-complexity-priors-in-the-m-f-%CE%B4-coordinates"></a>
+<h2 id="shrinkage-priors-in-the-m-f-δ-coordinates">Shrinkage priors in the (M, f, δ) coordinates<a class="anchor" aria-label="anchor" href="#shrinkage-priors-in-the-m-f-%CE%B4-coordinates"></a>
 </h2>
 <p>The three rates can be reparameterised as overall level , congruence
 and source bias , with each dispersion on the standard deviation scale .
 In those coordinates every parameter has a finite null: is no bias
 between the two sources, and is the Poisson limit exactly, rather than
 the of the native scale.</p>
-<p>A shrink-to-simpler prior requires a finite null.
-<code><a href="https://paulbuerkner.com/brms/reference/brmsfamily.html" class="external-link">exponential()</a></code> on and <code>double_exponential()</code> on
-are then penalised-complexity priors in the sense of <span class="citation">Simpson et al. (<a href="#ref-simpsonPenalisingModelComponent2017">2017</a>)</span>: they
-place their mode at the simpler model and require the data to move away
-from it.</p>
+<p>A shrinkage prior requires a finite null. A half-normal on and a
+normal on place their maximum at the simpler model and decay away from
+it, so the data rather than the prior must move the fit. They follow the
+principles of <span class="citation">Simpson et al. (<a href="#ref-simpsonPenalisingModelComponent2017">2017</a>)</span>, a base
+model at zero and a density decaying away from it, without being
+penalised-complexity priors in the strict sense.</p>
 <p><a href="paired-count-anatomy.html">The anatomy of a paired count</a>
 sets out that argument in full, shows the prior pushforward onto the
 native scale, and fits a model in those coordinates. Read it after this
@@ -232,6 +236,11 @@ three slots described here.</p>
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-mcelreath2020" class="csl-entry">
+McElreath, Richard. 2020. <em>Statistical Rethinking: A
+<span>Bayesian</span> Course with Examples in <span>R</span> and
+<span>Stan</span></em>. 2nd ed. Chapman; Hall/CRC. <a href="https://doi.org/10.1201/9780429029608" class="external-link">https://doi.org/10.1201/9780429029608</a>.
+</div>
 <div id="ref-simpsonPenalisingModelComponent2017" class="csl-entry">
 Simpson, Daniel, Håvard Rue, Andrea Riebler, Thiago G. Martins, and
 Sigrunn H. Sørbye. 2017. <span>“Penalising Model Component Complexity: A
