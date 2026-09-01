@@ -15,10 +15,14 @@ gives the recipes for both.
 
 ## Trivariate reduction
 
-Both families are constructed by trivariate reduction ([Holgate
-1964](#ref-holgate1964); [Karlis and Ntzoufras 2003](#ref-karlis2003)):
-three independent latent counts are drawn, and one of them enters both
-observed counts.
+Both families are constructed by trivariate reduction: three independent
+latent counts are drawn, and one of the three enters both observed
+counts. Holgate ([1964](#ref-holgate1964)) and Karlis and Ntzoufras
+([2003](#ref-karlis2003)) use the construction with Poisson components;
+Kirkpatrick and Neale
+([2016](#ref-kirkpatrickApplyingMultivariateDiscrete2016)) and
+Kirkpatrick ([2022](#ref-kirkpatrickRMKdiscreteSundryDiscrete2022)) with
+negative-binomial components.
 
 ``` math
 y_1 = N_{\text{shared}} + N_1
@@ -101,9 +105,11 @@ The moments follow directly from the decomposition:
 ```
 
 The covariance involves the shared latent count alone, so neither excess
-dispersion appears in it: . Freeing the two excess dispersions therefore
-changes both margins and the difference, and leaves the covariance
-unchanged; the correlation moves only through its denominator.
+dispersion appears in it: ([Kirkpatrick and Neale
+2016](#ref-kirkpatrickApplyingMultivariateDiscrete2016)). Freeing the
+two excess dispersions therefore changes both margins and the
+difference, and leaves the covariance unchanged; the correlation moves
+only through its denominator.
 
 Two features of that covariance bound what the construction can
 represent. The covariance is a variance, so it cannot be negative: both
@@ -426,6 +432,14 @@ Karlis, Dimitris, and Ioannis Ntzoufras. 2003. “Analysis of Sports Data
 by Using Bivariate Poisson Models.” *Journal of the Royal Statistical
 Society: Series D (The Statistician)* 52 (3): 381–93.
 <https://doi.org/10.1111/1467-9884.00366>.
+
+Kirkpatrick, Robert M. 2022. *RMKdiscrete: Sundry Discrete Probability
+Distributions*. <https://CRAN.R-project.org/package=RMKdiscrete>.
+
+Kirkpatrick, Robert M., and Michael C. Neale. 2016. “Applying
+Multivariate Discrete Distributions to Genetically Informative Count
+Data.” *Behavior Genetics* 46 (2): 252–68.
+<https://doi.org/10.1007/s10519-015-9757-z>.
 
 Skellam, J. G. 1946. “The Frequency Distribution of the Difference
 Between Two Poisson Variates Belonging to Different Populations.”

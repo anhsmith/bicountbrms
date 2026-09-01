@@ -88,10 +88,14 @@ non-linear formula syntax used further down is documented in <span class="citati
 <div class="section level2">
 <h2 id="the-generative-model">The generative model<a class="anchor" aria-label="anchor" href="#the-generative-model"></a>
 </h2>
-<p><code><a href="../reference/binegbin.html">binegbin()</a></code> builds a bivariate count pair by
-<strong>trivariate reduction</strong> <span class="citation">(<a href="#ref-holgate1964">Holgate 1964</a>; <a href="#ref-karlis2003">Karlis and Ntzoufras 2003</a>)</span>. Three
-independent Negative-Binomial counts are drawn, and the two observed
-counts share one of them:</p>
+<p><code><a href="../reference/binegbin.html">binegbin()</a></code> builds the pair by <strong>trivariate
+reduction</strong>. <span class="citation">Holgate (<a href="#ref-holgate1964">1964</a>)</span> and <span class="citation">Karlis and Ntzoufras (<a href="#ref-karlis2003">2003</a>)</span> use the construction with
+Poisson components; <span class="citation">Kirkpatrick and Neale (<a href="#ref-kirkpatrickApplyingMultivariateDiscrete2016">2016</a>)</span>
+and <span class="citation">Kirkpatrick (<a href="#ref-kirkpatrickRMKdiscreteSundryDiscrete2022">2022</a>)</span>
+with negative-binomial components. Three independent Negative-Binomial
+counts are drawn; one of the three enters both observed counts and
+induces their correlation, and each of the other two enters a single
+count:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mi>s</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>N</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo><mspace width="2.0em"></mspace><msub><mi>N</mi><mn>2</mn></msub><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mn>2</mn></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>y</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>+</mo><msub><mi>N</mi><mn>1</mn></msub><mspace width="2.0em"></mspace><msub><mi>y</mi><mn>2</mn></msub><mo>=</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>+</mo><msub><mi>N</mi><mn>2</mn></msub></mtd></mtr></mtable><annotation encoding="application/x-tex">
 \begin{aligned}
 N_{\text{shared}} &amp;\sim \mathrm{NB2}(\mu,\ \phi_s) \\
@@ -265,7 +269,7 @@ of the counts rather than increasing the SD. All six dpars are
 log-linked, so a normal prior is lognormal on the natural scale, and
 increasing its SD moves mass to implausible values rather than making
 the prior neutral <span class="citation">(<a href="#ref-smithInstantaneousVsNoninstantaneous2020">Smith et al.
-2020</a>, supplement 3)</span>.</p>
+2020</a>, supplement 3, Fig. S3-1)</span>.</p>
 </div>
 <div class="section level2">
 <h2 id="did-it-recover-the-truth">Did it recover the truth?<a class="anchor" aria-label="anchor" href="#did-it-recover-the-truth"></a>
@@ -584,6 +588,15 @@ of the Royal Statistical Society: Series D (The Statistician)</em> 52
 Karlis, Dimitris, and Ioannis Ntzoufras. 2006. <span>“Bayesian Analysis
 of the Differences of Count Data.”</span> <em>Statistics in
 Medicine</em> 25 (11): 1885–905. <a href="https://doi.org/10.1002/sim.2382" class="external-link">https://doi.org/10.1002/sim.2382</a>.
+</div>
+<div id="ref-kirkpatrickRMKdiscreteSundryDiscrete2022" class="csl-entry">
+Kirkpatrick, Robert M. 2022. <em><span>RMKdiscrete</span>: Sundry
+Discrete Probability Distributions</em>. <a href="https://CRAN.R-project.org/package=RMKdiscrete" class="external-link">https://CRAN.R-project.org/package=RMKdiscrete</a>.
+</div>
+<div id="ref-kirkpatrickApplyingMultivariateDiscrete2016" class="csl-entry">
+Kirkpatrick, Robert M., and Michael C. Neale. 2016. <span>“Applying
+Multivariate Discrete Distributions to Genetically Informative Count
+Data.”</span> <em>Behavior Genetics</em> 46 (2): 252–68. <a href="https://doi.org/10.1007/s10519-015-9757-z" class="external-link">https://doi.org/10.1007/s10519-015-9757-z</a>.
 </div>
 <div id="ref-simpsonPenalisingModelComponent2017" class="csl-entry">
 Simpson, Daniel, Håvard Rue, Andrea Riebler, Thiago G. Martins, and

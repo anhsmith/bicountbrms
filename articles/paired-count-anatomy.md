@@ -5,10 +5,14 @@ Every joint family in this package —
 and
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md),
 each with a `_partialobs()` constructor for data whose first count is
-sometimes missing — is built by **trivariate reduction** ([Holgate
-1964](#ref-holgate1964); [Karlis and Ntzoufras 2003](#ref-karlis2003)).
-Three independent counts are drawn, and the two observed counts share
-one of them:
+sometimes missing — is built by **trivariate reduction**. Holgate
+([1964](#ref-holgate1964)) and Karlis and Ntzoufras
+([2003](#ref-karlis2003)) use the construction with Poisson components;
+Kirkpatrick and Neale
+([2016](#ref-kirkpatrickApplyingMultivariateDiscrete2016)) and
+Kirkpatrick ([2022](#ref-kirkpatrickRMKdiscreteSundryDiscrete2022)) with
+negative-binomial components. Three independent counts are drawn, and
+one of the three enters both observed counts:
 
 ``` math
 y_1 = N_{\text{shared}} + N_1
@@ -165,8 +169,9 @@ $`\text{shapes} = e^{-2\log\kappa_s} =
 1/\kappa_s^2`$, so the model is estimated in $`\kappa`$, the SD-scale
 dispersion the widget above uses, rather than in $`\phi`$.
 
-Estimating in $`\kappa`$ is worth the detour, because a shrinkage prior
-requires a finite null.
+$`\kappa = 0`$ is the Poisson limit, so a prior on $`\kappa`$ can shrink
+towards Poisson. The same reparameterisation was used in ([Smith et al.
+2020](#ref-smithInstantaneousVsNoninstantaneous2020)).
 
 ### Priors that default to the simpler model
 
@@ -259,7 +264,8 @@ Move the **mean** to match your scale rather than raising the SD. `eta`
 is $`\log M`$, so a normal prior on it is a lognormal on $`M`$, and
 widening one pushes mass out to implausible values instead of making it
 neutral ([Smith et al.
-2020](#ref-smithInstantaneousVsNoninstantaneous2020), supplement 3).
+2020](#ref-smithInstantaneousVsNoninstantaneous2020), supplement 3, Fig.
+S3-1).
 
 A prior written on one scale induces a different density on any other.
 Being weakly informative on the first does not make it so on the second.
@@ -492,6 +498,14 @@ Karlis, Dimitris, and Ioannis Ntzoufras. 2003. “Analysis of Sports Data
 by Using Bivariate Poisson Models.” *Journal of the Royal Statistical
 Society: Series D (The Statistician)* 52 (3): 381–93.
 <https://doi.org/10.1111/1467-9884.00366>.
+
+Kirkpatrick, Robert M. 2022. *RMKdiscrete: Sundry Discrete Probability
+Distributions*. <https://CRAN.R-project.org/package=RMKdiscrete>.
+
+Kirkpatrick, Robert M., and Michael C. Neale. 2016. “Applying
+Multivariate Discrete Distributions to Genetically Informative Count
+Data.” *Behavior Genetics* 46 (2): 252–68.
+<https://doi.org/10.1007/s10519-015-9757-z>.
 
 McElreath, Richard. 2020. *Statistical Rethinking: A Bayesian Course
 with Examples in R and Stan*. 2nd ed. Chapman; Hall/CRC.

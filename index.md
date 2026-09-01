@@ -138,6 +138,7 @@ citation("bicountbrms")
 
 Holgate (1964) states the trivariate-reduction representation and gives
 maximum-likelihood estimation for it; the regression form is due to
-Karlis and Ntzoufras (2003). Full references are given in [The families
-and their
+Karlis and Ntzoufras (2003). Kirkpatrick and Neale (2016, 2022) use the
+same construction with negative-binomial components. Full references are
+given in [The families and their
 parameters](https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.html).

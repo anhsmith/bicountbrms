@@ -28,10 +28,15 @@ syntax used further down is documented in Bürkner
 ## The generative model
 
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-builds a bivariate count pair by **trivariate reduction** ([Holgate
-1964](#ref-holgate1964); [Karlis and Ntzoufras 2003](#ref-karlis2003)).
-Three independent Negative-Binomial counts are drawn, and the two
-observed counts share one of them:
+builds the pair by **trivariate reduction**. Holgate
+([1964](#ref-holgate1964)) and Karlis and Ntzoufras
+([2003](#ref-karlis2003)) use the construction with Poisson components;
+Kirkpatrick and Neale
+([2016](#ref-kirkpatrickApplyingMultivariateDiscrete2016)) and
+Kirkpatrick ([2022](#ref-kirkpatrickRMKdiscreteSundryDiscrete2022)) with
+negative-binomial components. Three independent Negative-Binomial counts
+are drawn; one of the three enters both observed counts and induces
+their correlation, and each of the other two enters a single count:
 
 ``` math
 \begin{aligned}
@@ -180,7 +185,7 @@ rather than increasing the SD. All six dpars are log-linked, so a normal
 prior is lognormal on the natural scale, and increasing its SD moves
 mass to implausible values rather than making the prior neutral ([Smith
 et al. 2020](#ref-smithInstantaneousVsNoninstantaneous2020), supplement
-3).
+3, Fig. S3-1).
 
 ## Did it recover the truth?
 
@@ -416,6 +421,14 @@ Society: Series D (The Statistician)* 52 (3): 381–93.
 Karlis, Dimitris, and Ioannis Ntzoufras. 2006. “Bayesian Analysis of the
 Differences of Count Data.” *Statistics in Medicine* 25 (11): 1885–905.
 <https://doi.org/10.1002/sim.2382>.
+
+Kirkpatrick, Robert M. 2022. *RMKdiscrete: Sundry Discrete Probability
+Distributions*. <https://CRAN.R-project.org/package=RMKdiscrete>.
+
+Kirkpatrick, Robert M., and Michael C. Neale. 2016. “Applying
+Multivariate Discrete Distributions to Genetically Informative Count
+Data.” *Behavior Genetics* 46 (2): 252–68.
+<https://doi.org/10.1007/s10519-015-9757-z>.
 
 Simpson, Daniel, Håvard Rue, Andrea Riebler, Thiago G. Martins, and
 Sigrunn H. Sørbye. 2017. “Penalising Model Component Complexity: A

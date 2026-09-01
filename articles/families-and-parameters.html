@@ -87,9 +87,12 @@ both.</p>
 <div class="section level2">
 <h2 id="trivariate-reduction">Trivariate reduction<a class="anchor" aria-label="anchor" href="#trivariate-reduction"></a>
 </h2>
-<p>Both families are constructed by trivariate reduction <span class="citation">(<a href="#ref-holgate1964">Holgate 1964</a>; <a href="#ref-karlis2003">Karlis and Ntzoufras 2003</a>)</span>: three
-independent latent counts are drawn, and one of them enters both
-observed counts.</p>
+<p>Both families are constructed by trivariate reduction: three
+independent latent counts are drawn, and one of the three enters both
+observed counts. <span class="citation">Holgate (<a href="#ref-holgate1964">1964</a>)</span> and <span class="citation">Karlis and Ntzoufras (<a href="#ref-karlis2003">2003</a>)</span> use the construction with
+Poisson components; <span class="citation">Kirkpatrick and Neale (<a href="#ref-kirkpatrickApplyingMultivariateDiscrete2016">2016</a>)</span>
+and <span class="citation">Kirkpatrick (<a href="#ref-kirkpatrickRMKdiscreteSundryDiscrete2022">2022</a>)</span>
+with negative-binomial components.</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mn>1</mn></msub><mo>=</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>+</mo><msub><mi>N</mi><mn>1</mn></msub><mspace width="2.0em"></mspace><msub><mi>y</mi><mn>2</mn></msub><mo>=</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>+</mo><msub><mi>N</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">
 y_1 = N_{\text{shared}} + N_1
 \qquad
@@ -190,10 +193,10 @@ link.</p>
   \Big(\lambda_2 + \tfrac{\lambda_2^2}{\phi_{x2}}\Big).
 </annotation></semantics></math></p>
 <p>The covariance involves the shared latent count alone, so neither
-excess dispersion appears in it: . Freeing the two excess dispersions
-therefore changes both margins and the difference, and leaves the
-covariance unchanged; the correlation moves only through its
-denominator.</p>
+excess dispersion appears in it: <span class="citation">(<a href="#ref-kirkpatrickApplyingMultivariateDiscrete2016">Kirkpatrick and
+Neale 2016</a>)</span>. Freeing the two excess dispersions therefore
+changes both margins and the difference, and leaves the covariance
+unchanged; the correlation moves only through its denominator.</p>
 <p>Two features of that covariance bound what the construction can
 represent. The covariance is a variance, so it cannot be negative: both
 families represent non-negative association only. It is also bounded
@@ -500,6 +503,15 @@ Karlis, Dimitris, and Ioannis Ntzoufras. 2003. <span>“Analysis of Sports
 Data by Using Bivariate <span>Poisson</span> Models.”</span> <em>Journal
 of the Royal Statistical Society: Series D (The Statistician)</em> 52
 (3): 381–93. <a href="https://doi.org/10.1111/1467-9884.00366" class="external-link">https://doi.org/10.1111/1467-9884.00366</a>.
+</div>
+<div id="ref-kirkpatrickRMKdiscreteSundryDiscrete2022" class="csl-entry">
+Kirkpatrick, Robert M. 2022. <em><span>RMKdiscrete</span>: Sundry
+Discrete Probability Distributions</em>. <a href="https://CRAN.R-project.org/package=RMKdiscrete" class="external-link">https://CRAN.R-project.org/package=RMKdiscrete</a>.
+</div>
+<div id="ref-kirkpatrickApplyingMultivariateDiscrete2016" class="csl-entry">
+Kirkpatrick, Robert M., and Michael C. Neale. 2016. <span>“Applying
+Multivariate Discrete Distributions to Genetically Informative Count
+Data.”</span> <em>Behavior Genetics</em> 46 (2): 252–68. <a href="https://doi.org/10.1007/s10519-015-9757-z" class="external-link">https://doi.org/10.1007/s10519-015-9757-z</a>.
 </div>
 <div id="ref-skellam1946" class="csl-entry">
 Skellam, J. G. 1946. <span>“The Frequency Distribution of the Difference

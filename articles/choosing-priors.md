@@ -110,9 +110,10 @@ rather than widening the standard deviation. Because the link is
 logarithmic, widening a normal prior produces a heavier-tailed
 lognormal, which places *more* mass in the flat region the sampler
 explores rather than less ([Smith et al.
-2020](#ref-smithInstantaneousVsNoninstantaneous2020), supplement 3). A
-prior centred at the scale of the data and no wider than it needs to be
-is both more informative about what is plausible and better behaved.
+2020](#ref-smithInstantaneousVsNoninstantaneous2020), supplement 3, Fig.
+S3-1). A prior centred at the scale of the data and no wider than it
+needs to be is both more informative about what is plausible and better
+behaved.
 
 ## The class, dpar and nlpar slots
 

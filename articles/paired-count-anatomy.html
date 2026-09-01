@@ -79,9 +79,12 @@
 <p>Every joint family in this package — <code><a href="../reference/bipois.html">bipois()</a></code> and
 <code><a href="../reference/binegbin.html">binegbin()</a></code>, each with a <code>_partialobs()</code>
 constructor for data whose first count is sometimes missing — is built
-by <strong>trivariate reduction</strong> <span class="citation">(<a href="#ref-holgate1964">Holgate 1964</a>; <a href="#ref-karlis2003">Karlis and Ntzoufras 2003</a>)</span>. Three
-independent counts are drawn, and the two observed counts share one of
-them:</p>
+by <strong>trivariate reduction</strong>. <span class="citation">Holgate
+(<a href="#ref-holgate1964">1964</a>)</span> and <span class="citation">Karlis and Ntzoufras (<a href="#ref-karlis2003">2003</a>)</span> use the construction with
+Poisson components; <span class="citation">Kirkpatrick and Neale (<a href="#ref-kirkpatrickApplyingMultivariateDiscrete2016">2016</a>)</span>
+and <span class="citation">Kirkpatrick (<a href="#ref-kirkpatrickRMKdiscreteSundryDiscrete2022">2022</a>)</span>
+with negative-binomial components. Three independent counts are drawn,
+and one of the three enters both observed counts:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mn>1</mn></msub><mo>=</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>+</mo><msub><mi>N</mi><mn>1</mn></msub><mspace width="2.0em"></mspace><msub><mi>y</mi><mn>2</mn></msub><mo>=</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>+</mo><msub><mi>N</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">
 y_1 = N_{\text{shared}} + N_1
 \qquad
@@ -632,10 +635,12 @@ in
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>,
 the SD-scale dispersion the widget above uses, rather than in
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>.</p>
-<p>Estimating in
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\kappa = 0</annotation></semantics></math>
+is the Poisson limit, so a prior on
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
-is worth the detour, because a shrinkage prior requires a finite
-null.</p>
+can shrink towards Poisson. The same reparameterisation was used in
+<span class="citation">(<a href="#ref-smithInstantaneousVsNoninstantaneous2020">Smith et al.
+2020</a>)</span>.</p>
 <div class="section level3">
 <h3 id="priors-that-default-to-the-simpler-model">Priors that default to the simpler model<a class="anchor" aria-label="anchor" href="#priors-that-default-to-the-simpler-model"></a>
 </h3>
@@ -805,7 +810,7 @@ so a normal prior on it is a lognormal on
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>,
 and widening one pushes mass out to implausible values instead of making
 it neutral <span class="citation">(<a href="#ref-smithInstantaneousVsNoninstantaneous2020">Smith et al.
-2020</a>, supplement 3)</span>.</p>
+2020</a>, supplement 3, Fig. S3-1)</span>.</p>
 <p>A prior written on one scale induces a different density on any
 other. Being weakly informative on the first does not make it so on the
 second. These are written on the linear-predictor scale —
@@ -1084,6 +1089,15 @@ Karlis, Dimitris, and Ioannis Ntzoufras. 2003. <span>“Analysis of Sports
 Data by Using Bivariate <span>Poisson</span> Models.”</span> <em>Journal
 of the Royal Statistical Society: Series D (The Statistician)</em> 52
 (3): 381–93. <a href="https://doi.org/10.1111/1467-9884.00366" class="external-link">https://doi.org/10.1111/1467-9884.00366</a>.
+</div>
+<div id="ref-kirkpatrickRMKdiscreteSundryDiscrete2022" class="csl-entry">
+Kirkpatrick, Robert M. 2022. <em><span>RMKdiscrete</span>: Sundry
+Discrete Probability Distributions</em>. <a href="https://CRAN.R-project.org/package=RMKdiscrete" class="external-link">https://CRAN.R-project.org/package=RMKdiscrete</a>.
+</div>
+<div id="ref-kirkpatrickApplyingMultivariateDiscrete2016" class="csl-entry">
+Kirkpatrick, Robert M., and Michael C. Neale. 2016. <span>“Applying
+Multivariate Discrete Distributions to Genetically Informative Count
+Data.”</span> <em>Behavior Genetics</em> 46 (2): 252–68. <a href="https://doi.org/10.1007/s10519-015-9757-z" class="external-link">https://doi.org/10.1007/s10519-015-9757-z</a>.
 </div>
 <div id="ref-mcelreath2020" class="csl-entry">
 McElreath, Richard. 2020. <em>Statistical Rethinking: A
