@@ -1,10 +1,10 @@
 # Version and year are taken from DESCRIPTION so there is one source of truth;
 # bumping Version/Date is enough to keep citation() current.
 #
-# DOI. Add the Zenodo DOI to `doi` and `textVersion` below once 1.0.0 has been
-# archived; 0.9.0 is deliberately not archived. Until then this entry cites the
-# repository, which is not a persistent identifier -- a manuscript should wait
-# for the DOI rather than cite the URL.
+# DOI. The concept DOI below resolves to whichever version is latest, so it does
+# not change when a new release is archived and needs no edit at each release.
+# The DOI of one particular release is on that release's own Zenodo record, and
+# belongs in a reproducibility statement rather than here.
 year <- if (!is.null(meta$Date)) {
   format(as.Date(meta$Date), "%Y")
 } else {
@@ -32,12 +32,13 @@ bibentry(
   ),
   year     = year,
   note     = paste("R package version", version),
+  doi      = "10.5281/zenodo.22239120",
   url      = "https://github.com/anhsmith/bicountbrms",
   header   = "Package citation:",
   textVersion = paste0(
     "Smith, A. N. H. (", year, "). bicountbrms: Joint Bivariate-Count brms ",
     "Custom Families for Paired Counts. ",
     "R package version ", version, ". ",
-    "https://github.com/anhsmith/bicountbrms"
+    "https://doi.org/10.5281/zenodo.22239120"
   )
 )
