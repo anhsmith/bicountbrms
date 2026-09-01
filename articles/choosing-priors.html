@@ -91,14 +91,8 @@ model, <code><a href="https://paulbuerkner.com/brms/reference/default_prior.html
                         Intercept shapexone
                         Intercept shapextwo</code></pre>
 <p>An empty <code>prior</code> column means an improper uniform on the
-whole real line. That is not brms behaving unusually: for its built-in
-families the remaining parameters are things like a residual standard
-deviation, for which brms does supply a default. A custom family has no
-such defaults, because brms cannot know what its parameters mean. A
-reader who assumes otherwise, reasonably enough from experience with
-<code><a href="https://rdrr.io/r/stats/family.html" class="external-link">gaussian()</a></code> or <code><a href="https://paulbuerkner.com/brms/reference/brmsfamily.html" class="external-link">negbinomial()</a></code>, has no reason to
-run <code><a href="https://paulbuerkner.com/brms/reference/default_prior.html" class="external-link">get_prior()</a></code> at all. That assumption is why this page
-exists.</p>
+whole real line. This is the standard default for parameters other than
+<code>mu</code> in custom brms families.</p>
 <div class="section level2">
 <h2 id="every-parameter-identified-by-the-matched-rows-alone-is-left-improper">Every parameter identified by the matched rows alone is left
 improper<a class="anchor" aria-label="anchor" href="#every-parameter-identified-by-the-matched-rows-alone-is-left-improper"></a>
@@ -138,17 +132,14 @@ level and the posterior therefore follows the prior. The
 asymmetric-dispersion fit in
 <code>tests/testthat/test-binegbin-dispersions.R</code> required priors
 on the two rates and the three dispersions: run without them it produced
-680 divergent transitions and a maximum
+divergent transitions and some high
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>R</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{R}</annotation></semantics></math>
-of 1.54, which is to say chains that never mixed.</p>
+values, which is to say chains that never mixed.</p>
 <p>Divergences are the diagnostic to watch here rather than
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>R</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{R}</annotation></semantics></math>
 alone. This package applies an
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>R</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{R}</annotation></semantics></math>
-gate of 1.02 rather than the 1.01 of <span class="citation">Vehtari et
-al. (<a href="#ref-vehtari2021">2021</a>)</span>, for reasons set out in
-<code>tests/testthat/helper-coverage.R</code>, and a model can sit
-inside that gate while still producing divergent transitions.</p>
+gate of 1.02.</p>
 </div>
 <div class="section level2">
 <h2 id="a-weakly-informative-prior-on-each-log-scale-parameter">A weakly informative prior on each log-scale parameter<a class="anchor" aria-label="anchor" href="#a-weakly-informative-prior-on-each-log-scale-parameter"></a>
@@ -177,7 +168,7 @@ dispersion parameters, so only the three rate lines apply to them.</p>
 Because the link is logarithmic, widening a normal prior produces a
 heavier-tailed lognormal, which places <em>more</em> mass in the flat
 region the sampler explores rather than less <span class="citation">(<a href="#ref-smithInstantaneousVsNoninstantaneous2020">Smith et al.
-2020</a>, supplement 3, Fig. S3-1)</span>. A prior centred at the scale
+2020</a>, Supplement 3, Fig. S3-1)</span>. A prior centred at the scale
 of the data and no wider than it needs to be is both more informative
 about what is plausible and better behaved.</p>
 </div>
@@ -276,14 +267,6 @@ D. M. Pawley, and M. J. Anderson. 2020. <span>“Instantaneous Vs.
 Non-Instantaneous Diver-Operated Stereo-Video (<span>DOV</span>) Surveys
 of Highly Mobile Sharks in the <span>Galápagos</span> Marine
 Reserve.”</span> <em>Marine Ecology Progress Series</em> 649: 111–23. <a href="https://doi.org/10.3354/meps13447" class="external-link">https://doi.org/10.3354/meps13447</a>.
-</div>
-<div id="ref-vehtari2021" class="csl-entry">
-Vehtari, Aki, Andrew Gelman, Daniel Simpson, Bob Carpenter, and
-Paul-Christian Bürkner. 2021. <span>“Rank-Normalization, Folding, and
-Localization: An Improved
-<span><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>R</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\widehat{R}</annotation></semantics></math></span>
-for Assessing Convergence of <span>MCMC</span> (with
-Discussion).”</span> <em>Bayesian Analysis</em> 16 (2): 667–718. <a href="https://doi.org/10.1214/20-BA1221" class="external-link">https://doi.org/10.1214/20-BA1221</a>.
 </div>
 </div>
 </div>

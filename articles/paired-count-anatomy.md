@@ -175,10 +175,10 @@ towards Poisson. The same reparameterisation was used in ([Smith et al.
 
 ### Priors that default to the simpler model
 
-This section covers priors in the coordinates alone. For the native
-distributional parameters — which prior goes in which of the `class`,
-`dpar` and `nlpar` slots, and why brms supplies none of them by default
-— see [Choosing
+This section covers priors in the $`(M, f, \delta)`$ coordinates alone.
+For the native distributional parameters — which prior goes in which of
+the `class`, `dpar` and `nlpar` slots, and why brms supplies none of
+them by default — see [Choosing
 priors](https://anhsmith.github.io/bicountbrms/articles/choosing-priors.md),
 which is the page to read first.
 
@@ -341,7 +341,6 @@ Simulate a pair of counts from known coordinates:
 ``` r
 
 library(brms)
-#> Warning: package 'Rcpp' was built under R version 4.6.1
 library(bicountbrms)
 
 set.seed(20260731)

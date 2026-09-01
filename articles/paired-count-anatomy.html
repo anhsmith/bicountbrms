@@ -644,11 +644,13 @@ can shrink towards Poisson. The same reparameterisation was used in
 <div class="section level3">
 <h3 id="priors-that-default-to-the-simpler-model">Priors that default to the simpler model<a class="anchor" aria-label="anchor" href="#priors-that-default-to-the-simpler-model"></a>
 </h3>
-<p>This section covers priors in the coordinates alone. For the native
-distributional parameters — which prior goes in which of the
-<code>class</code>, <code>dpar</code> and <code>nlpar</code> slots, and
-why brms supplies none of them by default — see <a href="choosing-priors.html">Choosing priors</a>, which is the page to
-read first.</p>
+<p>This section covers priors in the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mo>,</mo><mi>f</mi><mo>,</mo><mi>δ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(M, f, \delta)</annotation></semantics></math>
+coordinates alone. For the native distributional parameters — which
+prior goes in which of the <code>class</code>, <code>dpar</code> and
+<code>nlpar</code> slots, and why brms supplies none of them by default
+— see <a href="choosing-priors.html">Choosing priors</a>, which is the
+page to read first.</p>
 <p>Three of these coordinates have a <strong>null at a finite,
 interpretable zero</strong>. The priors below follow from three
 statements about that null. Zero is the base model:
@@ -885,7 +887,6 @@ fit below tests that claim.</p>
 <p>Simulate a pair of counts from known coordinates:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paul-buerkner/brms" class="external-link">brms</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: package 'Rcpp' was built under R version 4.6.1</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/anhsmith/bicountbrms" class="external-link">bicountbrms</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">20260731</span><span class="op">)</span></span>

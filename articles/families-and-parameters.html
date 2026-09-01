@@ -78,6 +78,7 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paul-buerkner/brms" class="external-link">brms</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: package 'Rcpp' was built under R version 4.6.1</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/anhsmith/bicountbrms" class="external-link">bicountbrms</a></span><span class="op">)</span></span></code></pre></div>
 <p>This article describes the parameters that are fitted. The companion
 article <a href="paired-count-anatomy.html">The anatomy of a paired
@@ -99,53 +100,68 @@ y_1 = N_{\text{shared}} + N_1
 y_2 = N_{\text{shared}} + N_2
 </annotation></semantics></math></p>
 <p><code>N_shared</code> is never observed. The likelihood sums it out
-analytically over ,</p>
+analytically over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>0</mn><mo>,</mo><mi>…</mi><mo>,</mo><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">k = 0, \ldots, \min(y_1, y_2)</annotation></semantics></math>,</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>=</mo><mi>x</mi><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>y</mi><mn>2</mn></msub><mo>=</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mrow><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo></mrow></munderover><msub><mi>f</mi><mtext mathvariant="normal">s</mtext></msub><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><msub><mi>f</mi><mn>1</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>−</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><msub><mi>f</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo>−</mo><mi>k</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
 P(y_1 = x,\ y_2 = y) = \sum_{k=0}^{\min(x,y)}
   f_{\text{s}}(k)\, f_1(x-k)\, f_2(y-k),
 </annotation></semantics></math></p>
-<p>where , and are the probability mass functions of the three latent
-counts. With Poisson components this sum is Campbell’s <span class="citation">(<a href="#ref-campbell1934">1934</a>)</span> equation
-(2.2). The first source is the modelled response; the second is supplied
-as supplementary integer data through <code>vint()</code>, because
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>f</mi><mtext mathvariant="normal">s</mtext></msub><annotation encoding="application/x-tex">f_{\text{s}}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>f</mi><mn>1</mn></msub><annotation encoding="application/x-tex">f_1</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>f</mi><mn>2</mn></msub><annotation encoding="application/x-tex">f_2</annotation></semantics></math>
+are the probability mass functions of the three latent counts. With
+Poisson components, this sum is Campbell’s <span class="citation">(<a href="#ref-campbell1934">1934</a>)</span> equation (2.2). The first
+source is the modelled response; the second is supplied as supplementary
+integer data through <code>vint()</code>, because
 <code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">brms::custom_family()</a></code> declares a single response
 column.</p>
 <p>The shared latent count enters both observed counts and therefore
-induces their covariance, . It cancels from the difference,</p>
+induces their covariance,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">v</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathrm{Cov}(y_1, y_2) = \mathrm{Var}(N_{\text{shared}})</annotation></semantics></math>.
+It cancels from the difference,</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><msub><mi>y</mi><mn>1</mn></msub><mo>−</mo><msub><mi>y</mi><mn>2</mn></msub><mo>=</mo><msub><mi>N</mi><mn>1</mn></msub><mo>−</mo><msub><mi>N</mi><mn>2</mn></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
 d = y_1 - y_2 = N_1 - N_2,
 </annotation></semantics></math></p>
 <p>so the difference depends on the two source-specific counts alone.
-For Poisson latent counts that difference is exactly Skellam-distributed
-<span class="citation">(<a href="#ref-skellam1946">Skellam
-1946</a>)</span>, which is why <code><a href="../reference/bipois.html">bipois()</a></code> induces the Skellam
-as its difference model.</p>
+For Poisson latent counts, that difference is exactly
+Skellam-distributed <span class="citation">(<a href="#ref-skellam1946">Skellam 1946</a>)</span>, which is why
+<code><a href="../reference/bipois.html">bipois()</a></code> induces the Skellam as its difference model.</p>
 <p>brms requires one distributional parameter of every family to be
-named <code>mu</code>. In these families <code>mu</code> is the rate of
-the shared latent count. Since , <code>mu</code> is not the mean of
-either observed count, nor of their difference. The constraint is
-<code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">custom_family()</a></code>’s rather than a modelling choice, and the
-same applies to the spelling of the two source-specific rates:
-<code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">custom_family()</a></code> rejects a distributional parameter name
-ending in a digit, so the code writes <code>lambdaone</code> and
-<code>lambdatwo</code> where the documentation writes and .</p>
+named <code>mu</code>. In these families, <code>mu</code> is the rate of
+the shared latent count. Since
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>y</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\mathrm{E}[y_1] = \mu + \lambda_1</annotation></semantics></math>,
+<code>mu</code> is not the mean of either observed count, nor of their
+difference. The constraint is <code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">custom_family()</a></code>’s rather than
+a modelling choice, and the same applies to the spelling of the two
+source-specific rates: <code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">custom_family()</a></code> rejects a
+distributional parameter name ending in a digit, so the code writes
+<code>lambdaone</code> and <code>lambdatwo</code> where the
+documentation writes
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>.</p>
 </div>
 <div class="section level2">
 <h2 id="poisson-or-negative-binomial-latent-counts">Poisson or negative-binomial latent counts<a class="anchor" aria-label="anchor" href="#poisson-or-negative-binomial-latent-counts"></a>
 </h2>
 <p><code><a href="../reference/bipois.html">bipois()</a></code> draws each latent count from a Poisson
-distribution, which fixes its variance equal to its mean.
+distribution, so the variance is equal to the mean.
 <code><a href="../reference/binegbin.html">binegbin()</a></code> draws each from NB2 instead and estimates three
-scalar dispersions. NB2 is Stan’s <code>neg_binomial_2</code> and R’s
-<code>dnbinom(size = phi, mu = m)</code>: it has mean and variance , so
-a larger means less overdispersion, and the Poisson is the limit.</p>
+scalar dispersions.
+NB2<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>m</mi><mo>,</mo><mi>ϕ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(m, \phi)</annotation></semantics></math>
+is Stan’s <code>neg_binomial_2</code> and R’s
+<code>dnbinom(size = phi, mu = m)</code>: it has mean
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
+and variance
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>+</mo><msup><mi>m</mi><mn>2</mn></msup><mi>/</mi><mi>ϕ</mi></mrow><annotation encoding="application/x-tex">m + m^2/\phi</annotation></semantics></math>,
+so a larger
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>
+means less overdispersion, and the Poisson is the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">\phi \to \infty</annotation></semantics></math>
+limit.</p>
 <table class="table">
-<colgroup>
-<col width="25%">
-<col width="25%">
-<col width="25%">
-<col width="25%">
-</colgroup>
 <thead><tr class="header">
 <th>dpar</th>
 <th>latent count</th>
@@ -157,25 +173,25 @@ a larger means less overdispersion, and the Poisson is the limit.</p>
 <td>
 <code>mu</code>, <code>shapes</code>
 </td>
-<td></td>
-<td></td>
-<td></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><annotation encoding="application/x-tex">N_{\text{shared}}</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mtext mathvariant="normal">s</mtext></msub><annotation encoding="application/x-tex">\phi_{\text{s}}</annotation></semantics></math></td>
 </tr>
 <tr class="even">
 <td>
 <code>lambdaone</code>, <code>shapexone</code>
 </td>
-<td></td>
-<td></td>
-<td></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mn>1</mn></msub><annotation encoding="application/x-tex">N_1</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math></td>
 </tr>
 <tr class="odd">
 <td>
 <code>lambdatwo</code>, <code>shapextwo</code>
 </td>
-<td></td>
-<td></td>
-<td></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mn>2</mn></msub><annotation encoding="application/x-tex">N_2</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x2}</annotation></semantics></math></td>
 </tr>
 </tbody>
 </table>
@@ -193,7 +209,8 @@ link.</p>
   \Big(\lambda_2 + \tfrac{\lambda_2^2}{\phi_{x2}}\Big).
 </annotation></semantics></math></p>
 <p>The covariance involves the shared latent count alone, so neither
-excess dispersion appears in it: <span class="citation">(<a href="#ref-kirkpatrickApplyingMultivariateDiscrete2016">Kirkpatrick and
+excess dispersion appears in it:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">v</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>μ</mi><mo>+</mo><msup><mi>μ</mi><mn>2</mn></msup><mi>/</mi><msub><mi>ϕ</mi><mtext mathvariant="normal">s</mtext></msub></mrow><annotation encoding="application/x-tex">\mathrm{Cov}(y_1, y_2) = \mu + \mu^2/\phi_{\text{s}}</annotation></semantics></math><span class="citation">(<a href="#ref-kirkpatrickApplyingMultivariateDiscrete2016">Kirkpatrick and
 Neale 2016</a>)</span>. Freeing the two excess dispersions therefore
 changes both margins and the difference, and leaves the covariance
 unchanged; the correlation moves only through its denominator.</p>
@@ -206,18 +223,23 @@ variances,</p>
 0 \le \rho \le
   \min\!\left(\sqrt{V_1 / V_2},\ \sqrt{V_2 / V_1}\right),
 </annotation></semantics></math></p>
-<p>for and the variances of the two observed counts, with the upper
-bound attained only when one source has no private component. In the
-Poisson case each variance equals its mean, and this is the ceiling
-Holgate <span class="citation">(<a href="#ref-holgate1964">1964</a>)</span> states and calls the drawback.
-A construction admitting negative correlation gives up the shared latent
-count, which is the quantity these families estimate.</p>
+<p>for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mn>1</mn></msub><annotation encoding="application/x-tex">V_1</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mn>2</mn></msub><annotation encoding="application/x-tex">V_2</annotation></semantics></math>
+the variances of the two observed counts, with the upper bound attained
+only when one source has no private component. In the Poisson case, each
+variance equals its mean, and this is the ceiling Holgate <span class="citation">(<a href="#ref-holgate1964">1964</a>)</span> states and
+calls the drawback. A construction admitting negative correlation gives
+up the shared latent count, which is the quantity these families
+estimate.</p>
 <p>An observation-level random effect on the source-specific components
 would be the obvious alternative to a scalar dispersion, and it fails
 synthetic recovery. With one observed pair per unit but three latent
 deviates per unit, the excess deviates absorb the residual: in the
 motivating dataset the population standard deviation of the excess was
 recovered as 0.37 against a true 0.85, and drawing fresh deviates gave
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>d</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>2.9</mn></mrow><annotation encoding="application/x-tex">\mathrm{Var}(d) = 2.9</annotation></semantics></math>
 against a true 19.2. A conditional posterior-predictive check does not
 expose that failure; a marginal one, drawing fresh deviates, does.</p>
 </div>
@@ -227,9 +249,10 @@ expose that failure; a marginal one, drawing fresh deviates, does.</p>
 <p>Both negative-binomial constructors estimate a separate dispersion
 for each source-specific component. The two sources are different
 instruments, and no argument requires their source-specific excess to be
-equally overdispersed. Up to release 0.9.1 a single distributional
-parameter <code>shapex</code> imposed ; 0.10.0 frees the constraint for
-both constructors.</p>
+equally overdispersed. Up to release 0.9.1, a single distributional
+parameter <code>shapex</code> imposed
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">\phi_{x1} = \phi_{x2}</annotation></semantics></math>;
+0.10.0 frees the constraint for both constructors.</p>
 <p>To impose that constraint deliberately, route both distributional
 parameters through one non-linear parameter:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -252,8 +275,8 @@ differ from the pre-0.10.0 spelling, which was
 <code>class = "Intercept"</code> with <code>dpar = "shapex"</code>. A
 prior written the old way names no parameter in the tied model and is
 dropped without a warning, which leaves the dispersion improper; see <a href="choosing-priors.html">Choosing priors</a>.</p>
-<p>Under full pairing every row informs both dispersions. Under partial
-observation the two are not equally identified: <code>shapextwo</code>
+<p>Under full pairing, every row informs both dispersions. Under partial
+observation, the two are not equally identified: <code>shapextwo</code>
 governs the always-observed margin and appears on both branches of the
 likelihood, while <code>shapexone</code> appears on the matched branch
 alone. <a href="partially-observed-fit.html">A worked partially observed
@@ -263,7 +286,10 @@ fit</a> shows what follows from that asymmetry.</p>
 <h2 id="discrimination-of-two-dispersions-an-order-of-magnitude-apart">Discrimination of two dispersions an order of magnitude apart<a class="anchor" aria-label="anchor" href="#discrimination-of-two-dispersions-an-order-of-magnitude-apart"></a>
 </h2>
 <p>The get-started vignette recovers all six distributional parameters
-from a fully paired design. The question here is narrower: when and
+from a fully paired design. The question here is narrower: when
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x2}</annotation></semantics></math>
 differ substantially, does the fit resolve them as different, or merely
 bracket each of them widely enough to contain the truth?</p>
 <p>The simulation below sets the two an order of magnitude apart, at 0.7
@@ -302,10 +328,13 @@ observation flag appears anywhere: this is <code><a href="../reference/binegbin.
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>cor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">y1</span>, <span class="va">dat</span><span class="op">$</span><span class="va">y2</span><span class="op">)</span>, var_y1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">var</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">y1</span><span class="op">)</span>, var_y2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">var</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">y2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        cor     var_y1     var_y2 </span></span>
 <span><span class="co">#&gt;  0.4115147 69.9471460 36.2650056</span></span></code></pre></div>
-<p>Drawing <code>n_shared</code> once and adding it to both counts is
-what correlates the pair; drawing it separately for each would give two
-independent counts with the right margins and no covariance. The first
-count is the more variable of the two, as requires.</p>
+<p>The pair is correlated because <code>n_shared</code> is drawn once
+and added to both counts; drawing this component separately for each
+count would give two independent counts with the same marginal
+distributions and no covariance. The first count is the more variable of
+the two, as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo>&lt;</mo><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">\phi_{x1} &lt; \phi_{x2}</annotation></semantics></math>
+requires.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brm.html" class="external-link">brm</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula.html" class="external-link">bf</a></span><span class="op">(</span><span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>,</span>
@@ -328,8 +357,10 @@ count is the more variable of the two, as requires.</p>
 <span>  backend <span class="op">=</span> <span class="va">backend</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>The prior on each log dispersion is <code>normal(0, 1.5)</code>,
-which spans roughly at two standard deviations and so contains all three
-true values without favouring any of them.</p>
+which spans roughly
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0.05</mn><mo>,</mo><mn>20</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0.05, 20]</annotation></semantics></math>
+at two standard deviations and so contains all three true values without
+favouring any of them.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">draws</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span></span>
@@ -390,9 +421,11 @@ is the next one:</p>
 <span>  upper          <span class="op">=</span> <span class="va">lr_ci</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt; true_log_ratio         median          lower          upper </span></span>
 <span><span class="co">#&gt;      -2.148434      -1.917969      -2.513566      -1.417690</span></span></code></pre></div>
-<p>The 95% posterior interval for excludes zero, so the data separate
-the two dispersions rather than the priors: both priors are identical,
-and centred at a log ratio of zero.</p>
+<p>The 95% posterior interval for
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo>−</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">\log \phi_{x1} - \log \phi_{x2}</annotation></semantics></math>
+excludes zero, so the data separate the two dispersions rather than the
+priors: both priors are identical, and centred at a log ratio of
+zero.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>divergences <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://mc-stan.org/bayesplot/reference/bayesplot-extractors.html" class="external-link">nuts_params</a></span><span class="op">(</span><span class="va">fit</span>, pars <span class="op">=</span> <span class="st">"divergent__"</span><span class="op">)</span><span class="op">$</span><span class="va">Value</span><span class="op">)</span>,</span>
 <span>  max_rhat    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://mc-stan.org/posterior/reference/rhat.html" class="external-link">rhat</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
@@ -427,7 +460,7 @@ plot of chunk dispersion-posteriors
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
-<p>Under partial observation the same demonstration requires a majority
+<p>Under partial observation, the same demonstration requires a majority
 of rows to be matched, because <code>shapexone</code> is then informed
 by those rows alone.
 <code>tests/testthat/test-binegbin-dispersions.R</code> runs both
@@ -445,14 +478,19 @@ designs.</p>
 The returned quantity is a conditional expectation rather than a
 marginal one, and the conditioning is on data rather than on a fitted
 value.</p>
-<p>For <code><a href="../reference/bipois.html">bipois()</a></code> the conditional distribution is available
+<p>For <code><a href="../reference/bipois.html">bipois()</a></code>, the conditional distribution is available
 in closed form: conditioning a sum of independent Poisson counts on its
-total gives a Binomial, so and the expectation is . A sum of
-negative-binomial counts has no Binomial conditional, so
-<code><a href="../reference/binegbin.html">binegbin()</a></code> evaluates the discrete conditional law over and
-sums it. Both are exact, and each agrees with the mean of that family’s
-own <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> draws to within Monte Carlo
-error.</p>
+total gives a Binomial, so
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo>∼</mo><mrow><mi mathvariant="normal">B</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>2</mn></msub><mo>,</mo><mspace width="0.222em"></mspace><mi>μ</mi><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">N_{\text{shared}} \mid y_2 \sim \mathrm{Binomial}(y_2,\ \mu/(\mu +
+\lambda_2))</annotation></semantics></math> and the expectation is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mn>2</mn></msub><mspace width="0.167em"></mspace><mi>μ</mi><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>λ</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">y_2\,\mu/(\mu + \lambda_2) +
+\lambda_1</annotation></semantics></math>. A sum of negative-binomial
+counts has no Binomial conditional, so <code><a href="../reference/binegbin.html">binegbin()</a></code> evaluates
+the discrete conditional law over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>0</mn><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">k = 0, \ldots, y_2</annotation></semantics></math>
+and sums it. Both are exact, and each agrees with the mean of that
+family’s own <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> draws to within Monte
+Carlo error.</p>
 <p><code>posterior_epred(fit)</code>, and therefore
 <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code> and <code><a href="https://paulbuerkner.com/brms/reference/conditional_effects.brmsfit.html" class="external-link">conditional_effects()</a></code>, dispatch
 to the family’s own method in the ordinary way. Neither family supports
@@ -463,26 +501,32 @@ cannot arise here.</p>
 <div class="section level2">
 <h2 id="checks-performed">Checks performed<a class="anchor" aria-label="anchor" href="#checks-performed"></a>
 </h2>
-<p>The test suite runs 1,164 assertions with a Stan toolchain available
-and 621 without. For the likelihood it verifies:</p>
+<p>The test suite is run with and without a Stan toolchain; the
+toolchain-free run skips every model fit. For the likelihood, the suite
+verifies:</p>
 <ul>
 <li>the Stan implementation against an independent brute-force reference
-written in R, agreeing to about across a grid of rates and dispersions
-and at edge cases;</li>
-<li>normalisation to 1, over the pair on the matched branch and over on
-the unmatched one;</li>
+written in R, agreeing to about
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>14</mn></mrow></msup><annotation encoding="application/x-tex">10^{-14}</annotation></semantics></math>
+across a grid of rates and dispersions and at edge cases;</li>
+<li>normalisation to 1, over the pair on the matched branch and over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>2</mn></msub><annotation encoding="application/x-tex">y_2</annotation></semantics></math>
+on the unmatched one;</li>
 <li>the moment identities above, by exact summation over the joint
 probability mass function rather than by simulation;</li>
 <li>the marginal identity, that summing the matched branch over
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math>
 reproduces the unmatched branch;</li>
 <li>the Poisson limit, checked as a limit — the discrepancy must shrink
-as grows — rather than at a single tolerance.</li>
+as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>
+grows — rather than at a single tolerance.</li>
 </ul>
-<p>For the post-processing methods it verifies that each expectation
-equals the mean of its own predictive draws, that the observation flag
-changes neither the prediction nor the expectation, and that exchanging
-the two excess dispersions anywhere they are routed produces a
-detectably different answer.</p>
+<p>For the post-processing methods, the suite verifies that each
+expectation equals the mean of its own predictive draws, that the
+observation flag changes neither the prediction nor the expectation, and
+that exchanging the two excess dispersions anywhere they are routed
+produces a detectably different answer.</p>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

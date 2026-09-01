@@ -132,7 +132,7 @@ which is not something a real dataset permits.</p>
 <code>vint(y2, y1_obs)</code> binds <code>vint1</code> to the second
 count and <code>vint2</code> to the flag, in the order they are
 listed.</p>
-<p>On an unmatched row the response column is not read by the
+<p>On an unmatched row, the response column is not read by the
 likelihood, so any non-negative integer serves as a placeholder;
 <code>0</code> is used above. Do not write <code>NA</code> there. brms
 drops rows with a missing response before the family is reached, which
@@ -183,9 +183,16 @@ P(y_2 = y) = \sum_{k=0}^{y}
 whole support. The row is neither dropped nor given a separate
 univariate model on the second count, either of which would be a
 different model from the one the matched rows are fitted to.</p>
-<p>Two consequences follow. An unmatched row informs , , , and any
-group-level effects. It does not inform or , which appear only in the
-matched branch.</p>
+<p>Two consequences follow. An unmatched row informs
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mtext mathvariant="normal">s</mtext></msub><annotation encoding="application/x-tex">\phi_{\text{s}}</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x2}</annotation></semantics></math>
+and any group-level effects. It does not inform
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>
+or
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>,
+which appear only in the matched branch.</p>
 <p>Which parameters an unmatched row informs is a property of the
 likelihood rather than of this fit. What that property implies for a
 particular design is taken up further down.</p>
@@ -272,9 +279,10 @@ particular design is taken up further down.</p>
 </tr>
 </tbody>
 </table>
-<p>Five of the six intervals contain their true value. The sixth, , does
-not: its interval runs from 2.03 to 10.07 against a truth of 2, so it
-misses at the lower end by 0.03.</p>
+<p>Five of the six intervals contain their true value. The sixth,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>,
+does not: its interval runs from 2.03 to 10.07 against a truth of 2, so
+it misses at the lower end by 0.03.</p>
 <p>The miss is worth stating rather than reseeding until it goes away. A
 95% interval from a correctly specified model excludes the truth 5% of
 the time by construction, and across six parameters the chance that at
@@ -345,29 +353,43 @@ plot of chunk imputation-check
 withheld first count. The two counts have only the shared component in
 common, so the second count constrains the first only through that
 component and the prediction is shrunk towards the marginal mean of the
-first count, , here 10. High withheld counts are therefore
-under-predicted and low ones over-predicted: at the true parameters the
-prediction regressed on the withheld count has slope 0.37 rather than 1.
-The vertical spread measures what the second count leaves undetermined
-about the first.</p>
+first count,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\mu + \lambda_1</annotation></semantics></math>,
+here 10. High withheld counts are therefore under-predicted and low ones
+over-predicted: at the true parameters the prediction regressed on the
+withheld count has slope 0.27 rather than 1. The vertical spread
+measures what the second count leaves undetermined about the first.</p>
 </div>
 <div class="section level2">
 <h2 id="choosing-a-matched-fraction">Choosing a matched fraction<a class="anchor" aria-label="anchor" href="#choosing-a-matched-fraction"></a>
 </h2>
-<p> and appear only in the matched branch, so as the matched count
-approaches zero they stop being identified and their posteriors return
-their priors. continues to be estimated from the second counts however
-few pairs are matched.</p>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>
+appear only in the matched branch, so as the matched count approaches
+zero they stop being identified and their posteriors return their
+priors.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>
+continues to be estimated from the second counts however few pairs are
+matched.</p>
 <p>The matched rows also do work for the other four parameters, which
 the branch structure alone does not show. An unmatched row constrains
-and only through the convolution that gives the second count’s marginal,
-and that convolution determines the sum of the two components better
-than it determines the division between them. Separating the shared
-component from the second source’s own is done by the matched rows,
-because only a matched row observes both counts of a pair. For
-<code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code> this is sharper still: an unmatched row
-involves and through their sum exactly, with no convolution to separate
-them.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>
+only through the convolution that gives the second count’s marginal, and
+that convolution determines the sum of the two components better than it
+determines the division between them. Separating the shared component
+from the second source’s own is done by the matched rows, because only a
+matched row observes both counts of a pair. For
+<code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code>, this is sharper still: an unmatched
+row involves
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>
+through their sum
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\mu + \lambda_2</annotation></semantics></math>
+exactly, with no convolution to separate them.</p>
 <p>Where the between-source bias or the congruence is the quantity of
 interest, the matched subset is the effective sample size for it. That
 is worth knowing before the data are collected.</p>

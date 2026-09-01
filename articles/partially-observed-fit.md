@@ -65,7 +65,7 @@ The observation flag is a 0/1 integer column, supplied through `vint()`
 alongside the second count: `vint(y2, y1_obs)` binds `vint1` to the
 second count and `vint2` to the flag, in the order they are listed.
 
-On an unmatched row the response column is not read by the likelihood,
+On an unmatched row, the response column is not read by the likelihood,
 so any non-negative integer serves as a placeholder; `0` is used above.
 Do not write `NA` there. brms drops rows with a missing response before
 the family is reached, which would discard the second count on exactly
@@ -121,9 +121,10 @@ support. The row is neither dropped nor given a separate univariate
 model on the second count, either of which would be a different model
 from the one the matched rows are fitted to.
 
-Two consequences follow. An unmatched row informs , , , and any
-group-level effects. It does not inform or , which appear only in the
-matched branch.
+Two consequences follow. An unmatched row informs $`\mu`$,
+$`\phi_{\text{s}}`$, $`\lambda_2`$, $`\phi_{x2}`$ and any group-level
+effects. It does not inform $`\lambda_1`$ or $`\phi_{x1}`$, which appear
+only in the matched branch.
 
 Which parameters an unmatched row informs is a property of the
 likelihood rather than of this fit. What that property implies for a
@@ -164,9 +165,9 @@ knitr::kable(recovery, digits = 2, row.names = FALSE)
 | shapexone | matched rows |     2 |   4.41 |  2.03 | 10.07 |
 | shapextwo | every row    |     4 |   5.93 |  2.98 | 12.18 |
 
-Five of the six intervals contain their true value. The sixth, , does
-not: its interval runs from 2.03 to 10.07 against a truth of 2, so it
-misses at the lower end by 0.03.
+Five of the six intervals contain their true value. The sixth,
+$`\phi_{x1}`$, does not: its interval runs from 2.03 to 10.07 against a
+truth of 2, so it misses at the lower end by 0.03.
 
 The miss is worth stating rather than reseeding until it goes away. A
 95% interval from a correctly specified model excludes the truth 5% of
@@ -250,29 +251,32 @@ par(op)
 The prediction is conditional on the second count, not on the withheld
 first count. The two counts have only the shared component in common, so
 the second count constrains the first only through that component and
-the prediction is shrunk towards the marginal mean of the first count, ,
-here 10. High withheld counts are therefore under-predicted and low ones
-over-predicted: at the true parameters the prediction regressed on the
-withheld count has slope 0.37 rather than 1. The vertical spread
-measures what the second count leaves undetermined about the first.
+the prediction is shrunk towards the marginal mean of the first count,
+$`\mu + \lambda_1`$, here 10. High withheld counts are therefore
+under-predicted and low ones over-predicted: at the true parameters the
+prediction regressed on the withheld count has slope 0.27 rather than 1.
+The vertical spread measures what the second count leaves undetermined
+about the first.
 
 ## Choosing a matched fraction
 
-and appear only in the matched branch, so as the matched count
-approaches zero they stop being identified and their posteriors return
-their priors. continues to be estimated from the second counts however
-few pairs are matched.
+$`\lambda_1`$ and $`\phi_{x1}`$ appear only in the matched branch, so as
+the matched count approaches zero they stop being identified and their
+posteriors return their priors. $`\lambda_2`$ continues to be estimated
+from the second counts however few pairs are matched.
 
 The matched rows also do work for the other four parameters, which the
-branch structure alone does not show. An unmatched row constrains and
-only through the convolution that gives the second count’s marginal, and
-that convolution determines the sum of the two components better than it
-determines the division between them. Separating the shared component
-from the second source’s own is done by the matched rows, because only a
-matched row observes both counts of a pair. For
-[`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
-this is sharper still: an unmatched row involves and through their sum
-exactly, with no convolution to separate them.
+branch structure alone does not show. An unmatched row constrains
+$`\mu`$ and $`\lambda_2`$ only through the convolution that gives the
+second count’s marginal, and that convolution determines the sum of the
+two components better than it determines the division between them.
+Separating the shared component from the second source’s own is done by
+the matched rows, because only a matched row observes both counts of a
+pair. For
+[`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md),
+this is sharper still: an unmatched row involves $`\mu`$ and
+$`\lambda_2`$ through their sum $`\mu + \lambda_2`$ exactly, with no
+convolution to separate them.
 
 Where the between-source bias or the congruence is the quantity of
 interest, the matched subset is the effective sample size for it. That

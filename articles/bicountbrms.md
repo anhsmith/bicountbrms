@@ -3,15 +3,14 @@
 ``` r
 
 library(brms)
-#> Warning: package 'Rcpp' was built under R version 4.6.1
 library(bicountbrms)
 ```
 
-This vignette walks the package’s R API end to end on one family,
-[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md):
-simulate a matched pair of counts from known parameters, fit them, check
-that the posterior finds the truth, and then predict and score. The
-other joint families
+This vignette demonstrates how to use one family,
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md),
+from simulation to prediction: counts are simulated from known
+parameters, fitted, and the credible intervals checked against the
+values that generated them. The other joint families
 ([`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md),
 and the partially observed
 [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
@@ -27,16 +26,16 @@ syntax used further down is documented in Bürkner
 
 ## The generative model
 
-[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-builds the pair by **trivariate reduction**. Holgate
-([1964](#ref-holgate1964)) and Karlis and Ntzoufras
-([2003](#ref-karlis2003)) use the construction with Poisson components;
+Each observed count is the sum of a latent count that both sources
+recorded and one that only that source recorded. This construction is
+**trivariate reduction**: Holgate ([1964](#ref-holgate1964)) and Karlis
+and Ntzoufras ([2003](#ref-karlis2003)) use it with Poisson components,
 Kirkpatrick and Neale
 ([2016](#ref-kirkpatrickApplyingMultivariateDiscrete2016)) and
 Kirkpatrick ([2022](#ref-kirkpatrickRMKdiscreteSundryDiscrete2022)) with
-negative-binomial components. Three independent Negative-Binomial counts
-are drawn; one of the three enters both observed counts and induces
-their correlation, and each of the other two enters a single count:
+negative-binomial components.
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
+takes all three latent counts to be independent and negative binomial:
 
 ``` math
 \begin{aligned}
@@ -119,14 +118,13 @@ cor(dat$y1, dat$y2)
 ```
 
 The correlation is positive and substantial because both counts include
-the same `n_shared`. That shared term is exactly what a model of the
-difference alone throws away.
+the same `n_shared`.
 
 ## Fit
 
-Two things are specific to this package and easy to miss.
+Two things are specific to this package.
 
-**The second count travels via `vint()`.**
+**The second count is supplied through `vint()`.**
 [`brms::custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
 declares a single response column, so only `y1` can be the response.
 `y2` is passed alongside as supplementary integer data, and the family’s
@@ -135,7 +133,7 @@ Stan signature reads it from there.
 **`stanvars` is not optional.**
 [`binegbin_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 injects the `binegbin_lpmf` Stan function into the model’s `functions`
-block. Without it the generated model will not compile.
+block. Without it, the generated model will not compile.
 
 ``` r
 
@@ -167,15 +165,16 @@ fit <- brm(
 )
 ```
 
-One weakly-informative prior serves all six, since every dpar here is a
-log-linked positive quantity of similar magnitude. On the natural scale
-`normal(2, 1)` is lognormal with 95% of its mass in roughly `[1, 52]`.
+One weakly-informative prior serves all six, since **every dpar here is
+a log-linked positive quantity** of similar magnitude. On the natural
+scale `normal(2, 1)` is lognormal, with 95% of its mass between 1 and
+52.
 
-The six truths span `0.69` to `2.08` on the log scale, so no single
-prior sits away from all of them: the shared rate’s truth falls near the
-prior mean, the second excess rate’s 1.3 prior SDs below it. Recovery
-here is therefore not on its own evidence that the prior is
-uninfluential. The article [*The anatomy of a paired
+The six truths span 0.69 to 2.08 on the log scale, so no single prior
+sits away from all of them: the shared rate’s truth falls near the prior
+mean, the second excess rate’s 1.3 prior SDs below it. Recovery here is
+therefore not on its own evidence that the prior is uninfluential. The
+article [*The anatomy of a paired
 count*](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html)
 tests that directly, shifting a prior median sevenfold and moving the
 corresponding posterior median by 0.005.
@@ -187,7 +186,7 @@ mass to implausible values rather than making the prior neutral ([Smith
 et al. 2020](#ref-smithInstantaneousVsNoninstantaneous2020), supplement
 3, Fig. S3-1).
 
-## Did it recover the truth?
+## Recovery of the generating values
 
 All six dpars are log-linked, so each posterior intercept exponentiates
 back onto the natural scale.
@@ -297,26 +296,26 @@ loo(fit)
 #> See help('pareto-k-diagnostic') for details.
 ```
 
-## What `posterior_epred()` returns here
+## Quantities returned by `posterior_epred()`
 
-Every family in this package answers the same question:
+Both families return the same quantity:
 
 ``` math
 \mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_{\text{shared}} \mid y_2] + \lambda_1,
 ```
 
 the expected first count *given the second one that was actually
-observed* — not a marginal expectation. That is the quantity the
-construction makes available and the one worth having: it is what the
-second source implies about the first.
+observed*, not a marginal expectation. It is what the second source
+implies about the first.
 
 For
-[`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
-it is closed form, because conditioning a sum of independent Poissons on
-its total gives a Binomial split. For
+[`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md),
+$`\mathrm{E}[N_{\text{shared}} \mid y_2]`$ is closed form, because
+conditioning a sum of independent Poissons on its total gives a Binomial
+split. For
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 there is no such shortcut, so the conditional is evaluated over its
-support $`k = 0, \ldots, y_2`$ and summed. All are exact, and each
+support $`k = 0, \ldots, y_2`$ and summed. Both are exact, and each
 agrees with the mean of its own
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
 draws to within Monte Carlo error.
@@ -328,18 +327,12 @@ and
 — those where $`y_1`$ was never observed. Imputing the unobserved margin
 is what those two constructors are for.
 
-Call it the ordinary way: `posterior_epred(fit)` dispatches to the
+`posterior_epred(fit)` needs no special handling: it dispatches to the
 family’s method, as do
 [`fitted()`](https://rdrr.io/r/stats/fitted.values.html) and
 [`conditional_effects()`](https://paulbuerkner.com/brms/reference/conditional_effects.brmsfit.html).
-The equivalent direct call is
 
-``` r
-
-posterior_epred_binegbin(prepare_predictions(fit))
-```
-
-## Where to go next
+## Related families and further reading
 
 - [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
   — the non-overdispersed Poisson sibling. Same construction, three
