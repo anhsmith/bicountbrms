@@ -35,7 +35,7 @@ at all. That assumption is why this page exists.
 
 ## Every parameter identified by the matched rows alone is left improper
 
-Under partial observation the two constructors do not identify every
+Under partial observation, the two constructors do not identify every
 parameter equally well. `lambdaone` and `shapexone` appear only on the
 matched branch of the likelihood, as does any between-source bias, so
 the rows on which the first count was recorded are the only rows that
@@ -53,13 +53,13 @@ posteriors depend most on their priors are all parameters for which no
 prior has been set.
 
 For
-[`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
-the statement needs one qualification. On an unmatched row that family’s
-likelihood involves `mu` only through the sum `mu + lambdatwo`, so those
-rows constrain the total rate of the observed margin without dividing it
-between the shared and the source-specific component. Separating `mu`
-from `lambdatwo`, and so estimating the congruence , is also informed by
-the matched rows alone.
+[`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md),
+the statement needs one qualification. On an unmatched row, that
+family’s likelihood involves `mu` only through the sum `mu + lambdatwo`,
+so those rows constrain the total rate of the observed margin without
+dividing it between the shared and the source-specific component.
+Separating `mu` from `lambdatwo`, and so estimating the congruence
+$`f`$, is also informed by the matched rows alone.
 
 ## The symptom is divergent transitions
 
@@ -69,14 +69,14 @@ level and the posterior therefore follows the prior. The
 asymmetric-dispersion fit in
 `tests/testthat/test-binegbin-dispersions.R` required priors on the two
 rates and the three dispersions: run without them it produced 680
-divergent transitions and a maximum of 1.54, which is to say chains that
-never mixed.
+divergent transitions and a maximum $`\hat{R}`$ of 1.54, which is to say
+chains that never mixed.
 
-Divergences are the diagnostic to watch here rather than alone. This
-package applies an gate of 1.02 rather than the 1.01 of Vehtari et al.
-([2021](#ref-vehtari2021)), for reasons set out in
-`tests/testthat/helper-coverage.R`, and a model can sit inside that gate
-while still producing divergent transitions.
+Divergences are the diagnostic to watch here rather than $`\hat{R}`$
+alone. This package applies an $`\hat{R}`$ gate of 1.02 rather than the
+1.01 of Vehtari et al. ([2021](#ref-vehtari2021)), for reasons set out
+in `tests/testthat/helper-coverage.R`, and a model can sit inside that
+gate while still producing divergent transitions.
 
 ## A weakly informative prior on each log-scale parameter
 
@@ -97,8 +97,8 @@ prior = c(
 )
 ```
 
-On the natural scale `normal(2, 1)` places 95% of its mass in roughly ,
-which suits rates and dispersions of order 1 to 50.
+On the natural scale `normal(2, 1)` places 95% of its mass in roughly
+$`[1, 52]`$, which suits rates and dispersions of order 1 to 50.
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
 and
 [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
@@ -144,9 +144,9 @@ the reliable way to find it. A prior naming a slot the model does not
 contain is dropped without a warning, which leaves the parameter
 improper and the symptom above unexplained.
 
-That failure mode has one especially easy instance. To impose the two
-excess dispersions are routed through a single non-linear parameter,
-described in [The families and their
+That failure mode has one especially easy instance. To impose
+$`\phi_{x1} = \phi_{x2}`$, the two excess dispersions are routed through
+a single non-linear parameter, described in [The families and their
 parameters](https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.md):
 
 ``` r
@@ -165,16 +165,17 @@ names no parameter in the tied model, is dropped silently, and leaves
 
 ## Shrinkage priors in the (M, f, δ) coordinates
 
-The three rates can be reparameterised as overall level , congruence and
-source bias , with each dispersion on the standard deviation scale . In
-those coordinates every parameter has a finite null: is no bias between
-the two sources, and is the Poisson limit exactly, rather than the of
-the native scale.
+The three rates can be reparameterised as overall level $`M`$,
+congruence $`f`$ and source bias $`\delta`$, with each dispersion on the
+standard deviation scale $`\kappa = 1/\sqrt{\phi}`$. In those
+coordinates, every parameter has a finite null: $`\delta = 0`$ is no
+bias between the two sources, and $`\kappa = 0`$ is the Poisson limit
+exactly, rather than the $`\phi \to \infty`$ of the native scale.
 
-A shrinkage prior requires a finite null. A half-normal on and a normal
-on place their maximum at the simpler model and decay away from it, so
-the data rather than the prior must move the fit. They follow the
-principles of Simpson et al.
+A shrinkage prior requires a finite null. A half-normal on $`\kappa`$
+and a normal on $`\delta`$ place their maximum at the simpler model and
+decay away from it, so the data rather than the prior must move the fit.
+They follow the principles of Simpson et al.
 ([2017](#ref-simpsonPenalisingModelComponent2017)), a base model at zero
 and a density decaying away from it, without being penalised-complexity
 priors in the strict sense.
@@ -184,8 +185,8 @@ count](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.md)
 sets out that argument in full, shows the prior pushforward onto the
 native scale, and fits a model in those coordinates. Read it after this
 page rather than instead of it: the recipes above apply whichever
-parameterisation is used, because a prior in still occupies one of the
-three slots described here.
+parameterisation is used, because a prior in $`(M, f, \delta)`$ still
+occupies one of the three slots described here.
 
 ## References
 

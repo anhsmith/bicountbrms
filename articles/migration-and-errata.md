@@ -5,9 +5,9 @@
 These families were first released as `skellambrms` (0.1.0–0.5.0) and
 then as `pairedcountbrms` (0.6.0–0.8.0). That second package held two
 unrelated suites: families modelling a count pair jointly, and families
-modelling its difference directly. The two shared no code. Release 0.9.0
-separated them. The joint families became this package; the difference
-families returned to
+modelling its difference $`d = y_1 - y_2`$ directly. The two shared no
+code. Release 0.9.0 separated them. The joint families became this
+package; the difference families returned to
 [`skellambrms`](https://github.com/anhsmith/skellambrms).
 
 The separation renamed nothing, so
@@ -78,7 +78,7 @@ The second form is term for term the likelihood the single `shapex`
 gave, and a package test verifies that the generated Stan assigns both
 distributional parameters from one non-linear parameter.
 
-A prior moves with it. Under the tied form the dispersion prior is
+A prior moves with it. Under the tied form, the dispersion prior is
 written
 
 ``` r
@@ -146,8 +146,8 @@ Three fallbacks apply together to make that work.
     rename reads correctly.
 2.  `.SHAPEXONE_NAMES` and `.SHAPEXTWO_NAMES` both list `shapex` last,
     so a fit with one excess dispersion resolves it to both per-margin
-    positions. That is precisely the constraint the five-dpar family
-    imposed.
+    positions. That is precisely the constraint
+    $`\phi_{x1} = \phi_{x2}`$ the five-dpar family imposed.
 3.  An absent `vint2` selects the matched branch of the likelihood,
     which is correct for a fit made with a constructor that had no
     observation flag.
@@ -172,17 +172,18 @@ fit$family$vars                     # c("vint1[n]", "vint2[n]") or c("vint1[n]",
 
 Releases before 0.9.0 computed
 [`posterior_epred_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-using the *marginal* shared fraction in place of the *conditional* one.
-That substitution is `bipois`’s answer, exact only in the Poisson limit,
-and it made the expectation disagree with the family’s own
+using the *marginal* shared fraction $`\mu/(\mu + \lambda_2)`$ in place
+of the *conditional* one. That substitution is `bipois`’s answer, exact
+only in the Poisson limit, and it made the expectation disagree with the
+family’s own
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
 draws by more than Monte Carlo error.
 
-Over a grid of plausible rates and dispersions, with within one standard
-deviation of its mean, the substituted value was in error by more than
-5% in about half the settings and by more than 20% in a third of them.
-The direction of the error depends on which component is the more
-dispersed.
+Over a grid of plausible rates and dispersions, with $`y_2`$ within one
+standard deviation of its mean, the substituted value was in error by
+more than 5% in about half the settings and by more than 20% in a third
+of them. The direction of the error depends on which component is the
+more dispersed.
 
 [`log_lik()`](https://mc-stan.org/rstantools/reference/log_lik.html),
 [`loo()`](https://mc-stan.org/loo/reference/loo.html) and
@@ -195,13 +196,13 @@ should be recomputed.
 
 Release 0.9.1 added `tests/testthat/test-cens-predict.R`, since
 superseded by `test-partialobs-predict.R`, after a check of the test
-suite’s discrimination. In `posterior_predict_binegbin_cens()` the
-conditional split of is weighted by `shapextwo`, while the fresh
-source-specific count added on top takes `shapexone`. Exchanging those
-two passed 412 assertions across six test files without a single
-failure, because every prediction test then in the suite built its
-fixture from a single five-dpar `shapex`, which both name vectors
-resolve to identically.
+suite’s discrimination. In `posterior_predict_binegbin_cens()`, the
+conditional split of $`N_{\text{shared}} \mid y_2`$ is weighted by
+`shapextwo`, while the fresh source-specific count added on top takes
+`shapexone`. Exchanging those two passed 412 assertions across six test
+files without a single failure, because every prediction test then in
+the suite built its fixture from a single five-dpar `shapex`, which both
+name vectors resolve to identically.
 
 No released version computed the exchanged quantity. The defect was in
 the test suite’s power to detect an error, not in the shipped code.

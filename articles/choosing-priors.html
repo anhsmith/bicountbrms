@@ -103,7 +103,7 @@ exists.</p>
 <h2 id="every-parameter-identified-by-the-matched-rows-alone-is-left-improper">Every parameter identified by the matched rows alone is left
 improper<a class="anchor" aria-label="anchor" href="#every-parameter-identified-by-the-matched-rows-alone-is-left-improper"></a>
 </h2>
-<p>Under partial observation the two constructors do not identify every
+<p>Under partial observation, the two constructors do not identify every
 parameter equally well. <code>lambdaone</code> and
 <code>shapexone</code> appear only on the matched branch of the
 likelihood, as does any between-source bias, so the rows on which the
@@ -119,14 +119,15 @@ only. The one parameter brms does supply a prior for, <code>mu</code>,
 is informed by every row. Under a design in which few rows are matched,
 the parameters whose posteriors depend most on their priors are all
 parameters for which no prior has been set.</p>
-<p>For <code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code> the statement needs one
-qualification. On an unmatched row that family’s likelihood involves
+<p>For <code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code>, the statement needs one
+qualification. On an unmatched row, that family’s likelihood involves
 <code>mu</code> only through the sum <code>mu + lambdatwo</code>, so
 those rows constrain the total rate of the observed margin without
 dividing it between the shared and the source-specific component.
 Separating <code>mu</code> from <code>lambdatwo</code>, and so
-estimating the congruence , is also informed by the matched rows
-alone.</p>
+estimating the congruence
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>,
+is also informed by the matched rows alone.</p>
 </div>
 <div class="section level2">
 <h2 id="the-symptom-is-divergent-transitions">The symptom is divergent transitions<a class="anchor" aria-label="anchor" href="#the-symptom-is-divergent-transitions"></a>
@@ -137,10 +138,15 @@ level and the posterior therefore follows the prior. The
 asymmetric-dispersion fit in
 <code>tests/testthat/test-binegbin-dispersions.R</code> required priors
 on the two rates and the three dispersions: run without them it produced
-680 divergent transitions and a maximum of 1.54, which is to say chains
-that never mixed.</p>
-<p>Divergences are the diagnostic to watch here rather than alone. This
-package applies an gate of 1.02 rather than the 1.01 of <span class="citation">Vehtari et al. (<a href="#ref-vehtari2021">2021</a>)</span>, for reasons set out in
+680 divergent transitions and a maximum
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>R</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{R}</annotation></semantics></math>
+of 1.54, which is to say chains that never mixed.</p>
+<p>Divergences are the diagnostic to watch here rather than
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>R</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{R}</annotation></semantics></math>
+alone. This package applies an
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>R</mi><mo accent="true">̂</mo></mover><annotation encoding="application/x-tex">\hat{R}</annotation></semantics></math>
+gate of 1.02 rather than the 1.01 of <span class="citation">Vehtari et
+al. (<a href="#ref-vehtari2021">2021</a>)</span>, for reasons set out in
 <code>tests/testthat/helper-coverage.R</code>, and a model can sit
 inside that gate while still producing divergent transitions.</p>
 </div>
@@ -161,7 +167,9 @@ parameter is interpreted <span class="citation">(<a href="#ref-mcelreath2020">Mc
 <span>  <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span>, dpar <span class="op">=</span> <span class="st">"shapextwo"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>On the natural scale <code>normal(2, 1)</code> places 95% of its mass
-in roughly , which suits rates and dispersions of order 1 to 50.
+in roughly
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>1</mn><mo>,</mo><mn>52</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[1, 52]</annotation></semantics></math>,
+which suits rates and dispersions of order 1 to 50.
 <code><a href="../reference/bipois.html">bipois()</a></code> and <code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code> have no
 dispersion parameters, so only the three rate lines apply to them.</p>
 <p>To adapt these priors to counts on a different scale, shift the
@@ -196,10 +204,11 @@ as a distributional parameter takes <code>class = "Intercept"</code> and
 parameter requires, and is the reliable way to find it. A prior naming a
 slot the model does not contain is dropped without a warning, which
 leaves the parameter improper and the symptom above unexplained.</p>
-<p>That failure mode has one especially easy instance. To impose the two
-excess dispersions are routed through a single non-linear parameter,
-described in <a href="families-and-parameters.html">The families and
-their parameters</a>:</p>
+<p>That failure mode has one especially easy instance. To impose
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">\phi_{x1} = \phi_{x2}</annotation></semantics></math>,
+the two excess dispersions are routed through a single non-linear
+parameter, described in <a href="families-and-parameters.html">The
+families and their parameters</a>:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula.html" class="external-link">bf</a></span><span class="op">(</span><span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">mu</span> <span class="op">~</span> <span class="fl">1</span>,</span>
 <span>   <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapexone</span> <span class="op">~</span> <span class="va">shapexx</span><span class="op">)</span>, <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapextwo</span> <span class="op">~</span> <span class="va">shapexx</span><span class="op">)</span>,</span>
@@ -214,23 +223,37 @@ leaves <code>shapexx</code> flat.</p>
 <div class="section level2">
 <h2 id="shrinkage-priors-in-the-m-f-δ-coordinates">Shrinkage priors in the (M, f, δ) coordinates<a class="anchor" aria-label="anchor" href="#shrinkage-priors-in-the-m-f-%CE%B4-coordinates"></a>
 </h2>
-<p>The three rates can be reparameterised as overall level , congruence
-and source bias , with each dispersion on the standard deviation scale .
-In those coordinates every parameter has a finite null: is no bias
-between the two sources, and is the Poisson limit exactly, rather than
-the of the native scale.</p>
-<p>A shrinkage prior requires a finite null. A half-normal on and a
-normal on place their maximum at the simpler model and decay away from
-it, so the data rather than the prior must move the fit. They follow the
-principles of <span class="citation">Simpson et al. (<a href="#ref-simpsonPenalisingModelComponent2017">2017</a>)</span>, a base
+<p>The three rates can be reparameterised as overall level
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>,
+congruence
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
+and source bias
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>,
+with each dispersion on the standard deviation scale
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>1</mn><mi>/</mi><msqrt><mi>ϕ</mi></msqrt></mrow><annotation encoding="application/x-tex">\kappa = 1/\sqrt{\phi}</annotation></semantics></math>.
+In those coordinates, every parameter has a finite null:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\delta = 0</annotation></semantics></math>
+is no bias between the two sources, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\kappa = 0</annotation></semantics></math>
+is the Poisson limit exactly, rather than the
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ϕ</mi><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">\phi \to \infty</annotation></semantics></math>
+of the native scale.</p>
+<p>A shrinkage prior requires a finite null. A half-normal on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
+and a normal on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>
+place their maximum at the simpler model and decay away from it, so the
+data rather than the prior must move the fit. They follow the principles
+of <span class="citation">Simpson et al. (<a href="#ref-simpsonPenalisingModelComponent2017">2017</a>)</span>, a base
 model at zero and a density decaying away from it, without being
 penalised-complexity priors in the strict sense.</p>
 <p><a href="paired-count-anatomy.html">The anatomy of a paired count</a>
 sets out that argument in full, shows the prior pushforward onto the
 native scale, and fits a model in those coordinates. Read it after this
 page rather than instead of it: the recipes above apply whichever
-parameterisation is used, because a prior in still occupies one of the
-three slots described here.</p>
+parameterisation is used, because a prior in
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mo>,</mo><mi>f</mi><mo>,</mo><mi>δ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(M, f, \delta)</annotation></semantics></math>
+still occupies one of the three slots described here.</p>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

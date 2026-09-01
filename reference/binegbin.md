@@ -71,7 +71,7 @@ unchanged: their single \`shapex\` resolves to both \`shapexone\` and
 \*\*Names forced by \`custom_family()\`.\*\* Identical conventions to
 \[bipois()\] – \`mu\` is brms's mandatory dpar name, here bound to the
 shared component's rate (\`lambda_shared\`), not a mean of either
-response; \`y2\` travels as supplementary integer data through
+response; \`y2\` is supplied as supplementary integer data through
 \`vint()\` because \`custom_family()\` declares a single response
 column. See \[bipois()\] for the full explanation, including why the
 rates are spelled \`lambdaone\`/ \`lambdatwo\` in code but written

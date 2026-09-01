@@ -82,9 +82,11 @@
 <p>These families were first released as <code>skellambrms</code>
 (0.1.0–0.5.0) and then as <code>pairedcountbrms</code> (0.6.0–0.8.0).
 That second package held two unrelated suites: families modelling a
-count pair jointly, and families modelling its difference directly. The
-two shared no code. Release 0.9.0 separated them. The joint families
-became this package; the difference families returned to <a href="https://github.com/anhsmith/skellambrms" class="external-link"><code>skellambrms</code></a>.</p>
+count pair jointly, and families modelling its difference
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><msub><mi>y</mi><mn>1</mn></msub><mo>−</mo><msub><mi>y</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">d = y_1 - y_2</annotation></semantics></math>
+directly. The two shared no code. Release 0.9.0 separated them. The
+joint families became this package; the difference families returned to
+<a href="https://github.com/anhsmith/skellambrms" class="external-link"><code>skellambrms</code></a>.</p>
 <p>The separation renamed nothing, so
 <code><a href="https://rdrr.io/r/base/library.html" class="external-link">library(pairedcountbrms)</a></code> becomes
 <code><a href="https://github.com/anhsmith/bicountbrms" class="external-link">library(bicountbrms)</a></code> or <code><a href="https://rdrr.io/r/base/library.html" class="external-link">library(skellambrms)</a></code>
@@ -176,7 +178,7 @@ one non-linear parameter:</p>
 <code>shapex</code> gave, and a package test verifies that the generated
 Stan assigns both distributional parameters from one non-linear
 parameter.</p>
-<p>A prior moves with it. Under the tied form the dispersion prior is
+<p>A prior moves with it. Under the tied form, the dispersion prior is
 written</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"shapexx"</span><span class="op">)</span></span></code></pre></div>
@@ -242,7 +244,9 @@ predating the 0.7.0 rename reads correctly.</li>
 <code>.SHAPEXONE_NAMES</code> and <code>.SHAPEXTWO_NAMES</code> both
 list <code>shapex</code> last, so a fit with one excess dispersion
 resolves it to both per-margin positions. That is precisely the
-constraint the five-dpar family imposed.</li>
+constraint
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">\phi_{x1} = \phi_{x2}</annotation></semantics></math>
+the five-dpar family imposed.</li>
 <li>An absent <code>vint2</code> selects the matched branch of the
 likelihood, which is correct for a fit made with a constructor that had
 no observation flag.</li>
@@ -266,16 +270,19 @@ of the second supplementary integer does:</p>
 </h2>
 <p>Releases before 0.9.0 computed
 <code><a href="../reference/binegbin.html">posterior_epred_binegbin()</a></code> using the <em>marginal</em>
-shared fraction in place of the <em>conditional</em> one. That
-substitution is <code>bipois</code>’s answer, exact only in the Poisson
-limit, and it made the expectation disagree with the family’s own
+shared fraction
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mu/(\mu + \lambda_2)</annotation></semantics></math>
+in place of the <em>conditional</em> one. That substitution is
+<code>bipois</code>’s answer, exact only in the Poisson limit, and it
+made the expectation disagree with the family’s own
 <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> draws by more than Monte Carlo
 error.</p>
-<p>Over a grid of plausible rates and dispersions, with within one
-standard deviation of its mean, the substituted value was in error by
-more than 5% in about half the settings and by more than 20% in a third
-of them. The direction of the error depends on which component is the
-more dispersed.</p>
+<p>Over a grid of plausible rates and dispersions, with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>2</mn></msub><annotation encoding="application/x-tex">y_2</annotation></semantics></math>
+within one standard deviation of its mean, the substituted value was in
+error by more than 5% in about half the settings and by more than 20% in
+a third of them. The direction of the error depends on which component
+is the more dispersed.</p>
 <p><code><a href="https://mc-stan.org/rstantools/reference/log_lik.html" class="external-link">log_lik()</a></code>, <code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code> and
 <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> were not affected at any release. Any
 number computed with an earlier <code><a href="../reference/binegbin.html">posterior_epred_binegbin()</a></code>
@@ -288,7 +295,8 @@ before 0.9.1<a class="anchor" aria-label="anchor" href="#erratum-the-dispersion-
 <p>Release 0.9.1 added <code>tests/testthat/test-cens-predict.R</code>,
 since superseded by <code>test-partialobs-predict.R</code>, after a
 check of the test suite’s discrimination. In
-<code>posterior_predict_binegbin_cens()</code> the conditional split of
+<code>posterior_predict_binegbin_cens()</code>, the conditional split of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">N_{\text{shared}} \mid y_2</annotation></semantics></math>
 is weighted by <code>shapextwo</code>, while the fresh source-specific
 count added on top takes <code>shapexone</code>. Exchanging those two
 passed 412 assertions across six test files without a single failure,
