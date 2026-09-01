@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/anhsmith/bicountbrms/blob/master/inst/CITATION)
+[`inst/CITATION`](https://github.com/anhsmith/bicountbrms/blob/v0.10.0/inst/CITATION)
 
 Smith, A. N. H. (2026). bicountbrms: Joint Bivariate-Count brms Custom
 Families for Paired Counts. R package version 0.10.0.
