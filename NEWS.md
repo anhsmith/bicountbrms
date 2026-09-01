@@ -159,6 +159,10 @@
   families. The wording is corrected in `README.md`, the get-started vignette,
   *Choosing priors* and *The anatomy of a paired count*.
 
+* **Attributions and citations updated.** The negative-binomial construction is now
+  credited to Kirkpatrick & Neale (2016, 2022), and the Poisson case to Holgate
+  (1964) and Karlis & Ntzoufras (2003).
+
 * **If you hold a fit made with `bipois_cens()`, `binegbin_cens()` or
   `binegbin_joint()`**, install the last version that defined them — 0.9.1 —
   and keep it on the search path for that fit. brms resolves post-processing

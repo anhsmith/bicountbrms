@@ -61,8 +61,9 @@
 #   P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo),
 #
 # because NB2 + NB2 is not NB2 unless the two components share their success
-# probability. The Poisson case has no such obstruction: a sum of independent
-# Poissons is Poisson, so the same convolution collapses exactly to
+# probability (Kirkpatrick & Neale 2016). The Poisson case has no such
+# obstruction: a sum of independent Poissons is Poisson, so the same
+# convolution collapses exactly to
 #
 #   y2 ~ Poisson(mu + lambdatwo),
 #

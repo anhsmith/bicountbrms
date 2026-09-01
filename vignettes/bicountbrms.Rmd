@@ -30,9 +30,13 @@ formula syntax used further down is documented in @burkner2018.
 
 ## The generative model
 
-`binegbin()` builds a bivariate count pair by **trivariate reduction**
-[@holgate1964; @karlis2003]. Three independent Negative-Binomial counts are
-drawn, and the two observed counts share one of them:
+`binegbin()` builds the pair by **trivariate reduction**. @holgate1964 and
+@karlis2003 use the construction with Poisson components;
+@kirkpatrickApplyingMultivariateDiscrete2016 and
+@kirkpatrickRMKdiscreteSundryDiscrete2022 with negative-binomial components. Three
+independent Negative-Binomial counts are drawn; one of the three enters both
+observed counts and induces their correlation, and each of the other two enters a
+single count:
 
 $$
 \begin{aligned}
@@ -173,7 +177,7 @@ To adapt these priors, shift the **mean** to the scale of the counts rather than
 increasing the SD. All six dpars are log-linked, so a normal prior is lognormal
 on the natural scale, and increasing its SD moves mass to implausible values
 rather than making the prior neutral
-[@smithInstantaneousVsNoninstantaneous2020, supplement 3].
+[@smithInstantaneousVsNoninstantaneous2020, supplement 3, Fig. S3-1].
 
 ## Did it recover the truth?
 

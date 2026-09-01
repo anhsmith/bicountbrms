@@ -23,9 +23,11 @@ coordinates in which they are interpreted, and
 
 ## Trivariate reduction
 
-Both families are constructed by trivariate reduction [@holgate1964;
-@karlis2003]: three independent latent counts are drawn, and one of them enters
-both observed counts.
+Both families are constructed by trivariate reduction: three independent latent
+counts are drawn, and one of the three enters both observed counts. @holgate1964
+and @karlis2003 use the construction with Poisson components;
+@kirkpatrickApplyingMultivariateDiscrete2016 and
+@kirkpatrickRMKdiscreteSundryDiscrete2022 with negative-binomial components.
 
 $$
 y_1 = N_{\text{shared}} + N_1
@@ -100,7 +102,8 @@ $$
 
 The covariance involves the shared latent count alone, so neither excess
 dispersion appears in it:
-\eqn{\mathrm{Cov}(y_1, y_2) = \mu + \mu^2/\phi_{\text{s}}}. Freeing the two
+\eqn{\mathrm{Cov}(y_1, y_2) = \mu + \mu^2/\phi_{\text{s}}}
+[@kirkpatrickApplyingMultivariateDiscrete2016]. Freeing the two
 excess dispersions therefore changes both margins and the difference, and
 leaves the covariance unchanged; the correlation moves only through its
 denominator.

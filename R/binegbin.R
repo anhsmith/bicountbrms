@@ -4,7 +4,9 @@
 # The overdispersed sibling of bipois (see bipois.R). Same trivariate-
 # reduction construction -- y1 = N_shared + N1, y2 = N_shared + N2,
 # the three latent counts mutually independent given their rates -- but each
-# latent count is Negative-Binomial rather than Poisson:
+# latent count is Negative-Binomial rather than Poisson
+# (Kirkpatrick, R. M. & Neale, M. C., Behav. Genet. 46:252-268, 2016; their
+# RMKdiscrete package on CRAN):
 #
 #   N_shared ~ NB2(mu,        shapes)      (shared component; drives correlation)
 #   N1       ~ NB2(lambdaone, shapexone)   (source-1-only excess)

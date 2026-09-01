@@ -25,9 +25,10 @@ knitr::opts_chunk$set(
 
 Every joint family in this package — `bipois()` and `binegbin()`, each with a
 `_partialobs()` constructor for data whose first count is sometimes missing — is built
-by **trivariate reduction**
-[@holgate1964; @karlis2003]. Three independent counts are drawn, and the two
-observed counts share one of them:
+by **trivariate reduction**. @holgate1964 and @karlis2003 use the construction
+with Poisson components; @kirkpatrickApplyingMultivariateDiscrete2016 and
+@kirkpatrickRMKdiscreteSundryDiscrete2022 with negative-binomial components. Three
+independent counts are drawn, and one of the three enters both observed counts:
 
 $$
 y_1 = N_{\text{shared}} + N_1
@@ -510,8 +511,9 @@ the link supplies the `exp()`. That includes the two dispersions: writing
 1/\kappa_s^2$, so the model is estimated in $\kappa$, the SD-scale dispersion
 the widget above uses, rather than in $\phi$.
 
-Estimating in $\kappa$ is worth the detour, because a shrinkage prior requires a
-finite null.
+$\kappa = 0$ is the Poisson limit, so a prior on $\kappa$ can shrink towards
+Poisson. The same reparameterisation was used in
+[@smithInstantaneousVsNoninstantaneous2020].
 
 ### Priors that default to the simpler model
 
@@ -593,7 +595,7 @@ sampling unit and suits the simulated data. For sparser data, lower the mean:
 Move the **mean** to match your scale rather than raising the SD. `eta` is
 $\log M$, so a normal prior on it is a lognormal on $M$, and widening one pushes
 mass out to implausible values instead of making it neutral
-[@smithInstantaneousVsNoninstantaneous2020, supplement 3].
+[@smithInstantaneousVsNoninstantaneous2020, supplement 3, Fig. S3-1].
 
 A prior written on one scale induces a different density on any other. Being
 weakly informative on the first does not make it so on the second. These are
