@@ -117,12 +117,11 @@
   writes the current vocabulary, the inverse reads the old one, which is the
   same principle `.get_dpar_any()` applies.
 
-* **The README is now an orientation page.** It ran to about 5,700 words,
-  which is not a length anyone
-  reads, and it set out the construction, the moments, prior guidance,
-  validation and the release history. It is now about 800: what the package is,
-  how to install it, the four constructors in a table, the notation bridge from
-  symbol to distributional-parameter name, one minimal fit, and links.
+* **The README is now an orientation page.** The construction, the moments, prior
+  guidance, validation and the release history have moved into the articles. What
+  remains is what the package is, how to install it, the constructors in a table,
+  the notation bridge from symbol to distributional-parameter name, one minimal
+  fit, and links.
 
   Four articles are new, and the site gains an `articles:` section, which it
   did not have before: neither the get-started vignette nor
