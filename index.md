@@ -182,6 +182,12 @@ errata](https://anhsmith.github.io/bicountbrms/articles/migration-and-errata.htm
 citation("bicountbrms")
 ```
 
+The package is archived on Zenodo under the concept DOI
+[10.5281/zenodo.22239120](https://doi.org/10.5281/zenodo.22239120),
+which resolves to the current version. To cite the exact version an
+analysis used, take the version-specific DOI from that release’s own
+Zenodo record.
+
 Holgate (1964) states the trivariate-reduction representation and gives
 maximum-likelihood estimation for it; the regression form is due to
 Karlis and Ntzoufras (2003). Kirkpatrick and Neale (2016) and
