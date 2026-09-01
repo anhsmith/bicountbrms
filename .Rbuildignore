@@ -13,3 +13,4 @@
 ^vignettes/articles$
 ^vignettes/_.*\.Rmd$
 ^vignettes/precompile\.R$
+^\.zenodo\.json$

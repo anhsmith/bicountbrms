@@ -10,100 +10,102 @@ binegbin_partialobs()
 binegbin_partialobs_stanvars()
 }
 \value{
-A brms custom_family object.
+\code{binegbin_partialobs()} returns a brms \code{custom_family} object.
+\code{binegbin_partialobs_stanvars()} returns a \code{stanvars} object holding the
+Stan code for the corresponding \verb{_lpmf}. The returned family has the same
+\code{name} as \code{\link[=binegbin]{binegbin()}}, so the post-processing methods documented there
+apply to a fit made with either constructor.
 }
 \description{
-[binegbin()] for a design in which the first count is missing on some rows.
-Same generative model, same `name`, same six dpars, same likelihood and the
+\code{\link[=binegbin]{binegbin()}} for a design in which the first count is missing on some rows.
+Same generative model, same \code{name}, same six dpars, same likelihood and the
 same post-processing methods -- the only difference is that each row supplies
-a second supplementary integer, an observation flag, through `vint()`:
+a second supplementary integer, an observation flag, through \code{vint()}:
 
-```
-bf(y1 | vint(y2, y1_obs) ~ ...)
-```
+\if{html}{\out{<div class="sourceCode">}}\preformatted{bf(y1 | vint(y2, y1_obs) ~ ...)
+}\if{html}{\out{</div>}}
 
-`y1_obs` is a 0/1 integer column: `1` where both counts were recorded, `0`
-where the first was not. `y1` may hold any non-negative integer on those
-rows -- `0` is the conventional placeholder -- because the likelihood does
-not read it. Do not use `NA`, which brms drops before fitting, taking the
-row's observed `y2` with it.
+\code{y1_obs} is a 0/1 integer column: \code{1} where both counts were recorded, \code{0}
+where the first was not. \code{y1} may hold any non-negative integer on those
+rows -- \code{0} is the conventional placeholder -- because the likelihood does
+not read it. Do not use \code{NA}, which brms drops before fitting, taking the
+row's observed \code{y2} with it.
 
-**Contribution of a matched row and of an unmatched row.** A matched row (`y1_obs == 1`) uses the
-full joint lpmf on `(y1, y2)`. A row whose first count was never recorded
-(`y1_obs == 0`) contributes the second count's marginal *from the same
-model*,
-`P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo)` --
-the joint with the `y1` term integrated out over its whole support. It is
+\strong{Contribution of a matched row and of an unmatched row.} A matched row (\code{y1_obs == 1}) uses the
+full joint lpmf on \verb{(y1, y2)}. A row whose first count was never recorded
+(\code{y1_obs == 0}) contributes the second count's marginal \emph{from the same
+model},
+\verb{P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo)} --
+the joint with the \code{y1} term integrated out over its whole support. It is
 not dropped, and it is not given a different model: it still informs the
-shared component (`mu`, `shapes`), the second source's rate and dispersion
-(`lambdatwo`, `shapextwo`), and any group-level effects.
+shared component (\code{mu}, \code{shapes}), the second source's rate and dispersion
+(\code{lambdatwo}, \code{shapextwo}), and any group-level effects.
 
-**Imputation after fitting.** The fitted model can impute the unobserved
+\strong{Imputation after fitting.} The fitted model can impute the unobserved
 first count conditional on the observed second one, which is usually why
-someone wanted this. `posterior_predict()` and `posterior_epred()` return a
-`y1` draw and `E[y1 | y2]` for *every* row, matched and unmatched alike --
-`y1_obs` selects a likelihood branch, not a prediction.
+someone wanted this. \code{posterior_predict()} and \code{posterior_epred()} return a
+\code{y1} draw and \code{E[y1 | y2]} for \emph{every} row, matched and unmatched alike --
+\code{y1_obs} selects a likelihood branch, not a prediction.
 
-**A design consequence, worth knowing before the data are collected.** The first
-source's rate `lambdaone` and excess dispersion `shapexone` appear only on
-the matched branch, so they are identified by the matched rows *alone*. A
+\strong{A design consequence, worth knowing before the data are collected.} The first
+source's rate \code{lambdaone} and excess dispersion \code{shapexone} appear only on
+the matched branch, so they are identified by the matched rows \emph{alone}. A
 design with 20 matched rows in 500 learns them weakly and leans on their
-priors. `mu`, `shapes`, `lambdatwo` and `shapextwo` appear on both branches
+priors. \code{mu}, \code{shapes}, \code{lambdatwo} and \code{shapextwo} appear on both branches
 and are informed by every row.
 
-**This is not censoring in brms's sense.** brms's `cens()` addition term
-means a value known to lie in a set -- `left`, `right`, `interval`. Here the
+\strong{This is not censoring in brms's sense.} brms's \code{cens()} addition term
+means a value known to lie in a set -- \code{left}, \code{right}, \code{interval}. Here the
 first count is not observed at all and the likelihood marginalises over its
-whole support. This family was called `binegbin_cens()` up to 0.9.1; the
+whole support. This family was called \code{binegbin_cens()} up to 0.9.1; the
 name was wrong and was changed at 0.10.0. Do not combine this family with
-`cens()`.
+\code{cens()}.
 
 Use in a brm() call as:
-  brm(
-    bf(y1 | vint(y2, y1_obs) ~ 1,
-       mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
-       nlf(lambdaone ~ lamx + methd),
-       nlf(lambdatwo ~ lamx - methd),
-       lamx ~ 1, methd ~ 1,
-       shapes ~ 1, shapexone ~ 1, shapextwo ~ 1, nl = TRUE),
-    family   = binegbin_partialobs(),
-    stanvars = binegbin_partialobs_stanvars(),
-    data     = dat
-  )
+brm(
+bf(y1 | vint(y2, y1_obs) ~ 1,
+mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
+nlf(lambdaone ~ lamx + methd),
+nlf(lambdatwo ~ lamx - methd),
+lamx ~ 1, methd ~ 1,
+shapes ~ 1, shapexone ~ 1, shapextwo ~ 1, nl = TRUE),
+family   = binegbin_partialobs(),
+stanvars = binegbin_partialobs_stanvars(),
+data     = dat
+)
 }
 \details{
-**One likelihood, two constructors.** This returns the same
-`custom_family` `name` as [binegbin()], so brms resolves both to one
-`binegbin_lpmf` and one set of `log_lik_binegbin()` /
-`posterior_predict_binegbin()` / `posterior_epred_binegbin()` methods. The
+\strong{One likelihood, two constructors.} This returns the same
+\code{custom_family} \code{name} as \code{\link[=binegbin]{binegbin()}}, so brms resolves both to one
+\code{binegbin_lpmf} and one set of \code{log_lik_binegbin()} /
+\code{posterior_predict_binegbin()} / \code{posterior_epred_binegbin()} methods. The
 matched branch of the likelihood is therefore not a second copy that can
 drift from the fully paired one; it is the same code.
 
-What differs is `vars`. [binegbin()] declares `c("vint1[n]", "1")` and this
-declares `c("vint1[n]", "vint2[n]")`. brms pastes those entries into the
+What differs is \code{vars}. \code{\link[=binegbin]{binegbin()}} declares \code{c("vint1[n]", "1")} and this
+declares \code{c("vint1[n]", "vint2[n]")}. brms pastes those entries into the
 generated call, so the fully paired model reaches the same Stan function
-with the flag fixed at `1`. The alternative -- two Stan functions of the
+with the flag fixed at \code{1}. The alternative -- two Stan functions of the
 same name and different arity -- would need user-defined function
 overloading, which arrived in Stan 2.29 (February 2022) and would oblige
 this package to declare a floor on the Stan version. It does not.
 
-**Two `vint()` arguments, in declared order.** brms appends `vint()`
+\strong{Two \code{vint()} arguments, in declared order.} brms appends \code{vint()}
 integers to the generated lpmf call in the order they are listed in the
-formula's `vint()` term, matching the `vars` declared here: so
-`vint(y2, y1_obs)` binds `vint1 = y2` and `vint2 = y1_obs`. Reordering the
-two `vint()` terms without matching the Stan signature silently swaps the
+formula's \code{vint()} term, matching the \code{vars} declared here: so
+\code{vint(y2, y1_obs)} binds \code{vint1 = y2} and \code{vint2 = y1_obs}. Reordering the
+two \code{vint()} terms without matching the Stan signature silently swaps the
 second count with the branch flag.
 
-**Distinguishing the two constructors in a stored fit.** `family$name` is `"binegbin"`
+\strong{Distinguishing the two constructors in a stored fit.} \code{family$name} is \code{"binegbin"}
 either way. What distinguishes them is the presence of the second
 supplementary integer:
 
-```
-"vint2" %in% names(brms::standata(fit))   # TRUE for a partially observed fit
+\if{html}{\out{<div class="sourceCode">}}\preformatted{"vint2" \%in\% names(brms::standata(fit))   # TRUE for a partially observed fit
 fit$family$vars     # c("vint1[n]", "vint2[n]") or c("vint1[n]", "1")
-```
+}\if{html}{\out{</div>}}
 }
 \seealso{
-[binegbin()] for the fully paired case; [bipois_partialobs()] for
-  the equidispersed Poisson counterpart.
+\code{\link[=binegbin]{binegbin()}} for the fully paired case; \code{\link[=bipois_partialobs]{bipois_partialobs()}} for
+the equidispersed Poisson counterpart.
 }

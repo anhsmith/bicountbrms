@@ -29,6 +29,7 @@ backend <- if (requireNamespace("cmdstanr", quietly = TRUE)) "cmdstanr" else "rs
 ```{r}
 #| label: libraries
 #| message: false
+#| warning: false
 library(brms)
 library(bicountbrms)
 ```

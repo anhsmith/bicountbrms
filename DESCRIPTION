@@ -1,12 +1,12 @@
 Package: bicountbrms
-Title: Joint Bivariate-Count brms Custom Families for Paired Counts
+Title: Joint Bivariate-Count 'brms' Custom Families for Paired Counts
 Version: 0.10.0
 Date: 2026-09-01
 Authors@R:
     person("Adam N. H.", "Smith", , "anhsmith@gmail.com",
            role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-0059-6206"))
-Description: Provides custom brms families for comparing two paired count
+Description: Provides custom 'brms' families for comparing two paired count
     sources, modelling the pair jointly via trivariate reduction rather than
     reducing it to a difference. Two families are supplied: a bivariate
     Poisson (bipois) and its overdispersed bivariate Negative-Binomial sibling
@@ -39,4 +39,5 @@ Config/testthat/edition: 3
 URL: https://github.com/anhsmith/bicountbrms,
     https://anhsmith.github.io/bicountbrms/
 BugReports: https://github.com/anhsmith/bicountbrms/issues
+Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.0.0

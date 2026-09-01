@@ -310,15 +310,14 @@ test_that("Stan binegbin_lpmf matches the R reference with shapexone != shapextw
 
 # NOT TESTED HERE: agreement with the project-local `binegbin_joint_ax()`
 # family this release absorbs. That comparison was run once during the 0.8.0
-# migration and is recorded in migration/family-unification.md; it is deliberately
-# not a package test. It depends on fits stored outside this repository, so it
-# could only ever skip on CI, on CRAN and on any other checkout -- a
-# permanently-skipped test reads as coverage that is not there. Its subject is
-# also frozen: those fits are fixed artefacts, so once the comparison passes it
-# can only change if THIS package changes, and the package-side property is
-# already pinned above without any external dependency (the Stan-vs-R
-# asymmetric grid, the marginal identity, the transposition check, and
-# shapexone's absence from the y2-only branch).
+# migration; it is deliberately not a package test. It depends on fits stored
+# outside this repository, so it could only ever skip on CI, on CRAN and on any
+# other checkout -- a permanently-skipped test reads as coverage that is not
+# there. Its subject is also frozen: those fits are fixed artefacts, so once
+# the comparison passes it can only change if THIS package changes, and the
+# package-side property is already pinned above without any external dependency
+# (the Stan-vs-R asymmetric grid, the marginal identity, the transposition
+# check, and shapexone's absence from the y2-only branch).
 
 test_that("binegbin_partialobs recovers shapexone and shapextwo when they differ", {
   skip_on_cran()

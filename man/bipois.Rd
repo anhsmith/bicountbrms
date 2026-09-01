@@ -19,78 +19,82 @@ posterior_predict_bipois(i, prep, ...)
 posterior_epred_bipois(prep)
 }
 \value{
-A brms custom_family object.
+\code{bipois()} returns a brms \code{custom_family} object. \code{bipois_stanvars()}
+returns a \code{stanvars} object holding the Stan code for the corresponding
+\verb{_lpmf}. \code{log_lik_bipois()} returns a numeric vector of log-densities,
+one per posterior draw, for observation \code{i}.
+\code{posterior_predict_bipois()} returns an integer vector of simulated
+\code{y1} values, one per posterior draw, for observation \code{i}.
+\code{posterior_epred_bipois()} returns a numeric matrix of \code{E[y1 | y2]}, with
+posterior draws in rows and observations in columns.
 }
 \description{
 Returns a brms custom family for the joint distribution of a matched pair
-of counts, `(y1, y2)`, constructed via trivariate reduction: `y1 =
-N_shared + N1`, `y2 = N_shared + N2`, with `N_shared ~
-Poisson(mu)`, `N1 ~ Poisson(lambdaone)`, `N2 ~ Poisson(lambdatwo)`
+of counts, \verb{(y1, y2)}, constructed via trivariate reduction: \code{y1 = N_shared + N1}, \code{y2 = N_shared + N2}, with \code{N_shared ~ Poisson(mu)}, \code{N1 ~ Poisson(lambdaone)}, \code{N2 ~ Poisson(lambdatwo)}
 mutually independent given their rates. All three rates are link = "log".
 Modelling the pair jointly avoids regressing the difference on one of its
-own components (a `d = y1 - y2 ~ y2` design), which induces regression to
+own components (a \code{d = y1 - y2 ~ y2} design), which induces regression to
 the mean.
 
 Use this when both counts were recorded on every row. If the first count is
-missing on some rows, use [bipois_partialobs()], which is the same family
-with an observation flag -- same `name`, same three dpars, same likelihood,
+missing on some rows, use \code{\link[=bipois_partialobs]{bipois_partialobs()}}, which is the same family
+with an observation flag -- same \code{name}, same three dpars, same likelihood,
 same post-processing.
 
-`y1` is the family's response; `y2` is passed in as supplementary
-integer data via brms's `vint()` addition term, since brms's
-`custom_family()` machinery is built around a single declared response
+\code{y1} is the family's response; \code{y2} is passed in as supplementary
+integer data via brms's \code{vint()} addition term, since brms's
+\code{custom_family()} machinery is built around a single declared response
 column -- see Details.
 
 Use in a brm() call as:
-  brm(
-    bf(y1 | vint(y2) ~ ...),
-    family   = bipois(),
-    stanvars = bipois_stanvars(),
-    data     = dat
-  )
+brm(
+bf(y1 | vint(y2) ~ ...),
+family   = bipois(),
+stanvars = bipois_stanvars(),
+data     = dat
+)
 }
 \details{
-**Naming note.** `brms::custom_family()` requires a dpar literally named
-`"mu"` (`stop2("All families must have a 'mu' parameter.")`,
+\strong{Naming note.} \code{brms::custom_family()} requires a dpar literally named
+\code{"mu"} (\code{stop2("All families must have a 'mu' parameter.")},
 unconditional), whatever the family actually calls that quantity. Here it is
-bound to `lambda_shared`, the rate of the
-component shared between `y1` and `y2` -- not a mean of either
-response individually. `lambdaone` (source-1-only rate) and `lambdatwo`
+bound to \code{lambda_shared}, the rate of the
+component shared between \code{y1} and \code{y2} -- not a mean of either
+response individually. \code{lambdaone} (source-1-only rate) and \code{lambdatwo}
 (source-2-only rate) are the other two dpars, plainly named (no forced
 reinterpretation needed for those two).
 
-**The spelling `lambdaone` rather than `lambda1`.** `custom_family()` rejects dpar names
-ending in a digit (`stop2("'dpars' should not end with a number.")`), as
+\strong{The spelling \code{lambdaone} rather than \code{lambda1}.} \code{custom_family()} rejects dpar names
+ending in a digit (\code{stop2("'dpars' should not end with a number.")}), as
 well as dots and underscores. The documentation therefore writes these
 rates as \eqn{\lambda_1}{lambda_1} and \eqn{\lambda_2}{lambda_2} while the
-code must spell them `lambdaone`/`lambdatwo`. See the notation table in
+code must spell them \code{lambdaone}/\code{lambdatwo}. See the notation table in
 the package README.
 
-**`y2` as supplementary data rather than a second response.** brms's
-`custom_family()` API supports exactly one declared response column
-(`Y`) plus optional supplementary integer/real data (`vint()`/`vreal()`
+\strong{\code{y2} as supplementary data rather than a second response.} brms's
+\code{custom_family()} API supports exactly one declared response column
+(\code{Y}) plus optional supplementary integer/real data (\code{vint()}/\code{vreal()}
 addition terms) -- the same mechanism used for, e.g., binomial trial
 counts in the brms custom-families vignette. There is no
-*undeclared-response* concept for a genuinely joint two-count
-likelihood; `vint(y2)` is the correct fit for that gap, not a
-workaround. This does mean `y2` is *not* itself treated as
+\emph{undeclared-response} concept for a genuinely joint two-count
+likelihood; \code{vint(y2)} is the correct fit for that gap, not a
+workaround. This does mean \code{y2} is \emph{not} itself treated as
 brms-modelled response data (no missing-value handling, no
 resp_*() addition terms apply to it) -- it is fixed, observed
 per-row data, consistent with the fact that every row this constructor is
 for comes from the matched (both-observed) subset.
 
-**Order of dpars matters for the generated Stan call.** brms generates
-`target += bipois_lpmf(Y[n] | mu[n], lambdaone[n], lambdatwo[n],
-vint1[n], 1)` -- dpars in the order declared here, then the two `vars`
-entries. `bipois_stan_funs` (stanfunctions via `bipois_stanvars()`)
-declares `bipois_lpmf` with exactly this argument order; changing the order
+\strong{Order of dpars matters for the generated Stan call.} brms generates
+\verb{target += bipois_lpmf(Y[n] | mu[n], lambdaone[n], lambdatwo[n], vint1[n], 1)} -- dpars in the order declared here, then the two \code{vars}
+entries. \code{bipois_stan_funs} (stanfunctions via \code{bipois_stanvars()})
+declares \code{bipois_lpmf} with exactly this argument order; changing the order
 here without changing the Stan signature (or vice versa) silently swaps
-which rate governs which count. The trailing `1` is the observation flag,
+which rate governs which count. The trailing \code{1} is the observation flag,
 supplied as a literal because every row of a fully paired design has both
 counts.
 }
 \seealso{
-[bipois_partialobs()] for partially observed pairs; [binegbin()]
-  for the overdispersed counterpart.
+\code{\link[=bipois_partialobs]{bipois_partialobs()}} for partially observed pairs; \code{\link[=binegbin]{binegbin()}}
+for the overdispersed counterpart.
 }
 \keyword{internal}

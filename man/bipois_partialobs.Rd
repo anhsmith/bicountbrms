@@ -10,111 +10,112 @@ bipois_partialobs()
 bipois_partialobs_stanvars()
 }
 \value{
-A brms custom_family object.
+\code{bipois_partialobs()} returns a brms \code{custom_family} object.
+\code{bipois_partialobs_stanvars()} returns a \code{stanvars} object holding the
+Stan code for the corresponding \verb{_lpmf}. The returned family has the same
+\code{name} as \code{\link[=bipois]{bipois()}}, so the post-processing methods documented there
+apply to a fit made with either constructor.
 }
 \description{
-[bipois()] for a design in which the first count is missing on some rows.
-Same generative model, same `name`, same three dpars, same likelihood and
+\code{\link[=bipois]{bipois()}} for a design in which the first count is missing on some rows.
+Same generative model, same \code{name}, same three dpars, same likelihood and
 the same post-processing methods -- the only difference is that each row
 supplies a second integer, an observation flag, through
-`vint()`:
+\code{vint()}:
 
-```
-bf(y1 | vint(y2, y1_obs) ~ ...)
-```
+\if{html}{\out{<div class="sourceCode">}}\preformatted{bf(y1 | vint(y2, y1_obs) ~ ...)
+}\if{html}{\out{</div>}}
 
-`y1_obs` is a 0/1 integer column: `1` where both counts were recorded, `0`
-where the first was not. `y1` may hold any non-negative integer on those
-rows -- `0` is the conventional placeholder -- because the likelihood does
-not read it. Do not use `NA`, which brms drops before fitting, taking the
-row's observed `y2` with it.
+\code{y1_obs} is a 0/1 integer column: \code{1} where both counts were recorded, \code{0}
+where the first was not. \code{y1} may hold any non-negative integer on those
+rows -- \code{0} is the conventional placeholder -- because the likelihood does
+not read it. Do not use \code{NA}, which brms drops before fitting, taking the
+row's observed \code{y2} with it.
 
-**Contribution of a matched row and of an unmatched row.** A matched row (`y1_obs == 1`) uses the
-full joint [bipois()] lpmf on `(y1, y2)`. A row whose first count was never
-recorded (`y1_obs == 0`) contributes the second count's marginal *from the
-same model*. For Poisson components that marginal is closed form -- a sum of
+\strong{Contribution of a matched row and of an unmatched row.} A matched row (\code{y1_obs == 1}) uses the
+full joint \code{\link[=bipois]{bipois()}} lpmf on \verb{(y1, y2)}. A row whose first count was never
+recorded (\code{y1_obs == 0}) contributes the second count's marginal \emph{from the
+same model}. For Poisson components that marginal is closed form -- a sum of
 independent Poissons is Poisson -- so it is exactly
-`y2 ~ Poisson(mu + lambdatwo)`. [binegbin_partialobs()] must evaluate the
+\code{y2 ~ Poisson(mu + lambdatwo)}. \code{\link[=binegbin_partialobs]{binegbin_partialobs()}} must evaluate the
 corresponding convolution as a sum; this family does not. Either way the row
-is not dropped and is not given a different model: it still informs `mu`,
-`lambdatwo` and any group-level effects.
+is not dropped and is not given a different model: it still informs \code{mu},
+\code{lambdatwo} and any group-level effects.
 
-**Imputation after fitting.** The fitted model can impute the unobserved
+\strong{Imputation after fitting.} The fitted model can impute the unobserved
 first count conditional on the observed second one, which is usually why
-someone wanted this. `posterior_predict()` and `posterior_epred()` return a
-`y1` draw and `E[y1 | y2]` for *every* row, matched and unmatched alike --
-`y1_obs` selects a likelihood branch, not a prediction.
+someone wanted this. \code{posterior_predict()} and \code{posterior_epred()} return a
+\code{y1} draw and \code{E[y1 | y2]} for \emph{every} row, matched and unmatched alike --
+\code{y1_obs} selects a likelihood branch, not a prediction.
 
-**A design consequence, worth knowing before the data are collected.**
-`lambdatwo` appears on both branches, so every row informs it. `lambdaone`
+\strong{A design consequence, worth knowing before the data are collected.}
+\code{lambdatwo} appears on both branches, so every row informs it. \code{lambdaone}
 appears only on the matched branch and is identified by the matched rows
-*alone*. `mu` appears on both, but the unmatched branch sees it only through
-the sum `mu + lambdatwo` -- those rows constrain the total rate of the
+\emph{alone}. \code{mu} appears on both, but the unmatched branch sees it only through
+the sum \code{mu + lambdatwo} -- those rows constrain the total rate of the
 observed margin, not how it divides between the shared and source-2-only
-components. Separating `mu` from `lambdatwo`, and so estimating the
+components. Separating \code{mu} from \code{lambdatwo}, and so estimating the
 congruence \eqn{f}, is therefore also informed by the matched rows. With few of
-them, `mu` and `lambdatwo` trade off along their sum and the prior does
+them, \code{mu} and \code{lambdatwo} trade off along their sum and the prior does
 correspondingly more of the work, however many unmatched rows the design
 contains.
 
-**This is not censoring in brms's sense.** brms's `cens()` addition term
-means a value known to lie in a set -- `left`, `right`, `interval`. Here the
+\strong{This is not censoring in brms's sense.} brms's \code{cens()} addition term
+means a value known to lie in a set -- \code{left}, \code{right}, \code{interval}. Here the
 first count is not observed at all and the likelihood marginalises over its
-whole support. This family was called `bipois_cens()` up to 0.9.1; the name
+whole support. This family was called \code{bipois_cens()} up to 0.9.1; the name
 was wrong and was changed at 0.10.0. Do not combine this family with
-`cens()`.
+\code{cens()}.
 
 Use in a brm() call as:
-  brm(
-    bf(y1 | vint(y2, y1_obs) ~ 1,
-       mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
-       nlf(lambdaone ~ lamx + methd),
-       nlf(lambdatwo ~ lamx - methd),
-       lamx ~ 1, methd ~ 1, nl = TRUE),
-    family   = bipois_partialobs(),
-    stanvars = bipois_partialobs_stanvars(),
-    data     = dat
-  )
+brm(
+bf(y1 | vint(y2, y1_obs) ~ 1,
+mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
+nlf(lambdaone ~ lamx + methd),
+nlf(lambdatwo ~ lamx - methd),
+lamx ~ 1, methd ~ 1, nl = TRUE),
+family   = bipois_partialobs(),
+stanvars = bipois_partialobs_stanvars(),
+data     = dat
+)
 }
 \details{
-**Choosing between this family and [binegbin_partialobs()].** This family fixes
+\strong{Choosing between this family and \code{\link[=binegbin_partialobs]{binegbin_partialobs()}}.} This family fixes
 each latent component's variance equal to its mean. Where the counts are
 genuinely overdispersed relative to that,
-[binegbin_partialobs()] is the correct model and this one will understate
-the marginal variances. Where they are not, [binegbin_partialobs()] can only
+\code{\link[=binegbin_partialobs]{binegbin_partialobs()}} is the correct model and this one will understate
+the marginal variances. Where they are not, \code{\link[=binegbin_partialobs]{binegbin_partialobs()}} can only
 represent the fit by driving its dispersions to their Poisson limit
-(`shape` \eqn{\to\infty}, equivalently `kappa` \eqn{\to 0}), a boundary at
+(\code{shape} \eqn{\to\infty}, equivalently \code{kappa} \eqn{\to 0}), a boundary at
 which sampling degrades; fitting the equidispersed family directly avoids
-it. Compare the two with `loo()`.
+it. Compare the two with \code{loo()}.
 
-**One likelihood, two constructors.** This returns the same
-`custom_family` `name` as [bipois()], so brms resolves both to one `bipois_lpmf` and
-one set of `log_lik_bipois()` / `posterior_predict_bipois()` /
-`posterior_epred_bipois()` methods. The matched branch is therefore not a
+\strong{One likelihood, two constructors.} This returns the same
+\code{custom_family} \code{name} as \code{\link[=bipois]{bipois()}}, so brms resolves both to one \code{bipois_lpmf} and
+one set of \code{log_lik_bipois()} / \code{posterior_predict_bipois()} /
+\code{posterior_epred_bipois()} methods. The matched branch is therefore not a
 second copy that can drift from the fully paired likelihood; it is the same
-code. See [binegbin_partialobs()] for why `vars` declares a literal in the
+code. See \code{\link[=binegbin_partialobs]{binegbin_partialobs()}} for why \code{vars} declares a literal in the
 plain constructor rather than the two families declaring overloaded Stan
 functions.
 
-**Two `vint()` arguments, in declared order.** brms appends `vint()` integers
+\strong{Two \code{vint()} arguments, in declared order.} brms appends \code{vint()} integers
 to the generated lpmf call in the order they are listed in the formula's
-`vint()` term, matching the `vars` declared here
-(`c("vint1[n]", "vint2[n]")`): so `vint(y2, y1_obs)` binds `vint1 = y2` and
-`vint2 = y1_obs`. brms generates `target += bipois_lpmf(Y[n] | mu[n],
-lambdaone[n], lambdatwo[n], vint1[n], vint2[n])`. Reordering the dpars or the
-two `vint()` terms without matching the Stan signature silently swaps which
+\code{vint()} term, matching the \code{vars} declared here
+(\code{c("vint1[n]", "vint2[n]")}): so \code{vint(y2, y1_obs)} binds \code{vint1 = y2} and
+\code{vint2 = y1_obs}. brms generates \verb{target += bipois_lpmf(Y[n] | mu[n], lambdaone[n], lambdatwo[n], vint1[n], vint2[n])}. Reordering the dpars or the
+two \code{vint()} terms without matching the Stan signature silently swaps which
 rate governs which component or which integer is the branch flag.
 
-**Distinguishing the two constructors in a stored fit.** `family$name` is `"bipois"`
+\strong{Distinguishing the two constructors in a stored fit.} \code{family$name} is \code{"bipois"}
 either way. What distinguishes them is the presence of the second
 supplementary integer:
 
-```
-"vint2" %in% names(brms::standata(fit))   # TRUE for a partially observed fit
+\if{html}{\out{<div class="sourceCode">}}\preformatted{"vint2" \%in\% names(brms::standata(fit))   # TRUE for a partially observed fit
 fit$family$vars     # c("vint1[n]", "vint2[n]") or c("vint1[n]", "1")
-```
+}\if{html}{\out{</div>}}
 }
 \seealso{
-[bipois()] for the fully paired case; [binegbin_partialobs()] for
-  the overdispersed counterpart.
+\code{\link[=bipois]{bipois()}} for the fully paired case; \code{\link[=binegbin_partialobs]{binegbin_partialobs()}} for
+the overdispersed counterpart.
 }

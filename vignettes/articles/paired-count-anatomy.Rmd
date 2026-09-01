@@ -11,10 +11,8 @@ link-citations: true
 
 Every joint family in this package — `bipois()` and `binegbin()`, each with a
 `_partialobs()` constructor for data whose first count is sometimes missing — is built
-by **trivariate reduction**. @holgate1964 and @karlis2003 use the construction
-with Poisson components; @kirkpatrickApplyingMultivariateDiscrete2016 and
-@kirkpatrickRMKdiscreteSundryDiscrete2022 with negative-binomial components. Three
-independent counts are drawn, and one of the three enters both observed counts:
+by **trivariate reduction**. Three independent counts are drawn, and one of the three
+enters both observed counts:
 
 $$
 y_1 = N_{\text{shared}} + N_1
@@ -24,12 +22,13 @@ $$
 
 The shared term induces the correlation between the pair. It is never observed, and is
 marginalised out analytically in the likelihood. Everything else is the part
-each source saw alone.
+each source saw alone. The construction and its sources are set out in
+[The families and their parameters](families-and-parameters.html).
 
-The widget below decomposes a pair, exposing **two coordinate systems at once,
-each driving the other**.
+The widget below shows the same model in both parameterisations, over an expected
+decomposition and ten simulated pairs.
 
-## Why two coordinate systems
+## Two coordinate systems
 
 The dpars a family actually takes are three rates: `mu` for the shared
 component, `lambdaone` and `lambdatwo` for the two excesses. That is what the
@@ -346,7 +345,7 @@ respond.
     var H = MT + yMax * SLOT + MB;
     var Y = function(v){ return MT + (yMax - v) * SLOT; };
     var s = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + " " + H
-          + '" font-size="10" role="img" aria-label="Decomposition of a paired count into a shared component and two source-specific excesses">';
+          + '" font-size="10" role="img" aria-label="Decomposition of paired counts into a shared component and two source-specific excesses">';
 
     // expected panel: CONTINUOUS bars, because these are rates, not counts
     var boxY = Y(yMax) - 4, boxH = Y(0) - boxY + 4;
@@ -451,7 +450,7 @@ $\kappa_X$ pulls the pair *apart*, and drives the whole difference.
 **Push $\kappa_A$ to 0.** The counts do not stop moving. That is the Poisson
 floor, not determinism: there is no parameter setting that stills the stacks.
 
-## The same map, in R
+## Calling the map directly
 
 The widget's arithmetic is not a separate model: it is the package's own map,
 which you can call directly. The R code below is the authoritative version, and
@@ -462,7 +461,13 @@ the JavaScript above is checked against it:
 library(bicountbrms)
 
 # The widget's defaults
-binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = atanh(0), kappas = 0.6, kappax = 1.0)
+binegbin_mfd_to_dpars(
+  M      = 12,
+  f      = 0.67,
+  delta  = atanh(0),
+  kappas = 0.6,
+  kappax = 1.0
+  )
 #> $mu
 #> [1] 8.04
 #> 
@@ -487,8 +492,16 @@ $\tanh\delta$. Going back the other way:
 
 
 ``` r
-d <- binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = 0.3)
-binegbin_dpars_to_mfd(d$mu, d$lambdaone, d$lambdatwo)[c("M", "f", "delta", "beta")]
+d <- binegbin_mfd_to_dpars(
+  M     = 12,
+  f     = 0.67,
+  delta = 0.3
+  )
+binegbin_dpars_to_mfd(
+  d$mu,
+  d$lambdaone,
+  d$lambdatwo
+  )[c("M", "f", "delta", "beta")]
 #> $M
 #> [1] 12
 #> 
@@ -507,7 +520,11 @@ And the degenerate case the widget flags:
 
 ``` r
 # Perfect congruence: no excess, so no bias to identify
-binegbin_dpars_to_mfd(mu = 12, lambdaone = 0, lambdatwo = 0)$delta
+binegbin_dpars_to_mfd(
+  mu        = 12,
+  lambdaone = 0,
+  lambdatwo = 0
+  )$delta
 #> [1] NA
 ```
 
@@ -527,8 +544,8 @@ the link supplies the `exp()`. That includes the two dispersions: writing
 the widget above uses, rather than in $\phi$.
 
 $\kappa = 0$ is the Poisson limit, so a prior on $\kappa$ can shrink towards
-Poisson. The same reparameterisation was used in
-[@smithInstantaneousVsNoninstantaneous2020].
+Poisson. The same reparameterisation was used by
+@smithInstantaneousVsNoninstantaneous2020.
 
 ### Priors that default to the simpler model
 
@@ -603,17 +620,18 @@ $\mathrm{N}(0, 3)$, `normal(0, 1.5)` among them.
 
 ### Setting the prior on $M$ from your own counts
 
-$M$ is the only coordinate on the counts' own scale, so its prior is the only
-one here without a universal default. Set that prior from your own counts.
+$M$ is the only coordinate on the counts' own scale. The others are scale-free,
+so one recommendation serves any dataset; $M$ takes a prior chosen from the counts
+being modelled.
 
 `normal(4, 1.5)` is used below, which covers roughly 3 to 1000 counts per
 sampling unit and suits the simulated data. For sparser data, lower the mean:
-`normal(0, 2)` covers about 0.04 to 27.
+`normal(0, 2)` covers about 0.04 to 27 at 90%.
 
 Move the **mean** to match your scale rather than raising the SD. `eta` is
-$\log M$, so a normal prior on it is a lognormal on $M$, and widening one pushes
-mass out to implausible values instead of making it neutral
-[@smithInstantaneousVsNoninstantaneous2020, supplement 3, Fig. S3-1].
+$\log M$, so a normal prior on it is a lognormal on $M$, and widening that prior
+pushes mass out to implausible values instead of making it neutral
+[@smithInstantaneousVsNoninstantaneous2020, Supplement 3, Fig. S3-1].
 
 A prior written on one scale induces a different density on any other. Being
 weakly informative on the first does not make it so on the second. These are
@@ -713,8 +731,7 @@ unlist(truth)
 ```
 
 Fit. Every prior either shrinks towards the simpler model or is centred away from the
-truth, so what comes back is carried by the data rather than echoed from the
-prior:
+truth, so the posterior is driven by the data rather than the prior:
 
 
 ``` r
@@ -815,18 +832,17 @@ knitr::kable(
 
 
 
-The reason to bother with any of this: putting a random effect on `eta` asks
-whether groups differ in overall level, and putting one on `con` asks whether
-they differ in congruence. Those are separable questions in these coordinates
-and entangled ones in the native dpars, where a group effect on `mu` alone
-changes the level and the congruence at once.
+A random effect on `eta` estimates how much groups differ in overall level, and
+a random effect on `con` estimates how much they differ in congruence. Those are
+separable in these coordinates and entangled in the native dpars, where a group
+effect on `mu` alone changes the level and the congruence at once.
 
 ## A caveat about the widget
 
 The JavaScript is an independent implementation of the *generative* model: it
 draws from the same trivariate reduction, but it is not the likelihood, and no
-part of the package's inference runs in your browser. The rate map it uses is
-the one tested in `test-mfd.R`; the sampler is illustrative. Treat the picture
+part of the package's inference runs in your browser. It uses the rate map
+tested in `test-mfd.R`; the sampler is illustrative. Treat the picture
 as intuition, and the R above as the specification.
 
 The widget also shows ONE excess-dispersion dial. `binegbin()` estimates two,

@@ -1,0 +1,40 @@
+{
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "mit",
+  "title": "bicountbrms: Joint Bivariate-Count brms Custom Families for Paired Counts",
+  "creators": [
+    {
+      "name": "Smith, Adam N. H.",
+      "orcid": "0000-0003-0059-6206",
+      "affiliation": "Sea Through Science Limited"
+    }
+  ],
+  "description": "<p>Custom <a href=\"https://paulbuerkner.com/brms/\">brms</a> families for comparing two paired count sources, modelling the pair jointly via trivariate reduction rather than reducing it to a difference. Two families are supplied: a bivariate Poisson (<code>bipois</code>) and its overdispersed bivariate Negative-Binomial sibling (<code>binegbin</code>). Each has a second constructor (<code>bipois_partialobs</code>, <code>binegbin_partialobs</code>) that admits rows on which the first count was never recorded, scoring them by the integrated-out marginal of the same joint model, so those rows still inform the shared component and the second source.</p><p>Modelling the pair rather than its difference captures the overall level, the correlation between sources, and marginal overdispersion alongside the disagreement, and supports simulating one count conditional on the other, including on rows where it was never recorded. An interpretable reparameterisation separates overall level, congruence, and source bias, giving each a finite null and so admitting penalised-complexity priors. The Negative-Binomial family lets the two source-specific components differ in overdispersion.</p><p>Documentation: <a href=\"https://anhsmith.github.io/bicountbrms/\">https://anhsmith.github.io/bicountbrms/</a></p>",
+  "keywords": [
+    "R",
+    "brms",
+    "Stan",
+    "Bayesian",
+    "bivariate Poisson",
+    "bivariate negative binomial",
+    "paired counts",
+    "trivariate reduction",
+    "custom family",
+    "overdispersion",
+    "penalised complexity prior"
+  ],
+  "related_identifiers": [
+    {
+      "relation": "isDocumentedBy",
+      "identifier": "https://anhsmith.github.io/bicountbrms/",
+      "scheme": "url"
+    },
+    {
+      "relation": "isSupplementTo",
+      "identifier": "https://github.com/anhsmith/bicountbrms",
+      "scheme": "url"
+    }
+  ],
+  "language": "eng"
+}

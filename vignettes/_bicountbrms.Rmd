@@ -355,8 +355,8 @@ method, as do `fitted()` and `conditional_effects()`.
 - **Modelling the difference instead.** Where only the disagreement
   $d = y_1 - y_2$ is of interest, or where truncation via `resp_trunc()` is
   required, the Skellam and discrete Laplace/normal families in the companion
-  package [`skellambrms`](https://github.com/anhsmith/skellambrms) model $d$
-  directly. The difference of two independent Poisson counts is
+  package `skellambrms` [@smithSkellambrmsSkellamDiscreteDifference2026] model
+  $d$ directly. The difference of two independent Poisson counts is
   Skellam-distributed [@skellam1946]; for the Bayesian treatment of count
   differences generally, see @karlis2006. Note what that reduction discards:
   the shared component cancels out of $d$, so the level and the congruence are

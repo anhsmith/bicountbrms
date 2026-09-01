@@ -255,8 +255,8 @@ test_that("binegbin_partialobs fits the SYMMETRIC model via nlf, dispatches, and
   # symmetric model -- one dispersion for both excess components, which is
   # what this simulation generates -- is expressed as a formula constraint:
   # both dpars routed through a single non-linear parameter `shapexx`. This
-  # is the migration idiom documented in migration/family-unification.md, so the
-  # test doubles as a check that it fits and recovers.
+  # is the idiom the 0.8.0 migration introduced, so the test doubles as a check
+  # that it fits and recovers.
   skip_on_cran()
   skip_if_not_installed("brms")
   skip_if_no_stan()

@@ -19,88 +19,93 @@ posterior_predict_binegbin(i, prep, ...)
 posterior_epred_binegbin(prep)
 }
 \value{
-A brms custom_family object.
+\code{binegbin()} returns a brms \code{custom_family} object. \code{binegbin_stanvars()}
+returns a \code{stanvars} object holding the Stan code for the corresponding
+\verb{_lpmf}. \code{log_lik_binegbin()} returns a numeric vector of log-densities,
+one per posterior draw, for observation \code{i}.
+\code{posterior_predict_binegbin()} returns an integer vector of simulated
+\code{y1} values, one per posterior draw, for observation \code{i}.
+\code{posterior_epred_binegbin()} returns a numeric matrix of \code{E[y1 | y2]}, with
+posterior draws in rows and observations in columns.
 }
 \description{
-Overdispersed sibling of [bipois()]. Returns a brms custom family for the
-joint distribution of a matched count pair `(y1, y2)` via trivariate
+Overdispersed sibling of \code{\link[=bipois]{bipois()}}. Returns a brms custom family for the
+joint distribution of a matched count pair \verb{(y1, y2)} via trivariate
 reduction with Negative-Binomial (rather than Poisson) latent components:
-`y1 = N_shared + N1`, `y2 = N_shared + N2`, with
-`N_shared ~ NB2(mu, shapes)`, `N1 ~ NB2(lambdaone, shapexone)`,
-`N2 ~ NB2(lambdatwo, shapextwo)` mutually independent given their rates.
-`NB2(m, phi)` has mean `m` and variance `m + m^2/phi` (Stan
-`neg_binomial_2`; R `dnbinom(size = phi, mu = m)`).
+\code{y1 = N_shared + N1}, \code{y2 = N_shared + N2}, with
+\code{N_shared ~ NB2(mu, shapes)}, \code{N1 ~ NB2(lambdaone, shapexone)},
+\code{N2 ~ NB2(lambdatwo, shapextwo)} mutually independent given their rates.
+\code{NB2(m, phi)} has mean \code{m} and variance \code{m + m^2/phi} (Stan
+\code{neg_binomial_2}; R \code{dnbinom(size = phi, mu = m)}).
 
 Use this when both counts were recorded on every row. If the first count is
-missing on some rows, use [binegbin_partialobs()], which is the same family
-with an observation flag -- same `name`, same six dpars, same likelihood,
+missing on some rows, use \code{\link[=binegbin_partialobs]{binegbin_partialobs()}}, which is the same family
+with an observation flag -- same \code{name}, same six dpars, same likelihood,
 same post-processing.
 
-Six dpars: the three rates (`mu` = shared rate, `lambdaone`/`lambdatwo` =
-the two source-specific rates) plus three dispersions -- `shapes` for the
-shared component and `shapexone`/`shapextwo` for the two source-specific
-excess components. All six use `link = "log"`. Supply the excess rates
-through a non-linear formula without an explicit `exp()` (the log link
-applies it): `nlf(lambdaone ~ lamx)` gives `lambdaone = exp(lamx)`.
+Six dpars: the three rates (\code{mu} = shared rate, \code{lambdaone}/\code{lambdatwo} =
+the two source-specific rates) plus three dispersions -- \code{shapes} for the
+shared component and \code{shapexone}/\code{shapextwo} for the two source-specific
+excess components. All six use \code{link = "log"}. Supply the excess rates
+through a non-linear formula without an explicit \code{exp()} (the log link
+applies it): \code{nlf(lambdaone ~ lamx)} gives \code{lambdaone = exp(lamx)}.
 
-See the `binegbin.R` file header for why Negative-Binomial components are
-used instead of an observation-level random effect on [bipois()] -- briefly,
+See the \code{binegbin.R} file header for why Negative-Binomial components are
+used instead of an observation-level random effect on \code{\link[=bipois]{bipois()}} -- briefly,
 the random-effect version fails synthetic recovery, because with one
 observed pair but three latent deviates per unit the excess deviates act as
 residual absorbers.
 
 Use in a brm() call as:
-  brm(
-    bf(y1 | vint(y2) ~ 1,
-       mu ~ 1 + (1 | vessel),
-       nlf(lambdaone ~ lamx), nlf(lambdatwo ~ lamx), lamx ~ 1,
-       shapes ~ 1, shapexone ~ 1, shapextwo ~ 1, nl = TRUE),
-    family   = binegbin(),
-    stanvars = binegbin_stanvars(),
-    data     = dat
-  )
+brm(
+bf(y1 | vint(y2) ~ 1,
+mu ~ 1 + (1 | vessel),
+nlf(lambdaone ~ lamx), nlf(lambdatwo ~ lamx), lamx ~ 1,
+shapes ~ 1, shapexone ~ 1, shapextwo ~ 1, nl = TRUE),
+family   = binegbin(),
+stanvars = binegbin_stanvars(),
+data     = dat
+)
 }
 \details{
-**Tying the two excess dispersions.** Up to 0.9.1
-this family had a single `shapex` shared by both excess components,
-imposing `shapexone == shapextwo`. That is a modelling choice rather than a
+\strong{Tying the two excess dispersions.} Up to 0.9.1
+this family had a single \code{shapex} shared by both excess components,
+imposing \code{shapexone == shapextwo}. That is a modelling choice rather than a
 property of the construction, and 0.10.0 frees it. To recover the
 constraint, route both through one non-linear parameter:
 
-```
-bf(y1 | vint(y2) ~ 1,
+\if{html}{\out{<div class="sourceCode">}}\preformatted{bf(y1 | vint(y2) ~ 1,
    mu ~ 1 + (1 | vessel),
    nlf(shapexone ~ shapexx),
    nlf(shapextwo ~ shapexx),
    shapexx ~ 1, ..., nl = TRUE)
-```
+}\if{html}{\out{</div>}}
 
 The resulting likelihood is term-for-term the pre-0.10.0 five-dpar one, and
 a package test pins that. Stored five-dpar fits keep working unchanged:
-their single `shapex` resolves to both `shapexone` and `shapextwo` when
-post-processed. Set a prior with `nlpar = "shapexx"` rather than
-`dpar = "shapex"`.
+their single \code{shapex} resolves to both \code{shapexone} and \code{shapextwo} when
+post-processed. Set a prior with \code{nlpar = "shapexx"} rather than
+\code{dpar = "shapex"}.
 
-**Names forced by `custom_family()`.** Identical conventions to
-[bipois()] -- `mu` is brms's mandatory dpar name, here bound to the shared
-component's rate (`lambda_shared`), not a mean of either response; `y2`
-is supplied as supplementary integer data through `vint()` because
-`custom_family()` declares a single response column. See [bipois()] for
-the full explanation, including why the rates are spelled `lambdaone`/
-`lambdatwo` in code but written \eqn{\lambda_1}{lambda_1}/
+\strong{Names forced by \code{custom_family()}.} Identical conventions to
+\code{\link[=bipois]{bipois()}} -- \code{mu} is brms's mandatory dpar name, here bound to the shared
+component's rate (\code{lambda_shared}), not a mean of either response; \code{y2}
+is supplied as supplementary integer data through \code{vint()} because
+\code{custom_family()} declares a single response column. See \code{\link[=bipois]{bipois()}} for
+the full explanation, including why the rates are spelled \code{lambdaone}/
+\code{lambdatwo} in code but written \eqn{\lambda_1}{lambda_1}/
 \eqn{\lambda_2}{lambda_2} in the documentation.
 
-**Order of dpars matters for the generated Stan call.** brms generates
-`target += binegbin_lpmf(Y[n] | mu[n], lambdaone[n], lambdatwo[n],
-shapes[n], shapexone[n], shapextwo[n], vint1[n], 1)` -- dpars in the order
-declared here, then the two `vars` entries. `binegbin_stan_funs` declares
-`binegbin_lpmf` with exactly this signature; reordering one without the
+\strong{Order of dpars matters for the generated Stan call.} brms generates
+\verb{target += binegbin_lpmf(Y[n] | mu[n], lambdaone[n], lambdatwo[n], shapes[n], shapexone[n], shapextwo[n], vint1[n], 1)} -- dpars in the order
+declared here, then the two \code{vars} entries. \code{binegbin_stan_funs} declares
+\code{binegbin_lpmf} with exactly this signature; reordering one without the
 other silently swaps which rate or dispersion governs which component.
-The trailing `1` is the observation flag, supplied as a literal because
+The trailing \code{1} is the observation flag, supplied as a literal because
 every row of a fully paired design has both counts.
 }
 \seealso{
-[binegbin_partialobs()] for partially observed pairs; [bipois()]
-  for the equidispersed Poisson counterpart.
+\code{\link[=binegbin_partialobs]{binegbin_partialobs()}} for partially observed pairs; \code{\link[=bipois]{bipois()}}
+for the equidispersed Poisson counterpart.
 }
 \keyword{internal}

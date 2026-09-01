@@ -20,53 +20,54 @@ binegbin_dpars_to_mfd(
 \item{lambdaone, lambdatwo}{The two excess rates.}
 
 \item{shapes, shapex}{Optional NB2 dispersions. If supplied, the returned list
-gains `kappas`/`kappax` (`= 1/sqrt(shape)`, so `shape = Inf` gives `0`).
-`shapex` is the single excess dispersion declared by a `binegbin` fit made
+gains \code{kappas}/\code{kappax} (\verb{= 1/sqrt(shape)}, so \code{shape = Inf} gives \code{0}).
+\code{shapex} is the single excess dispersion declared by a \code{binegbin} fit made
 before 0.10.0, when one dpar governed both margins; no shipping family
-takes it now. A fit of [bipois()] or [bipois_partialobs()] has no
+takes it now. A fit of \code{\link[=bipois]{bipois()}} or \code{\link[=bipois_partialobs]{bipois_partialobs()}} has no
 dispersion to pass: read its three rates alone.}
 
 \item{shapexone, shapextwo}{Optional per-margin NB2 excess dispersions, as
 taken by both negative-binomial constructors since 0.10.0. If supplied,
-the returned list gains `kappaxone`/`kappaxtwo`. Mutually exclusive with
-`shapex`, which is the same quantity under its older name.}
+the returned list gains \code{kappaxone}/\code{kappaxtwo}. Mutually exclusive with
+\code{shapex}, which is the same quantity under its older name.}
 }
 \value{
-A named list of `M`, `f`, `delta`, plus `beta` (the bounded bias
-  `tanh(delta)`), `kappas`/`kappax` when `shapes`/`shapex` are supplied, and
-  `kappaxone`/`kappaxtwo` when `shapexone`/`shapextwo` are.
+A named list of \code{M}, \code{f}, \code{delta}, plus \code{beta} (the bounded bias
+\code{tanh(delta)}), \code{kappas}/\code{kappax} when \code{shapes}/\code{shapex} are supplied, and
+\code{kappaxone}/\code{kappaxtwo} when \code{shapexone}/\code{shapextwo} are.
 }
 \description{
-Inverse of [binegbin_mfd_to_dpars()]. Reads the rate dpars `mu`,
-`lambdaone`, `lambdatwo` back into the interpretable overall level `M`,
-congruence `f`, and source bias `delta`, optionally converting NB2
+Inverse of \code{\link[=binegbin_mfd_to_dpars]{binegbin_mfd_to_dpars()}}. Reads the rate dpars \code{mu},
+\code{lambdaone}, \code{lambdatwo} back into the interpretable overall level \code{M},
+congruence \code{f}, and source bias \code{delta}, optionally converting NB2
 dispersions back to the SD scale.
 
-As with the forward direction, the three rates are common to [bipois()],
-[bipois_partialobs()], [binegbin()] and [binegbin_partialobs()], so this
+As with the forward direction, the three rates are common to \code{\link[=bipois]{bipois()}},
+\code{\link[=bipois_partialobs]{bipois_partialobs()}}, \code{\link[=binegbin]{binegbin()}} and \code{\link[=binegbin_partialobs]{binegbin_partialobs()}}, so this
 serves all four constructors; only the dispersion arguments differ.
 
-This direction reads a *stored fit*, so it accepts `shapex` -- the single
-excess dispersion declared by every `binegbin` fit made before 0.10.0 -- as well
-as the current `shapexone`/`shapextwo`. The forward direction writes only
+This direction reads a \emph{stored fit}, so it accepts \code{shapex} -- the single
+excess dispersion declared by every \code{binegbin} fit made before 0.10.0 -- as well
+as the current \code{shapexone}/\code{shapextwo}. The forward direction writes only
 current names; see its documentation for why the two differ.
 }
 \details{
 Arguments are recycled to a common length, so this vectorises over posterior
 draws -- e.g. to convert a whole posterior into interpretable coordinates.
 
-**Boundary behaviour**, which the forward direction does not have:
-
-* `lambdaone == lambdatwo == 0` (perfect congruence, `f = 1`): the bias is
-  genuinely unidentified -- there is no excess to be biased -- and `delta` is
-  returned as `NA`, not `0`. Zero would assert an unbiased source, which the
-  data at that point cannot support.
-* `M == 0` (nothing anywhere): `f` is undefined and returned as `NA`.
-* Exactly one excess rate `0`: `delta` is `+/-Inf`, the well-defined limit
-  where one source never records an unshared event.
+\strong{Boundary behaviour}, which the forward direction does not have:
+\itemize{
+\item \verb{lambdaone == lambdatwo == 0} (perfect congruence, \code{f = 1}): the bias is
+genuinely unidentified -- there is no excess to be biased -- and \code{delta} is
+returned as \code{NA}, not \code{0}. Zero would assert an unbiased source, which the
+data at that point cannot support.
+\item \code{M == 0} (nothing anywhere): \code{f} is undefined and returned as \code{NA}.
+\item Exactly one excess rate \code{0}: \code{delta} is \verb{+/-Inf}, the well-defined limit
+where one source never records an unshared event.
+}
 
 Because of the first case, round-tripping is exact everywhere except at
-`f = 1`, where `delta` cannot be recovered. Hold one coordinate system as the
+\code{f = 1}, where \code{delta} cannot be recovered. Hold one coordinate system as the
 source of truth rather than repeatedly converting back and forth.
 }
 \examples{
@@ -81,6 +82,6 @@ binegbin_dpars_to_mfd(mu = 12, lambdaone = 0, lambdatwo = 0)$delta
 
 }
 \seealso{
-[binegbin_mfd_to_dpars()], [bipois()], [bipois_partialobs()],
-  [binegbin()], [binegbin_partialobs()]
+\code{\link[=binegbin_mfd_to_dpars]{binegbin_mfd_to_dpars()}}, \code{\link[=bipois]{bipois()}}, \code{\link[=bipois_partialobs]{bipois_partialobs()}},
+\code{\link[=binegbin]{binegbin()}}, \code{\link[=binegbin_partialobs]{binegbin_partialobs()}}
 }

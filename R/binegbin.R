@@ -55,8 +55,7 @@
 # The symmetric model is a FORMULA constraint rather than a separate family --
 # supply both through one non-linear parameter,
 #   nlf(shapexone ~ shapexx), nlf(shapextwo ~ shapexx), shapexx ~ 1
-# and the fit is term-for-term the pre-0.8.0 five-dpar model. See
-# migration/family-unification.md.
+# and the fit is term-for-term the pre-0.8.0 five-dpar model.
 #
 # Note the asymmetry in what the two dispersions can be identified from under
 # PARTIAL observation. shapextwo appears on both branches (it governs the
@@ -210,7 +209,15 @@
 #' The trailing `1` is the observation flag, supplied as a literal because
 #' every row of a fully paired design has both counts.
 #'
-#' @return A brms custom_family object.
+#' @return
+#'   `binegbin()` returns a brms `custom_family` object. `binegbin_stanvars()`
+#'   returns a `stanvars` object holding the Stan code for the corresponding
+#'   `_lpmf`. `log_lik_binegbin()` returns a numeric vector of log-densities,
+#'   one per posterior draw, for observation `i`.
+#'   `posterior_predict_binegbin()` returns an integer vector of simulated
+#'   `y1` values, one per posterior draw, for observation `i`.
+#'   `posterior_epred_binegbin()` returns a numeric matrix of `E[y1 | y2]`, with
+#'   posterior draws in rows and observations in columns.
 #' @seealso [binegbin_partialobs()] for partially observed pairs; [bipois()]
 #'   for the equidispersed Poisson counterpart.
 #' @export
@@ -324,7 +331,12 @@ binegbin_stanvars <- function() {
 #' fit$family$vars     # c("vint1[n]", "vint2[n]") or c("vint1[n]", "1")
 #' ```
 #'
-#' @return A brms custom_family object.
+#' @return
+#'   `binegbin_partialobs()` returns a brms `custom_family` object.
+#'   `binegbin_partialobs_stanvars()` returns a `stanvars` object holding the
+#'   Stan code for the corresponding `_lpmf`. The returned family has the same
+#'   `name` as [binegbin()], so the post-processing methods documented there
+#'   apply to a fit made with either constructor.
 #' @seealso [binegbin()] for the fully paired case; [bipois_partialobs()] for
 #'   the equidispersed Poisson counterpart.
 #' @export

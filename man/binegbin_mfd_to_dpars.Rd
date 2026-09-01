@@ -15,83 +15,83 @@ binegbin_mfd_to_dpars(
 )
 }
 \arguments{
-\item{M}{Overall level: `mu + (lambdaone + lambdatwo)/2`. Non-negative.}
+\item{M}{Overall level: \code{mu + (lambdaone + lambdatwo)/2}. Non-negative.}
 
-\item{f}{Congruence, the share of `M` that both sources saw: `mu / M`. In
-`[0, 1]`. `f = 1` means perfect agreement (both excesses vanish); `f = 0`
+\item{f}{Congruence, the share of \code{M} that both sources saw: \code{mu / M}. In
+\verb{[0, 1]}. \code{f = 1} means perfect agreement (both excesses vanish); \code{f = 0}
 means no shared component at all.}
 
 \item{delta}{Source bias on the log-ratio scale,
-`0.5 * log(lambdaone/lambdatwo)`. `0` is unbiased. `+/-Inf` is permitted
+\code{0.5 * log(lambdaone/lambdatwo)}. \code{0} is unbiased. \verb{+/-Inf} is permitted
 and gives the limit where one excess rate is zero.}
 
-\item{kappas, kappax}{Optional SD-scale dispersions. `0` is the Poisson
-limit. `kappas` is the shared component's, and the returned list gains
-`shapes` (`= 1/kappa^2`, so `kappa = 0` gives `Inf`). `kappax` is the
-shorthand for a single excess dispersion governing *both* margins: supply
-it and the returned list gains `shapexone` and `shapextwo` at that common
-value, which is the symmetric model [binegbin()] reaches by tying the two
-with `nlf()`. Omit both for [bipois()] and [bipois_partialobs()], which
+\item{kappas, kappax}{Optional SD-scale dispersions. \code{0} is the Poisson
+limit. \code{kappas} is the shared component's, and the returned list gains
+\code{shapes} (\verb{= 1/kappa^2}, so \code{kappa = 0} gives \code{Inf}). \code{kappax} is the
+shorthand for a single excess dispersion governing \emph{both} margins: supply
+it and the returned list gains \code{shapexone} and \code{shapextwo} at that common
+value, which is the symmetric model \code{\link[=binegbin]{binegbin()}} reaches by tying the two
+with \code{nlf()}. Omit both for \code{\link[=bipois]{bipois()}} and \code{\link[=bipois_partialobs]{bipois_partialobs()}}, which
 have no dispersion parameters.}
 
 \item{kappaxone, kappaxtwo}{Optional per-margin SD-scale excess dispersions,
 for the general case in which the two margins are free to differ. If
-supplied, the returned list gains `shapexone`/`shapextwo`. Mutually
-exclusive with `kappax`, which writes the same two slots.}
+supplied, the returned list gains \code{shapexone}/\code{shapextwo}. Mutually
+exclusive with \code{kappax}, which writes the same two slots.}
 }
 \value{
-A named list of `mu`, `lambdaone`, `lambdatwo`, plus `shapes` when
-  `kappas` is supplied, and `shapexone`/`shapextwo` when either `kappax` or
-  `kappaxone`/`kappaxtwo` are. Every name is a dpar of a shipping family.
+A named list of \code{mu}, \code{lambdaone}, \code{lambdatwo}, plus \code{shapes} when
+\code{kappas} is supplied, and \code{shapexone}/\code{shapextwo} when either \code{kappax} or
+\code{kappaxone}/\code{kappaxtwo} are. Every name is a dpar of a shipping family.
 }
 \description{
-Maps the interpretable coordinates -- overall level `M`, congruence `f`, and
-source bias `delta` -- onto the rate dpars every family in this package takes
-(`mu`, `lambdaone`, `lambdatwo`), optionally converting SD-scale dispersions
-to the `shapes`/`shapexone`/`shapextwo` dpars.
+Maps the interpretable coordinates -- overall level \code{M}, congruence \code{f}, and
+source bias \code{delta} -- onto the rate dpars every family in this package takes
+(\code{mu}, \code{lambdaone}, \code{lambdatwo}), optionally converting SD-scale dispersions
+to the \code{shapes}/\code{shapexone}/\code{shapextwo} dpars.
 
-The three rates are common to [bipois()], [bipois_partialobs()],
-[binegbin()] and [binegbin_partialobs()], so this direction serves all four
+The three rates are common to \code{\link[=bipois]{bipois()}}, \code{\link[=bipois_partialobs]{bipois_partialobs()}},
+\code{\link[=binegbin]{binegbin()}} and \code{\link[=binegbin_partialobs]{binegbin_partialobs()}}, so this direction serves all four
 constructors. The dispersions are where they differ: the Poisson families
 have none, and both negative-binomial constructors have one per margin.
 
 Everything this returns is named for a dpar a shipping family accepts, so
-the output can go straight into a `brm()` call or a simulation. That is why
-`kappax` writes `shapexone` and `shapextwo` at a common value rather than a
-single `shapex`: no family has had a `shapex` dpar since 0.10.0.
+the output can go straight into a \code{brm()} call or a simulation. That is why
+\code{kappax} writes \code{shapexone} and \code{shapextwo} at a common value rather than a
+single \code{shapex}: no family has had a \code{shapex} dpar since 0.10.0.
 
-[binegbin_dpars_to_mfd()] is the inverse. It still accepts `shapex`, because
-its input is a stored fit and pre-0.10.0 `binegbin` fits declare that name.
+\code{\link[=binegbin_dpars_to_mfd]{binegbin_dpars_to_mfd()}} is the inverse. It still accepts \code{shapex}, because
+its input is a stored fit and pre-0.10.0 \code{binegbin} fits declare that name.
 }
 \details{
 Arguments are recycled to a common length, so this vectorises over posterior
 draws.
 
-**Boundary behaviour.** At `f = 1` both excess rates are exactly `0`
-regardless of `delta` -- the bias becomes unidentifiable, which
-[binegbin_dpars_to_mfd()] reports back as `NA`. This direction is always
+\strong{Boundary behaviour.} At \code{f = 1} both excess rates are exactly \code{0}
+regardless of \code{delta} -- the bias becomes unidentifiable, which
+\code{\link[=binegbin_dpars_to_mfd]{binegbin_dpars_to_mfd()}} reports back as \code{NA}. This direction is always
 well defined; only the inverse degenerates.
 
-**The two spellings of the excess dispersion.** Both negative-binomial
-constructors take the pair `shapexone`/`shapextwo`, so that is what this
-function writes. Supply `kappaxone`/`kappaxtwo` to give the two margins
-different values, or `kappax` to give them the same one -- the symmetric
+\strong{The two spellings of the excess dispersion.} Both negative-binomial
+constructors take the pair \code{shapexone}/\code{shapextwo}, so that is what this
+function writes. Supply \code{kappaxone}/\code{kappaxtwo} to give the two margins
+different values, or \code{kappax} to give them the same one -- the symmetric
 model, term for term the pre-0.8.0 likelihood, which a fit reaches by
 routing both dpars through one non-linear parameter. The two spellings are
 mutually exclusive in a single call because they write the same two slots.
 
-Before 0.10.0, `kappax` returned a dpar named `shapex` and
-`kappaxone`/`kappaxtwo` returned the pair, because two different families
+Before 0.10.0, \code{kappax} returned a dpar named \code{shapex} and
+\code{kappaxone}/\code{kappaxtwo} returned the pair, because two different families
 wanted two different things. There is now one family and one dpar set, so
 both spellings produce it.
 
-**These coordinates under the Poisson families.** [bipois()] and
-[bipois_partialobs()] take the same three rates and no dispersion, so call
-this with `M`, `f` and `delta` alone and pass the result straight through.
-There is no `kappa` to supply: the Poisson case is not a dispersion set to a
+\strong{These coordinates under the Poisson families.} \code{\link[=bipois]{bipois()}} and
+\code{\link[=bipois_partialobs]{bipois_partialobs()}} take the same three rates and no dispersion, so call
+this with \code{M}, \code{f} and \code{delta} alone and pass the result straight through.
+There is no \code{kappa} to supply: the Poisson case is not a dispersion set to a
 particular value but the absence of the parameter, which is precisely why
-fitting it wants its own family rather than [binegbin()] with `kappa`
-driven to `0`.
+fitting it wants its own family rather than \code{\link[=binegbin]{binegbin()}} with \code{kappa}
+driven to \code{0}.
 }
 \examples{
 # A moderately congruent pair, source 1 running high
@@ -118,6 +118,6 @@ binegbin_mfd_to_dpars(M = 12, f = 0.67, kappas = 0.4,
 
 }
 \seealso{
-[binegbin_dpars_to_mfd()], [bipois()], [bipois_partialobs()],
-  [binegbin()], [binegbin_partialobs()]
+\code{\link[=binegbin_dpars_to_mfd]{binegbin_dpars_to_mfd()}}, \code{\link[=bipois]{bipois()}}, \code{\link[=bipois_partialobs]{bipois_partialobs()}},
+\code{\link[=binegbin]{binegbin()}}, \code{\link[=binegbin_partialobs]{binegbin_partialobs()}}
 }

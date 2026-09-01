@@ -167,6 +167,36 @@
   basename beginning with `_`. The sources do not ship, so this affects
   contributors only.
 
+* **Roxygen markdown is enabled, which changes every help page.** `DESCRIPTION`
+  gained `Roxygen: list(markdown = TRUE)`, which this package had never set, so
+  roxygen had been passing markdown through to Rd uninterpreted. Backticks
+  rendered as literal characters rather than as code formatting,
+  cross-references between topics as bracketed text rather than as links, and
+  emphasis markers as their own asterisks. Regenerating the six Rd files
+  corrected all three.
+
+  One line was restored rather than reformatted. `%` opens a comment in Rd, so
+  the unescaped `%in%` in the example that tells the two constructors apart
+  truncated its own line at render time:
+
+  ```r
+  "vint2" %in% names(brms::standata(fit))   # TRUE for a partially observed fit
+  ```
+
+  On `?bipois_partialobs`, `?binegbin_partialobs` and the corresponding
+  reference pages of the site, that line ended after `"vint2"`. It is now
+  complete.
+
+* **Every documented function states what it returns.** The `bipois` and
+  `binegbin` topics document five functions each and had a single `\value{}`
+  describing the constructor alone. Both now give the return value and shape of
+  `log_lik_*`, `posterior_predict_*` and `posterior_epred_*` separately, as
+  well as that of the constructor and its `_stanvars()` companion. The two
+  `_partialobs` topics document two functions each, and state that the family
+  returned shares its `name` — and therefore its post-processing methods — with
+  the fully paired constructor. `Title:` and `Description:` also quote
+  `'brms'`, which is the convention CRAN applies to software names.
+
 * **If you hold a fit made with `bipois_cens()`, `binegbin_cens()` or
   `binegbin_joint()`**, install the last version that defined them — 0.9.1 —
   and keep it on the search path for that fit. brms resolves post-processing
@@ -388,12 +418,10 @@ entirely, are recorded in
   bitwise, and `loo()` runs unchanged.
 
 * The generalised family absorbs a project-local asymmetric family developed
-  outside the package. During the migration the two were compared element by
+  outside the package. During the migration, the two were compared element by
   element over 15,480,000 pointwise log-likelihood values from ten stored
   fits, and every value was bitwise identical. That was a one-off check
-  against artefacts outside this repository, not a package test; it is
-  recorded with its method and versions in `migration/family-unification.md`,
-  alongside the dpar mapping table and adoption steps.
+  against artefacts outside this repository, not a package test.
 
 * `binegbin_mfd_to_dpars()` gains `kappaxone`/`kappaxtwo`, and
   `binegbin_dpars_to_mfd()` gains `shapexone`/`shapextwo`, so the

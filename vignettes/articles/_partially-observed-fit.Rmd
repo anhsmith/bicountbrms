@@ -28,6 +28,7 @@ backend <- if (requireNamespace("cmdstanr", quietly = TRUE)) "cmdstanr" else "rs
 ```{r}
 #| label: libraries
 #| message: false
+#| warning: false
 library(brms)
 library(bicountbrms)
 ```
@@ -184,13 +185,13 @@ Five of the six intervals contain their true value. The sixth,
 $\phi_{x1}$, does not: its interval runs from 2.03 to 10.07 against a truth
 of 2, so it misses at the lower end by 0.03.
 
-The miss is worth stating rather than reseeding until it goes away. A 95%
-interval from a correctly specified model excludes the truth 5% of the time by
-construction, and across six parameters the chance that at least one interval
-misses is about 26%. One near miss in six is therefore the expected behaviour
-of a working implementation, not evidence against it. The calibration evidence
-in this article is the coverage check further down, which is taken over `r length(withheld)`
-withheld counts rather than over one fit.
+The seed was not changed to make the miss disappear. A 95% interval from a
+correctly specified model excludes the truth 5% of the time by construction,
+and across six parameters the chance that at least one interval misses is about
+26%. One near miss in six is therefore the expected behaviour of a working
+implementation, not evidence against it. The calibration evidence in this
+article is the coverage check further down, which is taken over
+`r length(withheld)` withheld counts rather than over one fit.
 
 The three dispersions have much the wider intervals, because each is estimated
 from an aggregate mean–variance mismatch rather than from any directly observed
