@@ -41,7 +41,7 @@
   Set priors on it with `nlpar = "shapexx"` rather than `dpar = "shapex"`.
 
 * **`_cens` named the wrong mechanism.** Censoring
-  means a value is known to lie in a set. On these rows the first count is not
+  means a value is known to lie in a set. On these rows, the first count is not
   observed at all and the likelihood marginalises over its whole support. brms
   already uses `cens()` as an addition term meaning exactly the bounded thing —
   `left`, `right`, `interval`, with no code for "not observed" — so a brms user
@@ -162,6 +162,11 @@
   credited to Kirkpatrick & Neale (2016, 2022), and the Poisson case to Holgate
   (1964) and Karlis & Ntzoufras (2003).
 
+* **Precompiled vignette sources renamed.** `<name>.Rmd.orig` is now
+  `_<name>.Rmd`, so an editor highlights it as R Markdown; pkgdown skips any
+  basename beginning with `_`. The sources do not ship, so this affects
+  contributors only.
+
 * **If you hold a fit made with `bipois_cens()`, `binegbin_cens()` or
   `binegbin_joint()`**, install the last version that defined them — 0.9.1 —
   and keep it on the search path for that fit. brms resolves post-processing
@@ -169,8 +174,7 @@
   time, so `loo()` and `posterior_predict()` need the methods of the version
   the fit was made under. No argument to those calls can route around it, and
   0.10.0 deliberately ships no shim: pinning the whole package is a stronger
-  guarantee than a hand-picked subset of forwarders, and the one project with
-  such fits already pins 0.9.1 in its own `renv.lock`.
+  guarantee than a hand-picked subset of forwarders.
 # bicountbrms 0.9.1
 
 * **No behaviour change.** Nothing in the four families' likelihoods,
@@ -190,7 +194,7 @@
   distinguished from each other.
 
   That combination left a specific defect invisible. In
-  `posterior_predict_binegbin_cens()` the conditional split of `N_shared | y2`
+  `posterior_predict_binegbin_cens()`, the conditional split of `N_shared | y2`
   is weighted by `shapextwo` while the fresh `N1` added on top takes
   `shapexone`; exchanging them passed 412 assertions across six test files with
   no failures. The new file fails on it four times. It also pins that `y1_obs`
@@ -255,11 +259,11 @@
   five are removed in the next major version.
 
   <!-- Amended at 0.10.0: all five were removed there, which is not a major
-  version. While the major version is 0 the API is not held out as stable, and
-  the only consumer with stored fits pins 0.9.1 in its own renv.lock, which
-  freezes the whole package rather than a hand-picked subset of forwarders.
-  The sentence above is left as written because this file is a record of what
-  each release said at the time. -->
+  version. While the major version is 0, the API is not held out as stable, so
+  the removal needs no major bump. Anyone holding such a fit should pin 0.9.1,
+  which freezes the whole package rather than a hand-picked subset of
+  forwarders. The sentence above is left as written because this file is a
+  record of what each release said at the time. -->
 
 
   No dpar name changed, so the forwarding is a straight hand-off, and a
@@ -320,7 +324,7 @@
 * **All four families now share one `posterior_epred` convention**, stated once
   in `tests/testthat/test-epred.R` and held to one standard: the expectation
   must equal the mean of that family's own `posterior_predict` draws to within
-  Monte Carlo error. Before this release the three families answered three
+  Monte Carlo error. Before this release, the three families answered three
   different ways — exactly, approximately, and not at all.
 
 * `skellam` moves from **Imports to Suggests**. No function in `R/` calls it now
@@ -393,7 +397,7 @@ entirely, are recorded in
 
 * `binegbin_mfd_to_dpars()` gains `kappaxone`/`kappaxtwo`, and
   `binegbin_dpars_to_mfd()` gains `shapexone`/`shapextwo`, so the
-  \eqn{(M, f, \delta)} converters serve `binegbin_joint()`'s per-margin excess
+  $(M, f, \delta)$ converters serve `binegbin_joint()`'s per-margin excess
   dispersions under the family's own dpar names instead of leaving the caller
   to re-derive `shape = 1/kappa^2`. Purely additive: the existing
   `kappax`/`shapex` arguments are unchanged and still return `shapex`/`kappax`.
@@ -447,7 +451,7 @@ entirely, are recorded in
 
 * **Recovery tests separated into smoke gates and a calibration assessment.**
   The recovery tests asserted that the true value fell within a single fit's 90%
-  credible interval. For a correct model with a calibrated posterior this is a
+  credible interval. For a correct model with a calibrated posterior, this is a
   Bernoulli(0.9) draw, failing 10% of the time by construction; across the ~18
   such assertions in the suite, spurious failures were the norm. Two assertions
   in `test-binegbin.R` had been failing on every run since they were written,

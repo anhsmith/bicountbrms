@@ -68,7 +68,7 @@ Stan and a C++ toolchain are required. On Windows, install
 [Rtools45](https://cran.r-project.org/bin/windows/Rtools/rtools45/rtools.html).
 Either `rstan` or `cmdstanr` works as the `brms` backend.
 
-## A minimal fit
+## Minimal fits
 
 The second count is provided as supplementary integer data via the `vint()` function, and
 the family's Stan function is specified via the `stanvars` argument. Both are required.

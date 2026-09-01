@@ -3,21 +3,21 @@
 # Both vignettes/bicountbrms.Rmd and
 # vignettes/articles/paired-count-anatomy.Rmd fit real brms models. Building
 # those on every R CMD check and every CI run would need a full Stan toolchain
-# plus minutes of compilation, so they are precompiled instead: each .Rmd.orig
+# plus minutes of compilation, so they are precompiled instead: each _<name>.Rmd
 # source is knitted HERE, on a machine with Stan, and the resulting .Rmd carries
 # the output as static text. Downstream builds only render markdown.
 #
 # This is what lets .github/workflows/pkgdown.yaml use dependencies: '"hard"'
 # and install no Stan backend at all.
 #
-# Run this by hand after changing either .Rmd.orig, then commit BOTH files of
+# Run this by hand after changing either _<name>.Rmd, then commit BOTH files of
 # each pair. The knitr::knit() calls execute every chunk, so the numbers in the
 # committed .Rmd files are real output, not transcribed.
 #
 #   Rscript vignettes/precompile.R
 #
-# EDIT THE .Rmd.orig, NEVER THE .Rmd -- the .Rmd is generated and the next run
-# of this script will overwrite it.
+# EDIT THE _<name>.Rmd, NEVER THE <name>.Rmd -- the latter is generated and the
+# next run of this script will overwrite it.
 #
 # FIGURES. Downstream builds do not re-run the chunks, so any figure must
 # already exist on disk. paired-count-anatomy sets dev = "svg" and
@@ -57,7 +57,7 @@ local({
 # resolves any relative paths inside the document the same way a build would.
 # Every target here fits at least one model, which is why it is precompiled.
 # The two articles that do not fit anything -- choosing-priors and
-# migration-and-errata -- are plain .Rmd with no .orig, and are absent from
+# migration-and-errata -- are plain .Rmd with no _ source, and are absent from
 # this list on purpose.
 targets <- list(
   list(dir = "vignettes",          stem = "bicountbrms"),
@@ -67,14 +67,14 @@ targets <- list(
 )
 
 for (tg in targets) {
-  message("Knitting ", tg$dir, "/", tg$stem,
-          ".Rmd.orig -- this fits a model, allow a few minutes.")
+  message("Knitting ", tg$dir, "/_", tg$stem,
+          ".Rmd -- this fits a model, allow a few minutes.")
   old <- setwd(tg$dir)
   knitr::knit(
-    input  = paste0(tg$stem, ".Rmd.orig"),
+    input  = paste0("_", tg$stem, ".Rmd"),
     output = paste0(tg$stem, ".Rmd")
   )
   setwd(old)
 }
 
-message("Done. Commit both the .Rmd.orig and the .Rmd of each pair.")
+message("Done. Commit both the _<name>.Rmd and the <name>.Rmd of each pair.")

@@ -49,7 +49,7 @@ run `get_prior()` at all. That assumption is why this page exists.
 
 ## Every parameter identified by the matched rows alone is left improper
 
-Under partial observation the two constructors do not identify every parameter
+Under partial observation, the two constructors do not identify every parameter
 equally well. `lambdaone` and `shapexone` appear only on the matched branch of
 the likelihood, as does any between-source bias, so the rows on which the first
 count was recorded are the only rows that inform them. `mu`, `shapes`,
@@ -63,11 +63,11 @@ every row. Under a design in which few rows are matched, the parameters whose
 posteriors depend most on their priors are all parameters for which no prior
 has been set.
 
-For `bipois_partialobs()` the statement needs one qualification. On an
-unmatched row that family's likelihood involves `mu` only through the sum
+For `bipois_partialobs()`, the statement needs one qualification. On an
+unmatched row, that family's likelihood involves `mu` only through the sum
 `mu + lambdatwo`, so those rows constrain the total rate of the observed margin
 without dividing it between the shared and the source-specific component.
-Separating `mu` from `lambdatwo`, and so estimating the congruence \eqn{f}, is
+Separating `mu` from `lambdatwo`, and so estimating the congruence $f$, is
 also informed by the matched rows alone.
 
 ## The symptom is divergent transitions
@@ -77,11 +77,11 @@ log-linked positive parameter, where the likelihood is nearly level and the
 posterior therefore follows the prior. The asymmetric-dispersion fit in
 `tests/testthat/test-binegbin-dispersions.R` required priors on the two rates
 and the three dispersions: run without them it produced 680 divergent
-transitions and a maximum \eqn{\hat{R}} of 1.54, which is to say chains that
+transitions and a maximum $\hat{R}$ of 1.54, which is to say chains that
 never mixed.
 
-Divergences are the diagnostic to watch here rather than \eqn{\hat{R}} alone.
-This package applies an \eqn{\hat{R}} gate of 1.02 rather than the 1.01 of
+Divergences are the diagnostic to watch here rather than $\hat{R}$ alone.
+This package applies an $\hat{R}$ gate of 1.02 rather than the 1.01 of
 @vehtari2021, for reasons set out in `tests/testthat/helper-coverage.R`, and a
 model can sit inside that gate while still producing divergent transitions.
 
@@ -105,7 +105,7 @@ prior = c(
 ```
 
 On the natural scale `normal(2, 1)` places 95% of its mass in roughly
-\eqn{[1, 52]}, which suits rates and dispersions of order 1 to 50.
+$[1, 52]$, which suits rates and dispersions of order 1 to 50.
 `bipois()` and `bipois_partialobs()` have no dispersion parameters, so only the
 three rate lines apply to them.
 
@@ -144,7 +144,7 @@ contain is dropped without a warning, which leaves the parameter improper and
 the symptom above unexplained.
 
 That failure mode has one especially easy instance. To impose
-\eqn{\phi_{x1} = \phi_{x2}} the two excess dispersions are routed through a
+$\phi_{x1} = \phi_{x2}$, the two excess dispersions are routed through a
 single non-linear parameter, described in
 [The families and their parameters](families-and-parameters.html):
 
@@ -163,15 +163,15 @@ parameter in the tied model, is dropped silently, and leaves `shapexx` flat.
 
 ## Shrinkage priors in the (M, f, δ) coordinates
 
-The three rates can be reparameterised as overall level \eqn{M}, congruence
-\eqn{f} and source bias \eqn{\delta}, with each dispersion on the standard
-deviation scale \eqn{\kappa = 1/\sqrt{\phi}}. In those coordinates every
-parameter has a finite null: \eqn{\delta = 0} is no bias between the two
-sources, and \eqn{\kappa = 0} is the Poisson limit exactly, rather than the
-\eqn{\phi \to \infty} of the native scale.
+The three rates can be reparameterised as overall level $M$, congruence
+$f$ and source bias $\delta$, with each dispersion on the standard
+deviation scale $\kappa = 1/\sqrt{\phi}$. In those coordinates, every
+parameter has a finite null: $\delta = 0$ is no bias between the two
+sources, and $\kappa = 0$ is the Poisson limit exactly, rather than the
+$\phi \to \infty$ of the native scale.
 
-A shrinkage prior requires a finite null. A half-normal on \eqn{\kappa}
-and a normal on \eqn{\delta} place their maximum at the simpler model and decay
+A shrinkage prior requires a finite null. A half-normal on $\kappa$
+and a normal on $\delta$ place their maximum at the simpler model and decay
 away from it, so the data rather than the prior must move the fit. They follow
 the principles of @simpsonPenalisingModelComponent2017, a base model at zero and
 a density decaying away from it, without being penalised-complexity priors in
@@ -181,6 +181,6 @@ the strict sense.
 argument in full, shows the prior pushforward onto the native scale, and fits a
 model in those coordinates. Read it after this page rather than instead of it:
 the recipes above apply whichever parameterisation is used, because a prior in
-\eqn{(M, f, \delta)} still occupies one of the three slots described here.
+$(M, f, \delta)$ still occupies one of the three slots described here.
 
 ## References

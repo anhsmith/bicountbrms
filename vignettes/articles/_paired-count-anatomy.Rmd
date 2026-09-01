@@ -517,7 +517,7 @@ Poisson. The same reparameterisation was used in
 
 ### Priors that default to the simpler model
 
-This section covers priors in the \eqn{(M, f, \delta)} coordinates alone.
+This section covers priors in the $(M, f, \delta)$ coordinates alone.
 For the native distributional parameters — which prior goes in which of the
 `class`, `dpar` and `nlpar` slots, and why brms supplies none of them by
 default — see [Choosing priors](choosing-priors.html), which is the page to

@@ -476,10 +476,10 @@ posterior_predict_bipois <- function(i, prep, ...) {
   lambdaone <- .get_rate(prep, "lambdaone", "lambdaem", i = i)
   lambdatwo <- .get_rate(prep, "lambdatwo", "lambdalb", i = i)
   y2 <- prep$data$vint1[i]
-  # y2 is fixed, observed data (not itself re-simulated -- see "Why y2
-  # travels via vint()" in ?bipois). Consistent with that, y1 is
-  # predicted *conditional on the real y2*, via the closed-form conditional
-  # split:
+  # y2 is fixed, observed data (not itself re-simulated -- see "`y2` as
+  # supplementary data rather than a second response" in ?bipois). Consistent
+  # with that, y1 is predicted *conditional on the real y2*, via the
+  # closed-form conditional split:
   # N_shared | y2 ~ Binomial(y2, mu / (mu + lambdatwo)); N1 fresh from
   # its own marginal; y1 = N_shared + N1.
   #

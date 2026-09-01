@@ -34,8 +34,8 @@ jobs:
           extra-repositories: https://stan-dev.r-universe.dev
 
       # `dependencies: '"hard"'` deliberately skips Suggests. Nothing built
-      # here needs a Stan backend: BOTH the vignette and the paired-count-anatomy
-      # article are precompiled from their .Rmd.orig sources (see
+      # here needs a Stan backend: the vignette and the three articles that fit
+      # models are precompiled from their _-prefixed sources (see
       # vignettes/precompile.R), so every model fit is already baked in as static
       # output. Installing cmdstanr would be actively harmful -- the package
       # would be present but the cmdstan binary would not, so anything that

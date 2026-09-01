@@ -195,7 +195,7 @@
 #' **Names forced by `custom_family()`.** Identical conventions to
 #' [bipois()] -- `mu` is brms's mandatory dpar name, here bound to the shared
 #' component's rate (`lambda_shared`), not a mean of either response; `y2`
-#' travels as supplementary integer data through `vint()` because
+#' is supplied as supplementary integer data through `vint()` because
 #' `custom_family()` declares a single response column. See [bipois()] for
 #' the full explanation, including why the rates are spelled `lambdaone`/
 #' `lambdatwo` in code but written \eqn{\lambda_1}{lambda_1}/

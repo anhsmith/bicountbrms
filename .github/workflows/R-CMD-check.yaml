@@ -50,7 +50,7 @@
 #               path.
 #
 # The coverage assessment (BICOUNTBRMS_COVERAGE) is deliberately NOT run
-# here. It belongs before a release; see the README's "Running the tests".
+# here. It belongs before a release.
 #
 # NOTE: GitHub disables scheduled workflows after 60 days with no commits to the
 # repository. If this package goes quiet, the weekly run stops -- watch for the

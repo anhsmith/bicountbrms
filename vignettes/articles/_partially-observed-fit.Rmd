@@ -86,7 +86,7 @@ The observation flag is a 0/1 integer column, supplied through `vint()`
 alongside the second count: `vint(y2, y1_obs)` binds `vint1` to the second
 count and `vint2` to the flag, in the order they are listed.
 
-On an unmatched row the response column is not read by the likelihood, so any
+On an unmatched row, the response column is not read by the likelihood, so any
 non-negative integer serves as a placeholder; `0` is used above. Do not write
 `NA` there. brms drops rows with a missing response before the family is
 reached, which would discard the second count on exactly the rows the family
@@ -144,9 +144,9 @@ support. The row is neither dropped nor given a separate univariate model on
 the second count, either of which would be a different model from the one the
 matched rows are fitted to.
 
-Two consequences follow. An unmatched row informs \eqn{\mu},
-\eqn{\phi_{\text{s}}}, \eqn{\lambda_2}, \eqn{\phi_{x2}} and any group-level
-effects. It does not inform \eqn{\lambda_1} or \eqn{\phi_{x1}}, which appear
+Two consequences follow. An unmatched row informs $\mu$,
+$\phi_{\text{s}}$, $\lambda_2$, $\phi_{x2}$ and any group-level
+effects. It does not inform $\lambda_1$ or $\phi_{x1}$, which appear
 only in the matched branch.
 
 Which parameters an unmatched row informs is a property of the likelihood rather
@@ -181,7 +181,7 @@ knitr::kable(recovery, digits = 2, row.names = FALSE)
 ```
 
 Five of the six intervals contain their true value. The sixth,
-\eqn{\phi_{x1}}, does not: its interval runs from 2.03 to 10.07 against a truth
+$\phi_{x1}$, does not: its interval runs from 2.03 to 10.07 against a truth
 of 2, so it misses at the lower end by 0.03.
 
 The miss is worth stating rather than reseeding until it goes away. A 95%
@@ -260,7 +260,7 @@ par(op)
 The prediction is conditional on the second count, not on the withheld first
 count. The two counts have only the shared component in common, so the second
 count constrains the first only through that component and the prediction is
-shrunk towards the marginal mean of the first count, \eqn{\mu + \lambda_1},
+shrunk towards the marginal mean of the first count, $\mu + \lambda_1$,
 here 10. High withheld counts are therefore under-predicted and low ones
 over-predicted: at the true parameters the prediction regressed on the withheld
 count has slope 0.37 rather than 1. The vertical spread measures what the second
@@ -268,20 +268,20 @@ count leaves undetermined about the first.
 
 ## Choosing a matched fraction
 
-\eqn{\lambda_1} and \eqn{\phi_{x1}} appear only in the matched branch, so as
+$\lambda_1$ and $\phi_{x1}$ appear only in the matched branch, so as
 the matched count approaches zero they stop being identified and their
-posteriors return their priors. \eqn{\lambda_2} continues to be estimated from
+posteriors return their priors. $\lambda_2$ continues to be estimated from
 the second counts however few pairs are matched.
 
 The matched rows also do work for the other four parameters, which the branch
-structure alone does not show. An unmatched row constrains \eqn{\mu} and
-\eqn{\lambda_2} only through the convolution that gives the second count's
+structure alone does not show. An unmatched row constrains $\mu$ and
+$\lambda_2$ only through the convolution that gives the second count's
 marginal, and that convolution determines the sum of the two components better
 than it determines the division between them. Separating the shared component
 from the second source's own is done by the matched rows, because only a
-matched row observes both counts of a pair. For `bipois_partialobs()` this is
-sharper still: an unmatched row involves \eqn{\mu} and \eqn{\lambda_2} through
-their sum \eqn{\mu + \lambda_2} exactly, with no convolution to separate them.
+matched row observes both counts of a pair. For `bipois_partialobs()`, this is
+sharper still: an unmatched row involves $\mu$ and $\lambda_2$ through
+their sum $\mu + \lambda_2$ exactly, with no convolution to separate them.
 
 Where the between-source bias or the congruence is the quantity of interest,
 the matched subset is the effective sample size for it. That is worth knowing

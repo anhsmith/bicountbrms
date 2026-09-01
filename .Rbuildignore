@@ -11,5 +11,5 @@
 ^pkgdown$
 ^\.github$
 ^vignettes/articles$
-^vignettes/.*\.orig$
+^vignettes/_.*\.Rmd$
 ^vignettes/precompile\.R$

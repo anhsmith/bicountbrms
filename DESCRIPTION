@@ -1,7 +1,7 @@
 Package: bicountbrms
 Title: Joint Bivariate-Count brms Custom Families for Paired Counts
 Version: 0.10.0
-Date: 2026-08-26
+Date: 2026-09-01
 Authors@R:
     person("Adam N. H.", "Smith", , "anhsmith@gmail.com",
            role = c("aut", "cre"),
