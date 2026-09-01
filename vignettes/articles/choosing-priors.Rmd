@@ -39,13 +39,8 @@ model, `get_prior()` returns
                         Intercept shapextwo
 ```
 
-An empty `prior` column means an improper uniform on the whole real line. That
-is not brms behaving unusually: for its built-in families the remaining
-parameters are things like a residual standard deviation, for which brms does
-supply a default. A custom family has no such defaults, because brms cannot
-know what its parameters mean. A reader who assumes otherwise, reasonably
-enough from experience with `gaussian()` or `negbinomial()`, has no reason to
-run `get_prior()` at all. That assumption is why this page exists.
+An empty `prior` column means an improper uniform on the whole real line.
+This is the standard default for parameters other than `mu` in custom brms families.
 
 ## Every parameter identified by the matched rows alone is left improper
 
@@ -76,14 +71,12 @@ Left unregularised, the chains explore the flat tail of an improper prior on a
 log-linked positive parameter, where the likelihood is nearly level and the
 posterior therefore follows the prior. The asymmetric-dispersion fit in
 `tests/testthat/test-binegbin-dispersions.R` required priors on the two rates
-and the three dispersions: run without them it produced 680 divergent
-transitions and a maximum $\hat{R}$ of 1.54, which is to say chains that
+and the three dispersions: run without them it produced divergent
+transitions and some high $\hat{R}$ values, which is to say chains that
 never mixed.
 
 Divergences are the diagnostic to watch here rather than $\hat{R}$ alone.
-This package applies an $\hat{R}$ gate of 1.02 rather than the 1.01 of
-@vehtari2021, for reasons set out in `tests/testthat/helper-coverage.R`, and a
-model can sit inside that gate while still producing divergent transitions.
+This package applies an $\hat{R}$ gate of 1.02.
 
 ## A weakly informative prior on each log-scale parameter
 
@@ -113,7 +106,7 @@ To adapt these priors to counts on a different scale, shift the **mean** rather
 than widening the standard deviation. Because the link is logarithmic, widening
 a normal prior produces a heavier-tailed lognormal, which places *more* mass in
 the flat region the sampler explores rather than less
-[@smithInstantaneousVsNoninstantaneous2020, supplement 3, Fig. S3-1]. A prior
+[@smithInstantaneousVsNoninstantaneous2020, Supplement 3, Fig. S3-1]. A prior
 centred at the scale of the data and no wider than it needs to be is both more
 informative about what is plausible and better behaved.
 
