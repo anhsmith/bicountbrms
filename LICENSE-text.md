@@ -1,4 +1,4 @@
 # License
 
     YEAR: 2026
-    COPYRIGHT HOLDER: bicountbrms authors
+    COPYRIGHT HOLDER: Adam N. H. Smith

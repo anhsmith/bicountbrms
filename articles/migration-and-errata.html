@@ -178,8 +178,7 @@ one non-linear parameter:</p>
 <code>shapex</code> gave, and a package test verifies that the generated
 Stan assigns both distributional parameters from one non-linear
 parameter.</p>
-<p>A prior moves with it. Under the tied form, the dispersion prior is
-written</p>
+<p>Under the tied form, the dispersion prior is written</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"shapexx"</span><span class="op">)</span></span></code></pre></div>
 <p>rather than the pre-0.10.0
@@ -205,74 +204,13 @@ minority class of rows; <code>partial</code> alone collides with partial
 likelihood and partial pooling.</p>
 </div>
 <div class="section level2">
-<h2 id="fits-stored-under-a-removed-name">Fits stored under a removed name<a class="anchor" aria-label="anchor" href="#fits-stored-under-a-removed-name"></a>
-</h2>
-<p>A <code>brmsfit</code> stores its own family object, and brms builds
-the name of each post-processing method from the stored family name at
-the time of the call. A fit made with <code>bipois_cens()</code>,
-<code>binegbin_cens()</code> or <code>binegbin_joint()</code> therefore
-looks for <code>log_lik_bipois_cens()</code> and its counterparts, which
-0.10.0 does not define. No argument to <code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code> or
-<code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> changes which name is looked up.</p>
-<p>To post-process such a fit, install the last release that defined
-those methods and keep it attached for that work:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"anhsmith/bicountbrms@v0.9.1"</span><span class="op">)</span></span></code></pre></div>
-<p>0.10.0 ships no forwarding functions, deliberately. Pinning the whole
-package is a stronger guarantee than a hand-picked set of forwarders,
-which would then have to be kept correct as the families continue to
-change.</p>
-</div>
-<div class="section level2">
-<h2 id="stored-binegbin-fits-require-no-action">Stored <code>binegbin</code> fits require no action<a class="anchor" aria-label="anchor" href="#stored-binegbin-fits-require-no-action"></a>
-</h2>
-<p>A fit stored under the name <code>binegbin</code> is the exception.
-It declares the name 0.10.0 keeps, so it is post-processed by the
-current methods whatever version is pinned, and it works. Such fits
-exist in quantity: a scan of the project this package was written for
-found 103 of them, each declaring the pre-0.7.0 rate names
-<code>lambdaem</code> and <code>lambdalb</code> together with the single
-<code>shapex</code>.</p>
-<p>Three fallbacks apply together to make that work.</p>
-<ol style="list-style-type: decimal">
-<li>
-<code>.get_rate()</code> resolves
-<code>lambdaem</code>/<code>lambdalb</code> to the
-<code>lambdaone</code>/<code>lambdatwo</code> positions, so a fit
-predating the 0.7.0 rename reads correctly.</li>
-<li>
-<code>.SHAPEXONE_NAMES</code> and <code>.SHAPEXTWO_NAMES</code> both
-list <code>shapex</code> last, so a fit with one excess dispersion
-resolves it to both per-margin positions. That is precisely the
-constraint
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">\phi_{x1} = \phi_{x2}</annotation></semantics></math>
-the five-dpar family imposed.</li>
-<li>An absent <code>vint2</code> selects the matched branch of the
-likelihood, which is correct for a fit made with a constructor that had
-no observation flag.</li>
-</ol>
-<p><code>tests/testthat/test-dpar-compat.R</code> builds that exact
-combination and checks all three post-processing methods against the
-six-dpar answer with the two dispersions tied.</p>
-</div>
-<div class="section level2">
-<h2 id="telling-which-constructor-a-stored-fit-used">Telling which constructor a stored fit used<a class="anchor" aria-label="anchor" href="#telling-which-constructor-a-stored-fit-used"></a>
-</h2>
-<p>From 0.10.0 <code>family$name</code> is identical for both
-constructors of a family, so it does not distinguish them. The presence
-of the second supplementary integer does:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="st">"vint2"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/standata.html" class="external-link">standata</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span>   <span class="co"># TRUE for a partially observed fit</span></span>
-<span><span class="va">fit</span><span class="op">$</span><span class="va">family</span><span class="op">$</span><span class="va">vars</span>                     <span class="co"># c("vint1[n]", "vint2[n]") or c("vint1[n]", "1")</span></span></code></pre></div>
-</div>
-<div class="section level2">
 <h2 id="erratum-posterior_epred_binegbin-before-0-9-0">Erratum: <code>posterior_epred_binegbin()</code> before 0.9.0<a class="anchor" aria-label="anchor" href="#erratum-posterior_epred_binegbin-before-0-9-0"></a>
 </h2>
 <p>Releases before 0.9.0 computed
 <code><a href="../reference/binegbin.html">posterior_epred_binegbin()</a></code> using the <em>marginal</em>
 shared fraction
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mu/(\mu + \lambda_2)</annotation></semantics></math>
-in place of the <em>conditional</em> one. That substitution is
+in place of the <em>conditional</em> fraction. That substitution is
 <code>bipois</code>’s answer, exact only in the Poisson limit, and it
 made the expectation disagree with the family’s own
 <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> draws by more than Monte Carlo

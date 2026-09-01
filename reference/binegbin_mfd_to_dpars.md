@@ -1,26 +1,30 @@
 # Convert (M, f, delta) coordinates to native binegbin/bipois dpars
 
-Maps the interpretable coordinates – overall level \`M\`, congruence
-\`f\`, and source bias \`delta\` – onto the rate dpars every family in
-this package takes (\`mu\`, \`lambdaone\`, \`lambdatwo\`), optionally
-converting SD-scale dispersions to the
-\`shapes\`/\`shapexone\`/\`shapextwo\` dpars.
+Maps the interpretable coordinates – overall level `M`, congruence `f`,
+and source bias `delta` – onto the rate dpars every family in this
+package takes (`mu`, `lambdaone`, `lambdatwo`), optionally converting
+SD-scale dispersions to the `shapes`/`shapexone`/`shapextwo` dpars.
 
-The three rates are common to \[bipois()\], \[bipois_partialobs()\],
-\[binegbin()\] and \[binegbin_partialobs()\], so this direction serves
-all four constructors. The dispersions are where they differ: the
-Poisson families have none, and both negative-binomial constructors have
-one per margin.
+The three rates are common to
+[`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md),
+[`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md),
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
+and
+[`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md),
+so this direction serves all four constructors. The dispersions are
+where they differ: the Poisson families have none, and both
+negative-binomial constructors have one per margin.
 
 Everything this returns is named for a dpar a shipping family accepts,
-so the output can go straight into a \`brm()\` call or a simulation.
-That is why \`kappax\` writes \`shapexone\` and \`shapextwo\` at a
-common value rather than a single \`shapex\`: no family has had a
-\`shapex\` dpar since 0.10.0.
+so the output can go straight into a
+[`brm()`](https://paulbuerkner.com/brms/reference/brm.html) call or a
+simulation. That is why `kappax` writes `shapexone` and `shapextwo` at a
+common value rather than a single `shapex`: no family has had a `shapex`
+dpar since 0.10.0.
 
-\[binegbin_dpars_to_mfd()\] is the inverse. It still accepts \`shapex\`,
-because its input is a stored fit and pre-0.10.0 \`binegbin\` fits
-declare that name.
+[`binegbin_dpars_to_mfd()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_dpars_to_mfd.md)
+is the inverse. It still accepts `shapex`, because its input is a stored
+fit and pre-0.10.0 `binegbin` fits declare that name.
 
 ## Usage
 
@@ -40,82 +44,95 @@ binegbin_mfd_to_dpars(
 
 - M:
 
-  Overall level: \`mu + (lambdaone + lambdatwo)/2\`. Non-negative.
+  Overall level: `mu + (lambdaone + lambdatwo)/2`. Non-negative.
 
 - f:
 
-  Congruence, the share of \`M\` that both sources saw: \`mu / M\`. In
-  \`\[0, 1\]\`. \`f = 1\` means perfect agreement (both excesses
-  vanish); \`f = 0\` means no shared component at all.
+  Congruence, the share of `M` that both sources saw: `mu / M`. In
+  `[0, 1]`. `f = 1` means perfect agreement (both excesses vanish);
+  `f = 0` means no shared component at all.
 
 - delta:
 
-  Source bias on the log-ratio scale, \`0.5 \*
-  log(lambdaone/lambdatwo)\`. \`0\` is unbiased. \`+/-Inf\` is permitted
-  and gives the limit where one excess rate is zero.
+  Source bias on the log-ratio scale, `0.5 * log(lambdaone/lambdatwo)`.
+  `0` is unbiased. `+/-Inf` is permitted and gives the limit where one
+  excess rate is zero.
 
 - kappas, kappax:
 
-  Optional SD-scale dispersions. \`0\` is the Poisson limit. \`kappas\`
-  is the shared component's, and the returned list gains \`shapes\` (\`=
-  1/kappa^2\`, so \`kappa = 0\` gives \`Inf\`). \`kappax\` is the
-  shorthand for a single excess dispersion governing \*both\* margins:
-  supply it and the returned list gains \`shapexone\` and \`shapextwo\`
-  at that common value, which is the symmetric model \[binegbin()\]
-  reaches by tying the two with \`nlf()\`. Omit both for \[bipois()\]
-  and \[bipois_partialobs()\], which have no dispersion parameters.
+  Optional SD-scale dispersions. `0` is the Poisson limit. `kappas` is
+  the shared component's, and the returned list gains `shapes`
+  (`= 1/kappa^2`, so `kappa = 0` gives `Inf`). `kappax` is the shorthand
+  for a single excess dispersion governing *both* margins: supply it and
+  the returned list gains `shapexone` and `shapextwo` at that common
+  value, which is the symmetric model
+  [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
+  reaches by tying the two with
+  [`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html).
+  Omit both for
+  [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
+  and
+  [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md),
+  which have no dispersion parameters.
 
 - kappaxone, kappaxtwo:
 
   Optional per-margin SD-scale excess dispersions, for the general case
   in which the two margins are free to differ. If supplied, the returned
-  list gains \`shapexone\`/\`shapextwo\`. Mutually exclusive with
-  \`kappax\`, which writes the same two slots.
+  list gains `shapexone`/`shapextwo`. Mutually exclusive with `kappax`,
+  which writes the same two slots.
 
 ## Value
 
-A named list of \`mu\`, \`lambdaone\`, \`lambdatwo\`, plus \`shapes\`
-when \`kappas\` is supplied, and \`shapexone\`/\`shapextwo\` when either
-\`kappax\` or \`kappaxone\`/\`kappaxtwo\` are. Every name is a dpar of a
-shipping family.
+A named list of `mu`, `lambdaone`, `lambdatwo`, plus `shapes` when
+`kappas` is supplied, and `shapexone`/`shapextwo` when either `kappax`
+or `kappaxone`/`kappaxtwo` are. Every name is a dpar of a shipping
+family.
 
 ## Details
 
 Arguments are recycled to a common length, so this vectorises over
 posterior draws.
 
-\*\*Boundary behaviour.\*\* At \`f = 1\` both excess rates are exactly
-\`0\` regardless of \`delta\` – the bias becomes unidentifiable, which
-\[binegbin_dpars_to_mfd()\] reports back as \`NA\`. This direction is
-always well defined; only the inverse degenerates.
+**Boundary behaviour.** At `f = 1` both excess rates are exactly `0`
+regardless of `delta` – the bias becomes unidentifiable, which
+[`binegbin_dpars_to_mfd()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_dpars_to_mfd.md)
+reports back as `NA`. This direction is always well defined; only the
+inverse degenerates.
 
-\*\*The two spellings of the excess dispersion.\*\* Both
-negative-binomial constructors take the pair
-\`shapexone\`/\`shapextwo\`, so that is what this function writes.
-Supply \`kappaxone\`/\`kappaxtwo\` to give the two margins different
-values, or \`kappax\` to give them the same one – the symmetric model,
-term for term the pre-0.8.0 likelihood, which a fit reaches by routing
-both dpars through one non-linear parameter. The two spellings are
-mutually exclusive in a single call because they write the same two
+**The two spellings of the excess dispersion.** Both negative-binomial
+constructors take the pair `shapexone`/`shapextwo`, so that is what this
+function writes. Supply `kappaxone`/`kappaxtwo` to give the two margins
+different values, or `kappax` to give them the same one – the symmetric
+model, term for term the pre-0.8.0 likelihood, which a fit reaches by
+routing both dpars through one non-linear parameter. The two spellings
+are mutually exclusive in a single call because they write the same two
 slots.
 
-Before 0.10.0, \`kappax\` returned a dpar named \`shapex\` and
-\`kappaxone\`/\`kappaxtwo\` returned the pair, because two different
+Before 0.10.0, `kappax` returned a dpar named `shapex` and
+`kappaxone`/`kappaxtwo` returned the pair, because two different
 families wanted two different things. There is now one family and one
 dpar set, so both spellings produce it.
 
-\*\*These coordinates under the Poisson families.\*\* \[bipois()\] and
-\[bipois_partialobs()\] take the same three rates and no dispersion, so
-call this with \`M\`, \`f\` and \`delta\` alone and pass the result
-straight through. There is no \`kappa\` to supply: the Poisson case is
-not a dispersion set to a particular value but the absence of the
-parameter, which is precisely why fitting it wants its own family rather
-than \[binegbin()\] with \`kappa\` driven to \`0\`.
+**These coordinates under the Poisson families.**
+[`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
+and
+[`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
+take the same three rates and no dispersion, so call this with `M`, `f`
+and `delta` alone and pass the result straight through. There is no
+`kappa` to supply: the Poisson case is not a dispersion set to a
+particular value but the absence of the parameter, which is precisely
+why fitting it wants its own family rather than
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
+with `kappa` driven to `0`.
 
 ## See also
 
-\[binegbin_dpars_to_mfd()\], \[bipois()\], \[bipois_partialobs()\],
-\[binegbin()\], \[binegbin_partialobs()\]
+[`binegbin_dpars_to_mfd()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_dpars_to_mfd.md),
+[`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md),
+[`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md),
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md),
+[`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
 
 ## Examples
 

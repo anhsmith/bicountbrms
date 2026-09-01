@@ -384,8 +384,8 @@ family’s method, as do
   $`d = y_1 - y_2`$ is of interest, or where truncation via
   [`resp_trunc()`](https://paulbuerkner.com/brms/reference/addition-terms.html)
   is required, the Skellam and discrete Laplace/normal families in the
-  companion package
-  [`skellambrms`](https://github.com/anhsmith/skellambrms) model $`d`$
+  companion package `skellambrms` ([Smith
+  2026](#ref-smithSkellambrmsSkellamDiscreteDifference2026)) model $`d`$
   directly. The difference of two independent Poisson counts is
   Skellam-distributed ([Skellam 1946](#ref-skellam1946)); for the
   Bayesian treatment of count differences generally, see Karlis and
@@ -438,6 +438,10 @@ D. M. Pawley, and M. J. Anderson. 2020. “Instantaneous Vs.
 Non-Instantaneous Diver-Operated Stereo-Video (DOV) Surveys of Highly
 Mobile Sharks in the Galápagos Marine Reserve.” *Marine Ecology Progress
 Series* 649: 111–23. <https://doi.org/10.3354/meps13447>.
+
+Smith, Adam N. H. 2026. *skellambrms: Skellam and Discrete-Difference
+brms Custom Families for Count Differences*.
+<https://doi.org/10.5281/zenodo.22231870>.
 
 Vehtari, Aki, Andrew Gelman, and Jonah Gabry. 2017. “Practical Bayesian
 Model Evaluation Using Leave-One-Out Cross-Validation and WAIC.”

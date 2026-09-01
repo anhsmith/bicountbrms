@@ -1,30 +1,34 @@
 # Joint bivariate-Negative-Binomial custom family for brms
 
-Overdispersed sibling of \[bipois()\]. Returns a brms custom family for
-the joint distribution of a matched count pair \`(y1, y2)\` via
-trivariate reduction with Negative-Binomial (rather than Poisson) latent
-components: \`y1 = N_shared + N1\`, \`y2 = N_shared + N2\`, with
-\`N_shared ~ NB2(mu, shapes)\`, \`N1 ~ NB2(lambdaone, shapexone)\`, \`N2
-~ NB2(lambdatwo, shapextwo)\` mutually independent given their rates.
-\`NB2(m, phi)\` has mean \`m\` and variance \`m + m^2/phi\` (Stan
-\`neg_binomial_2\`; R \`dnbinom(size = phi, mu = m)\`).
+Overdispersed sibling of
+[`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md).
+Returns a brms custom family for the joint distribution of a matched
+count pair `(y1, y2)` via trivariate reduction with Negative-Binomial
+(rather than Poisson) latent components: `y1 = N_shared + N1`,
+`y2 = N_shared + N2`, with `N_shared ~ NB2(mu, shapes)`,
+`N1 ~ NB2(lambdaone, shapexone)`, `N2 ~ NB2(lambdatwo, shapextwo)`
+mutually independent given their rates. `NB2(m, phi)` has mean `m` and
+variance `m + m^2/phi` (Stan `neg_binomial_2`; R
+`dnbinom(size = phi, mu = m)`).
 
 Use this when both counts were recorded on every row. If the first count
-is missing on some rows, use \[binegbin_partialobs()\], which is the
-same family with an observation flag – same \`name\`, same six dpars,
-same likelihood, same post-processing.
+is missing on some rows, use
+[`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md),
+which is the same family with an observation flag – same `name`, same
+six dpars, same likelihood, same post-processing.
 
-Six dpars: the three rates (\`mu\` = shared rate,
-\`lambdaone\`/\`lambdatwo\` = the two source-specific rates) plus three
-dispersions – \`shapes\` for the shared component and
-\`shapexone\`/\`shapextwo\` for the two source-specific excess
-components. All six use \`link = "log"\`. Supply the excess rates
-through a non-linear formula without an explicit \`exp()\` (the log link
-applies it): \`nlf(lambdaone ~ lamx)\` gives \`lambdaone = exp(lamx)\`.
+Six dpars: the three rates (`mu` = shared rate, `lambdaone`/`lambdatwo`
+= the two source-specific rates) plus three dispersions – `shapes` for
+the shared component and `shapexone`/`shapextwo` for the two
+source-specific excess components. All six use `link = "log"`. Supply
+the excess rates through a non-linear formula without an explicit
+[`exp()`](https://rdrr.io/r/base/Log.html) (the log link applies it):
+`nlf(lambdaone ~ lamx)` gives `lambdaone = exp(lamx)`.
 
-See the \`binegbin.R\` file header for why Negative-Binomial components
-are used instead of an observation-level random effect on \[bipois()\] –
-briefly, the random-effect version fails synthetic recovery, because
+See the `binegbin.R` file header for why Negative-Binomial components
+are used instead of an observation-level random effect on
+[`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
+– briefly, the random-effect version fails synthetic recovery, because
 with one observed pair but three latent deviates per unit the excess
 deviates act as residual absorbers.
 
@@ -49,45 +53,61 @@ posterior_epred_binegbin(prep)
 
 ## Value
 
-A brms custom_family object.
+`binegbin()` returns a brms `custom_family` object.
+`binegbin_stanvars()` returns a `stanvars` object holding the Stan code
+for the corresponding `_lpmf`. `log_lik_binegbin()` returns a numeric
+vector of log-densities, one per posterior draw, for observation `i`.
+`posterior_predict_binegbin()` returns an integer vector of simulated
+`y1` values, one per posterior draw, for observation `i`.
+`posterior_epred_binegbin()` returns a numeric matrix of `E[y1 | y2]`,
+with posterior draws in rows and observations in columns.
 
 ## Details
 
-\*\*Tying the two excess dispersions.\*\* Up to 0.9.1 this family had a
-single \`shapex\` shared by both excess components, imposing \`shapexone
-== shapextwo\`. That is a modelling choice rather than a property of the
-construction, and 0.10.0 frees it. To recover the constraint, route both
-through one non-linear parameter:
+**Tying the two excess dispersions.** Up to 0.9.1 this family had a
+single `shapex` shared by both excess components, imposing
+`shapexone == shapextwo`. That is a modelling choice rather than a
+property of the construction, and 0.10.0 frees it. To recover the
+constraint, route both through one non-linear parameter:
 
-“\` bf(y1 \| vint(y2) ~ 1, mu ~ 1 + (1 \| vessel), nlf(shapexone ~
-shapexx), nlf(shapextwo ~ shapexx), shapexx ~ 1, ..., nl = TRUE) “\`
+    bf(y1 | vint(y2) ~ 1,
+       mu ~ 1 + (1 | vessel),
+       nlf(shapexone ~ shapexx),
+       nlf(shapextwo ~ shapexx),
+       shapexx ~ 1, ..., nl = TRUE)
 
 The resulting likelihood is term-for-term the pre-0.10.0 five-dpar one,
 and a package test pins that. Stored five-dpar fits keep working
-unchanged: their single \`shapex\` resolves to both \`shapexone\` and
-\`shapextwo\` when post-processed. Set a prior with \`nlpar =
-"shapexx"\` rather than \`dpar = "shapex"\`.
+unchanged: their single `shapex` resolves to both `shapexone` and
+`shapextwo` when post-processed. Set a prior with `nlpar = "shapexx"`
+rather than `dpar = "shapex"`.
 
-\*\*Names forced by \`custom_family()\`.\*\* Identical conventions to
-\[bipois()\] – \`mu\` is brms's mandatory dpar name, here bound to the
-shared component's rate (\`lambda_shared\`), not a mean of either
-response; \`y2\` is supplied as supplementary integer data through
-\`vint()\` because \`custom_family()\` declares a single response
-column. See \[bipois()\] for the full explanation, including why the
-rates are spelled \`lambdaone\`/ \`lambdatwo\` in code but written
-\\\lambda_1\\/ \\\lambda_2\\ in the documentation.
+**Names forced by
+[`custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html).**
+Identical conventions to
+[`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
+– `mu` is brms's mandatory dpar name, here bound to the shared
+component's rate (`lambda_shared`), not a mean of either response; `y2`
+is supplied as supplementary integer data through `vint()` because
+[`custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
+declares a single response column. See
+[`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
+for the full explanation, including why the rates are spelled
+`lambdaone`/ `lambdatwo` in code but written \\\lambda_1\\/
+\\\lambda_2\\ in the documentation.
 
-\*\*Order of dpars matters for the generated Stan call.\*\* brms
-generates \`target += binegbin_lpmf(Y\[n\] \| mu\[n\], lambdaone\[n\],
-lambdatwo\[n\], shapes\[n\], shapexone\[n\], shapextwo\[n\], vint1\[n\],
-1)\` – dpars in the order declared here, then the two \`vars\` entries.
-\`binegbin_stan_funs\` declares \`binegbin_lpmf\` with exactly this
+**Order of dpars matters for the generated Stan call.** brms generates
+`target += binegbin_lpmf(Y[n] | mu[n], lambdaone[n], lambdatwo[n], shapes[n], shapexone[n], shapextwo[n], vint1[n], 1)`
+– dpars in the order declared here, then the two `vars` entries.
+`binegbin_stan_funs` declares `binegbin_lpmf` with exactly this
 signature; reordering one without the other silently swaps which rate or
-dispersion governs which component. The trailing \`1\` is the
-observation flag, supplied as a literal because every row of a fully
-paired design has both counts.
+dispersion governs which component. The trailing `1` is the observation
+flag, supplied as a literal because every row of a fully paired design
+has both counts.
 
 ## See also
 
-\[binegbin_partialobs()\] for partially observed pairs; \[bipois()\] for
-the equidispersed Poisson counterpart.
+[`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
+for partially observed pairs;
+[`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
+for the equidispersed Poisson counterpart.

@@ -78,8 +78,7 @@ The second form is term for term the likelihood the single `shapex`
 gave, and a package test verifies that the generated Stan assigns both
 distributional parameters from one non-linear parameter.
 
-A prior moves with it. Under the tied form, the dispersion prior is
-written
+Under the tied form, the dispersion prior is written
 
 ``` r
 
@@ -106,76 +105,14 @@ property of the data rather than of the model. `unobs` and `unmatched`
 name only the minority class of rows; `partial` alone collides with
 partial likelihood and partial pooling.
 
-## Fits stored under a removed name
-
-A `brmsfit` stores its own family object, and brms builds the name of
-each post-processing method from the stored family name at the time of
-the call. A fit made with `bipois_cens()`, `binegbin_cens()` or
-`binegbin_joint()` therefore looks for `log_lik_bipois_cens()` and its
-counterparts, which 0.10.0 does not define. No argument to
-[`loo()`](https://mc-stan.org/loo/reference/loo.html) or
-[`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
-changes which name is looked up.
-
-To post-process such a fit, install the last release that defined those
-methods and keep it attached for that work:
-
-``` r
-
-pak::pak("anhsmith/bicountbrms@v0.9.1")
-```
-
-0.10.0 ships no forwarding functions, deliberately. Pinning the whole
-package is a stronger guarantee than a hand-picked set of forwarders,
-which would then have to be kept correct as the families continue to
-change.
-
-## Stored `binegbin` fits require no action
-
-A fit stored under the name `binegbin` is the exception. It declares the
-name 0.10.0 keeps, so it is post-processed by the current methods
-whatever version is pinned, and it works. Such fits exist in quantity: a
-scan of the project this package was written for found 103 of them, each
-declaring the pre-0.7.0 rate names `lambdaem` and `lambdalb` together
-with the single `shapex`.
-
-Three fallbacks apply together to make that work.
-
-1.  `.get_rate()` resolves `lambdaem`/`lambdalb` to the
-    `lambdaone`/`lambdatwo` positions, so a fit predating the 0.7.0
-    rename reads correctly.
-2.  `.SHAPEXONE_NAMES` and `.SHAPEXTWO_NAMES` both list `shapex` last,
-    so a fit with one excess dispersion resolves it to both per-margin
-    positions. That is precisely the constraint
-    $`\phi_{x1} = \phi_{x2}`$ the five-dpar family imposed.
-3.  An absent `vint2` selects the matched branch of the likelihood,
-    which is correct for a fit made with a constructor that had no
-    observation flag.
-
-`tests/testthat/test-dpar-compat.R` builds that exact combination and
-checks all three post-processing methods against the six-dpar answer
-with the two dispersions tied.
-
-## Telling which constructor a stored fit used
-
-From 0.10.0 `family$name` is identical for both constructors of a
-family, so it does not distinguish them. The presence of the second
-supplementary integer does:
-
-``` r
-
-"vint2" %in% names(standata(fit))   # TRUE for a partially observed fit
-fit$family$vars                     # c("vint1[n]", "vint2[n]") or c("vint1[n]", "1")
-```
-
 ## Erratum: `posterior_epred_binegbin()` before 0.9.0
 
 Releases before 0.9.0 computed
 [`posterior_epred_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 using the *marginal* shared fraction $`\mu/(\mu + \lambda_2)`$ in place
-of the *conditional* one. That substitution is `bipois`’s answer, exact
-only in the Poisson limit, and it made the expectation disagree with the
-family’s own
+of the *conditional* fraction. That substitution is `bipois`’s answer,
+exact only in the Poisson limit, and it made the expectation disagree
+with the family’s own
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
 draws by more than Monte Carlo error.
 

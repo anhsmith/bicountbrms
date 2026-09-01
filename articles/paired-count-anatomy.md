@@ -5,14 +5,9 @@ Every joint family in this package —
 and
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md),
 each with a `_partialobs()` constructor for data whose first count is
-sometimes missing — is built by **trivariate reduction**. Holgate
-([1964](#ref-holgate1964)) and Karlis and Ntzoufras
-([2003](#ref-karlis2003)) use the construction with Poisson components;
-Kirkpatrick and Neale
-([2016](#ref-kirkpatrickApplyingMultivariateDiscrete2016)) and
-Kirkpatrick ([2022](#ref-kirkpatrickRMKdiscreteSundryDiscrete2022)) with
-negative-binomial components. Three independent counts are drawn, and
-one of the three enters both observed counts:
+sometimes missing — is built by **trivariate reduction**. Three
+independent counts are drawn, and one of the three enters both observed
+counts:
 
 ``` math
 y_1 = N_{\text{shared}} + N_1
@@ -22,12 +17,14 @@ y_2 = N_{\text{shared}} + N_2
 
 The shared term induces the correlation between the pair. It is never
 observed, and is marginalised out analytically in the likelihood.
-Everything else is the part each source saw alone.
+Everything else is the part each source saw alone. The construction and
+its sources are set out in [The families and their
+parameters](https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.md).
 
-The widget below decomposes a pair, exposing **two coordinate systems at
-once, each driving the other**.
+The widget below shows the same model in both parameterisations, over an
+expected decomposition and ten simulated pairs.
 
-## Why two coordinate systems
+## Two coordinate systems
 
 The dpars a family actually takes are three rates: `mu` for the shared
 component, `lambdaone` and `lambdatwo` for the two excesses. That is
@@ -89,7 +86,7 @@ difference.
 Poisson floor, not determinism: there is no parameter setting that
 stills the stacks.
 
-## The same map, in R
+## Calling the map directly
 
 The widget’s arithmetic is not a separate model: it is the package’s own
 map, which you can call directly. The R code below is the authoritative
@@ -100,7 +97,13 @@ version, and the JavaScript above is checked against it:
 library(bicountbrms)
 
 # The widget's defaults
-binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = atanh(0), kappas = 0.6, kappax = 1.0)
+binegbin_mfd_to_dpars(
+  M      = 12,
+  f      = 0.67,
+  delta  = atanh(0),
+  kappas = 0.6,
+  kappax = 1.0
+  )
 #> $mu
 #> [1] 8.04
 #> 
@@ -125,8 +128,16 @@ bounded $`\tanh\delta`$. Going back the other way:
 
 ``` r
 
-d <- binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = 0.3)
-binegbin_dpars_to_mfd(d$mu, d$lambdaone, d$lambdatwo)[c("M", "f", "delta", "beta")]
+d <- binegbin_mfd_to_dpars(
+  M     = 12,
+  f     = 0.67,
+  delta = 0.3
+  )
+binegbin_dpars_to_mfd(
+  d$mu,
+  d$lambdaone,
+  d$lambdatwo
+  )[c("M", "f", "delta", "beta")]
 #> $M
 #> [1] 12
 #> 
@@ -145,7 +156,11 @@ And the degenerate case the widget flags:
 ``` r
 
 # Perfect congruence: no excess, so no bias to identify
-binegbin_dpars_to_mfd(mu = 12, lambdaone = 0, lambdatwo = 0)$delta
+binegbin_dpars_to_mfd(
+  mu        = 12,
+  lambdaone = 0,
+  lambdatwo = 0
+  )$delta
 #> [1] NA
 ```
 
@@ -170,8 +185,8 @@ $`\text{shapes} = e^{-2\log\kappa_s} =
 dispersion the widget above uses, rather than in $`\phi`$.
 
 $`\kappa = 0`$ is the Poisson limit, so a prior on $`\kappa`$ can shrink
-towards Poisson. The same reparameterisation was used in ([Smith et al.
-2020](#ref-smithInstantaneousVsNoninstantaneous2020)).
+towards Poisson. The same reparameterisation was used by Smith et al.
+([2020](#ref-smithInstantaneousVsNoninstantaneous2020)).
 
 ### Priors that default to the simpler model
 
@@ -256,19 +271,19 @@ them.
 
 ### Setting the prior on $`M`$ from your own counts
 
-$`M`$ is the only coordinate on the counts’ own scale, so its prior is
-the only one here without a universal default. Set that prior from your
-own counts.
+$`M`$ is the only coordinate on the counts’ own scale. The others are
+scale-free, so one recommendation serves any dataset; $`M`$ takes a
+prior chosen from the counts being modelled.
 
 `normal(4, 1.5)` is used below, which covers roughly 3 to 1000 counts
 per sampling unit and suits the simulated data. For sparser data, lower
-the mean: `normal(0, 2)` covers about 0.04 to 27.
+the mean: `normal(0, 2)` covers about 0.04 to 27 at 90%.
 
 Move the **mean** to match your scale rather than raising the SD. `eta`
 is $`\log M`$, so a normal prior on it is a lognormal on $`M`$, and
-widening one pushes mass out to implausible values instead of making it
-neutral ([Smith et al.
-2020](#ref-smithInstantaneousVsNoninstantaneous2020), supplement 3, Fig.
+widening that prior pushes mass out to implausible values instead of
+making it neutral ([Smith et al.
+2020](#ref-smithInstantaneousVsNoninstantaneous2020), Supplement 3, Fig.
 S3-1).
 
 A prior written on one scale induces a different density on any other.
@@ -373,8 +388,8 @@ unlist(truth)
 ```
 
 Fit. Every prior either shrinks towards the simpler model or is centred
-away from the truth, so what comes back is carried by the data rather
-than echoed from the prior:
+away from the truth, so the posterior is driven by the data rather than
+the prior:
 
 ``` r
 
@@ -468,18 +483,18 @@ knitr::kable(
 | lambdaone | 5.114 |  5.258 |
 | lambdatwo | 2.806 |  2.978 |
 
-The reason to bother with any of this: putting a random effect on `eta`
-asks whether groups differ in overall level, and putting one on `con`
-asks whether they differ in congruence. Those are separable questions in
-these coordinates and entangled ones in the native dpars, where a group
-effect on `mu` alone changes the level and the congruence at once.
+A random effect on `eta` estimates how much groups differ in overall
+level, and a random effect on `con` estimates how much they differ in
+congruence. Those are separable in these coordinates and entangled in
+the native dpars, where a group effect on `mu` alone changes the level
+and the congruence at once.
 
 ## A caveat about the widget
 
 The JavaScript is an independent implementation of the *generative*
 model: it draws from the same trivariate reduction, but it is not the
 likelihood, and no part of the package’s inference runs in your browser.
-The rate map it uses is the one tested in `test-mfd.R`; the sampler is
+It uses the rate map tested in `test-mfd.R`; the sampler is
 illustrative. Treat the picture as intuition, and the R above as the
 specification.
 
@@ -493,22 +508,6 @@ Freeing them means giving each its own
 line, as the fit above would if the two margins were allowed to differ.
 
 ## References
-
-Holgate, P. 1964. “Estimation for the Bivariate Poisson Distribution.”
-*Biometrika* 51 (1–2): 241–45. <https://doi.org/10.2307/2334210>.
-
-Karlis, Dimitris, and Ioannis Ntzoufras. 2003. “Analysis of Sports Data
-by Using Bivariate Poisson Models.” *Journal of the Royal Statistical
-Society: Series D (The Statistician)* 52 (3): 381–93.
-<https://doi.org/10.1111/1467-9884.00366>.
-
-Kirkpatrick, Robert M. 2022. *RMKdiscrete: Sundry Discrete Probability
-Distributions*. <https://CRAN.R-project.org/package=RMKdiscrete>.
-
-Kirkpatrick, Robert M., and Michael C. Neale. 2016. “Applying
-Multivariate Discrete Distributions to Genetically Informative Count
-Data.” *Behavior Genetics* 46 (2): 252–68.
-<https://doi.org/10.1007/s10519-015-9757-z>.
 
 McElreath, Richard. 2020. *Statistical Rethinking: A Bayesian Course
 with Examples in R and Stan*. 2nd ed. Chapman; Hall/CRC.

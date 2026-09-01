@@ -3,7 +3,6 @@
 ``` r
 
 library(brms)
-#> Warning: package 'Rcpp' was built under R version 4.6.1
 library(bicountbrms)
 ```
 

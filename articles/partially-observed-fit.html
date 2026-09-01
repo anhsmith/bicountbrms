@@ -283,14 +283,14 @@ particular design is taken up further down.</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>,
 does not: its interval runs from 2.03 to 10.07 against a truth of 2, so
 it misses at the lower end by 0.03.</p>
-<p>The miss is worth stating rather than reseeding until it goes away. A
-95% interval from a correctly specified model excludes the truth 5% of
-the time by construction, and across six parameters the chance that at
-least one interval misses is about 26%. One near miss in six is
-therefore the expected behaviour of a working implementation, not
-evidence against it. The calibration evidence in this article is the
-coverage check further down, which is taken over 157 withheld counts
-rather than over one fit.</p>
+<p>The seed was not changed to make the miss disappear. A 95% interval
+from a correctly specified model excludes the truth 5% of the time by
+construction, and across six parameters the chance that at least one
+interval misses is about 26%. One near miss in six is therefore the
+expected behaviour of a working implementation, not evidence against it.
+The calibration evidence in this article is the coverage check further
+down, which is taken over 157 withheld counts rather than over one
+fit.</p>
 <p>The three dispersions have much the wider intervals, because each is
 estimated from an aggregate mean–variance mismatch rather than from any
 directly observed quantity.</p>
@@ -356,9 +356,9 @@ component and the prediction is shrunk towards the marginal mean of the
 first count,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\mu + \lambda_1</annotation></semantics></math>,
 here 10. High withheld counts are therefore under-predicted and low ones
-over-predicted: at the true parameters the prediction regressed on the
-withheld count has slope 0.27 rather than 1. The vertical spread
-measures what the second count leaves undetermined about the first.</p>
+over-predicted: the posterior median regressed on the withheld count has
+slope 0.27 rather than 1. The vertical spread measures what the second
+count leaves undetermined about the first.</p>
 </div>
 <div class="section level2">
 <h2 id="choosing-a-matched-fraction">Choosing a matched fraction<a class="anchor" aria-label="anchor" href="#choosing-a-matched-fraction"></a>

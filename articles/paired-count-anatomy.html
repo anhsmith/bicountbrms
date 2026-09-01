@@ -79,12 +79,8 @@
 <p>Every joint family in this package — <code><a href="../reference/bipois.html">bipois()</a></code> and
 <code><a href="../reference/binegbin.html">binegbin()</a></code>, each with a <code>_partialobs()</code>
 constructor for data whose first count is sometimes missing — is built
-by <strong>trivariate reduction</strong>. <span class="citation">Holgate
-(<a href="#ref-holgate1964">1964</a>)</span> and <span class="citation">Karlis and Ntzoufras (<a href="#ref-karlis2003">2003</a>)</span> use the construction with
-Poisson components; <span class="citation">Kirkpatrick and Neale (<a href="#ref-kirkpatrickApplyingMultivariateDiscrete2016">2016</a>)</span>
-and <span class="citation">Kirkpatrick (<a href="#ref-kirkpatrickRMKdiscreteSundryDiscrete2022">2022</a>)</span>
-with negative-binomial components. Three independent counts are drawn,
-and one of the three enters both observed counts:</p>
+by <strong>trivariate reduction</strong>. Three independent counts are
+drawn, and one of the three enters both observed counts:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mn>1</mn></msub><mo>=</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>+</mo><msub><mi>N</mi><mn>1</mn></msub><mspace width="2.0em"></mspace><msub><mi>y</mi><mn>2</mn></msub><mo>=</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>+</mo><msub><mi>N</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">
 y_1 = N_{\text{shared}} + N_1
 \qquad
@@ -92,11 +88,13 @@ y_2 = N_{\text{shared}} + N_2
 </annotation></semantics></math></p>
 <p>The shared term induces the correlation between the pair. It is never
 observed, and is marginalised out analytically in the likelihood.
-Everything else is the part each source saw alone.</p>
-<p>The widget below decomposes a pair, exposing <strong>two coordinate
-systems at once, each driving the other</strong>.</p>
+Everything else is the part each source saw alone. The construction and
+its sources are set out in <a href="families-and-parameters.html">The
+families and their parameters</a>.</p>
+<p>The widget below shows the same model in both parameterisations, over
+an expected decomposition and ten simulated pairs.</p>
 <div class="section level2">
-<h2 id="why-two-coordinate-systems">Why two coordinate systems<a class="anchor" aria-label="anchor" href="#why-two-coordinate-systems"></a>
+<h2 id="two-coordinate-systems">Two coordinate systems<a class="anchor" aria-label="anchor" href="#two-coordinate-systems"></a>
 </h2>
 <p>The dpars a family actually takes are three rates: <code>mu</code>
 for the shared component, <code>lambdaone</code> and
@@ -431,7 +429,7 @@ the other five respond.</p>
     var H = MT + yMax * SLOT + MB;
     var Y = function(v){ return MT + (yMax - v) * SLOT; };
     var s = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + " " + H
-          + '" font-size="10" role="img" aria-label="Decomposition of a paired count into a shared component and two source-specific excesses">';
+          + '" font-size="10" role="img" aria-label="Decomposition of paired counts into a shared component and two source-specific excesses">';
 
     // expected panel: CONTINUOUS bars, because these are rates, not counts
     var boxY = Y(yMax) - 4, boxH = Y(0) - boxY + 4;
@@ -561,7 +559,7 @@ not determinism: there is no parameter setting that stills the
 stacks.</p>
 </div>
 <div class="section level2">
-<h2 id="the-same-map-in-r">The same map, in R<a class="anchor" aria-label="anchor" href="#the-same-map-in-r"></a>
+<h2 id="calling-the-map-directly">Calling the map directly<a class="anchor" aria-label="anchor" href="#calling-the-map-directly"></a>
 </h2>
 <p>The widget’s arithmetic is not a separate model: it is the package’s
 own map, which you can call directly. The R code below is the
@@ -571,7 +569,13 @@ it:</p>
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/anhsmith/bicountbrms" class="external-link">bicountbrms</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># The widget's defaults</span></span>
-<span><span class="fu"><a href="../reference/binegbin_mfd_to_dpars.html">binegbin_mfd_to_dpars</a></span><span class="op">(</span>M <span class="op">=</span> <span class="fl">12</span>, f <span class="op">=</span> <span class="fl">0.67</span>, delta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Hyperbolic.html" class="external-link">atanh</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>, kappas <span class="op">=</span> <span class="fl">0.6</span>, kappax <span class="op">=</span> <span class="fl">1.0</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/binegbin_mfd_to_dpars.html">binegbin_mfd_to_dpars</a></span><span class="op">(</span></span>
+<span>  M      <span class="op">=</span> <span class="fl">12</span>,</span>
+<span>  f      <span class="op">=</span> <span class="fl">0.67</span>,</span>
+<span>  delta  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Hyperbolic.html" class="external-link">atanh</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  kappas <span class="op">=</span> <span class="fl">0.6</span>,</span>
+<span>  kappax <span class="op">=</span> <span class="fl">1.0</span></span>
+<span>  <span class="op">)</span></span>
 <span><span class="co">#&gt; $mu</span></span>
 <span><span class="co">#&gt; [1] 8.04</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -595,8 +599,16 @@ is the bounded
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">tanh</mi><mo>⁡</mo></mrow><mi>δ</mi></mrow><annotation encoding="application/x-tex">\tanh\delta</annotation></semantics></math>.
 Going back the other way:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/binegbin_mfd_to_dpars.html">binegbin_mfd_to_dpars</a></span><span class="op">(</span>M <span class="op">=</span> <span class="fl">12</span>, f <span class="op">=</span> <span class="fl">0.67</span>, delta <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/binegbin_dpars_to_mfd.html">binegbin_dpars_to_mfd</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">mu</span>, <span class="va">d</span><span class="op">$</span><span class="va">lambdaone</span>, <span class="va">d</span><span class="op">$</span><span class="va">lambdatwo</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"M"</span>, <span class="st">"f"</span>, <span class="st">"delta"</span>, <span class="st">"beta"</span><span class="op">)</span><span class="op">]</span></span>
+<code class="sourceCode R"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/binegbin_mfd_to_dpars.html">binegbin_mfd_to_dpars</a></span><span class="op">(</span></span>
+<span>  M     <span class="op">=</span> <span class="fl">12</span>,</span>
+<span>  f     <span class="op">=</span> <span class="fl">0.67</span>,</span>
+<span>  delta <span class="op">=</span> <span class="fl">0.3</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/binegbin_dpars_to_mfd.html">binegbin_dpars_to_mfd</a></span><span class="op">(</span></span>
+<span>  <span class="va">d</span><span class="op">$</span><span class="va">mu</span>,</span>
+<span>  <span class="va">d</span><span class="op">$</span><span class="va">lambdaone</span>,</span>
+<span>  <span class="va">d</span><span class="op">$</span><span class="va">lambdatwo</span></span>
+<span>  <span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"M"</span>, <span class="st">"f"</span>, <span class="st">"delta"</span>, <span class="st">"beta"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; $M</span></span>
 <span><span class="co">#&gt; [1] 12</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -611,7 +623,11 @@ Going back the other way:</p>
 <p>And the degenerate case the widget flags:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Perfect congruence: no excess, so no bias to identify</span></span>
-<span><span class="fu"><a href="../reference/binegbin_dpars_to_mfd.html">binegbin_dpars_to_mfd</a></span><span class="op">(</span>mu <span class="op">=</span> <span class="fl">12</span>, lambdaone <span class="op">=</span> <span class="fl">0</span>, lambdatwo <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">$</span><span class="va">delta</span></span>
+<span><span class="fu"><a href="../reference/binegbin_dpars_to_mfd.html">binegbin_dpars_to_mfd</a></span><span class="op">(</span></span>
+<span>  mu        <span class="op">=</span> <span class="fl">12</span>,</span>
+<span>  lambdaone <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  lambdatwo <span class="op">=</span> <span class="fl">0</span></span>
+<span>  <span class="op">)</span><span class="op">$</span><span class="va">delta</span></span>
 <span><span class="co">#&gt; [1] NA</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -638,9 +654,8 @@ the SD-scale dispersion the widget above uses, rather than in
 <p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\kappa = 0</annotation></semantics></math>
 is the Poisson limit, so a prior on
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>κ</mi><annotation encoding="application/x-tex">\kappa</annotation></semantics></math>
-can shrink towards Poisson. The same reparameterisation was used in
-<span class="citation">(<a href="#ref-smithInstantaneousVsNoninstantaneous2020">Smith et al.
-2020</a>)</span>.</p>
+can shrink towards Poisson. The same reparameterisation was used by
+<span class="citation">Smith et al. (<a href="#ref-smithInstantaneousVsNoninstantaneous2020">2020</a>)</span>.</p>
 <div class="section level3">
 <h3 id="priors-that-default-to-the-simpler-model">Priors that default to the simpler model<a class="anchor" aria-label="anchor" href="#priors-that-default-to-the-simpler-model"></a>
 </h3>
@@ -805,21 +820,22 @@ and
 from your own counts<a class="anchor" aria-label="anchor" href="#setting-the-prior-on-m-from-your-own-counts"></a>
 </h3>
 <p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
-is the only coordinate on the counts’ own scale, so its prior is the
-only one here without a universal default. Set that prior from your own
-counts.</p>
+is the only coordinate on the counts’ own scale. The others are
+scale-free, so one recommendation serves any dataset;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
+takes a prior chosen from the counts being modelled.</p>
 <p><code>normal(4, 1.5)</code> is used below, which covers roughly 3 to
 1000 counts per sampling unit and suits the simulated data. For sparser
-data, lower the mean: <code>normal(0, 2)</code> covers about 0.04 to
-27.</p>
+data, lower the mean: <code>normal(0, 2)</code> covers about 0.04 to 27
+at 90%.</p>
 <p>Move the <strong>mean</strong> to match your scale rather than
 raising the SD. <code>eta</code> is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mi>M</mi></mrow><annotation encoding="application/x-tex">\log M</annotation></semantics></math>,
 so a normal prior on it is a lognormal on
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>,
-and widening one pushes mass out to implausible values instead of making
-it neutral <span class="citation">(<a href="#ref-smithInstantaneousVsNoninstantaneous2020">Smith et al.
-2020</a>, supplement 3, Fig. S3-1)</span>.</p>
+and widening that prior pushes mass out to implausible values instead of
+making it neutral <span class="citation">(<a href="#ref-smithInstantaneousVsNoninstantaneous2020">Smith et al.
+2020</a>, Supplement 3, Fig. S3-1)</span>.</p>
 <p>A prior written on one scale induces a different density on any
 other. Being weakly informative on the first does not make it so on the
 second. These are written on the linear-predictor scale —
@@ -917,8 +933,8 @@ fit below tests that claim.</p>
 <span><span class="co">#&gt;        mu lambdaone lambdatwo    shapes shapexone shapextwo </span></span>
 <span><span class="co">#&gt;  8.040000  5.113598  2.806402  4.000000  2.777778  2.777778</span></span></code></pre></div>
 <p>Fit. Every prior either shrinks towards the simpler model or is
-centred away from the truth, so what comes back is carried by the data
-rather than echoed from the prior:</p>
+centred away from the truth, so the posterior is driven by the data
+rather than the prior:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brm.html" class="external-link">brm</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula.html" class="external-link">bf</a></span><span class="op">(</span><span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>, nl <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span></span>
@@ -1058,12 +1074,11 @@ native dpars without refitting: push the draws back through <a href="../referenc
 </tr>
 </tbody>
 </table>
-<p>The reason to bother with any of this: putting a random effect on
-<code>eta</code> asks whether groups differ in overall level, and
-putting one on <code>con</code> asks whether they differ in congruence.
-Those are separable questions in these coordinates and entangled ones in
-the native dpars, where a group effect on <code>mu</code> alone changes
-the level and the congruence at once.</p>
+<p>A random effect on <code>eta</code> estimates how much groups differ
+in overall level, and a random effect on <code>con</code> estimates how
+much they differ in congruence. Those are separable in these coordinates
+and entangled in the native dpars, where a group effect on
+<code>mu</code> alone changes the level and the congruence at once.</p>
 </div>
 </div>
 <div class="section level2">
@@ -1072,7 +1087,7 @@ the level and the congruence at once.</p>
 <p>The JavaScript is an independent implementation of the
 <em>generative</em> model: it draws from the same trivariate reduction,
 but it is not the likelihood, and no part of the package’s inference
-runs in your browser. The rate map it uses is the one tested in
+runs in your browser. It uses the rate map tested in
 <code>test-mfd.R</code>; the sampler is illustrative. Treat the picture
 as intuition, and the R above as the specification.</p>
 <p>The widget also shows ONE excess-dispersion dial.
@@ -1087,26 +1102,6 @@ the two margins were allowed to differ.</p>
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent">
-<div id="ref-holgate1964" class="csl-entry">
-Holgate, P. 1964. <span>“Estimation for the Bivariate
-<span>Poisson</span> Distribution.”</span> <em>Biometrika</em> 51 (1–2):
-241–45. <a href="https://doi.org/10.2307/2334210" class="external-link">https://doi.org/10.2307/2334210</a>.
-</div>
-<div id="ref-karlis2003" class="csl-entry">
-Karlis, Dimitris, and Ioannis Ntzoufras. 2003. <span>“Analysis of Sports
-Data by Using Bivariate <span>Poisson</span> Models.”</span> <em>Journal
-of the Royal Statistical Society: Series D (The Statistician)</em> 52
-(3): 381–93. <a href="https://doi.org/10.1111/1467-9884.00366" class="external-link">https://doi.org/10.1111/1467-9884.00366</a>.
-</div>
-<div id="ref-kirkpatrickRMKdiscreteSundryDiscrete2022" class="csl-entry">
-Kirkpatrick, Robert M. 2022. <em><span>RMKdiscrete</span>: Sundry
-Discrete Probability Distributions</em>. <a href="https://CRAN.R-project.org/package=RMKdiscrete" class="external-link">https://CRAN.R-project.org/package=RMKdiscrete</a>.
-</div>
-<div id="ref-kirkpatrickApplyingMultivariateDiscrete2016" class="csl-entry">
-Kirkpatrick, Robert M., and Michael C. Neale. 2016. <span>“Applying
-Multivariate Discrete Distributions to Genetically Informative Count
-Data.”</span> <em>Behavior Genetics</em> 46 (2): 252–68. <a href="https://doi.org/10.1007/s10519-015-9757-z" class="external-link">https://doi.org/10.1007/s10519-015-9757-z</a>.
-</div>
 <div id="ref-mcelreath2020" class="csl-entry">
 McElreath, Richard. 2020. <em>Statistical Rethinking: A
 <span>Bayesian</span> Course with Examples in <span>R</span> and
