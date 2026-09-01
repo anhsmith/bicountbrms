@@ -248,7 +248,11 @@ uniform across $`f \in [0.1, 0.9]`$) while falling away at both
 boundaries, so it declines to take a side. McElreath
 ([2020](#ref-mcelreath2020)) makes the same case for that prior on a
 logit-scale parameter, against the wider normals, which place nearly all
-their mass near $`f = 0`$ and $`f = 1`$.
+their mass near $`f = 0`$ and $`f = 1`$. Fig. S2-1 of Smith et al.
+([2020](#ref-smithInstantaneousVsNoninstantaneous2020)) plots the
+implied densities on the probability scale for normal priors between
+$`\mathrm{N}(0, 1)`$ and $`\mathrm{N}(0, 3)`$, `normal(0, 1.5)` among
+them.
 
 ### Setting the prior on $`M`$ from your own counts
 
