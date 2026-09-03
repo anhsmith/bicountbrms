@@ -171,8 +171,27 @@ version-specific DOI from that release's own Zenodo record.
 Holgate (1964) states the trivariate-reduction representation and gives
 maximum-likelihood estimation for it; the regression form is due to Karlis and
 Ntzoufras (2003). Kirkpatrick and Neale (2016) and Kirkpatrick (2022) use the same construction
-with negative-binomial components. Full references are given in [The families and
-their parameters][families].
+with negative-binomial components.
+
+## References
+
+Holgate, P. (1964). Estimation for the bivariate Poisson distribution.
+*Biometrika* **51**(1–2), 241–245. <https://doi.org/10.2307/2334210>
+
+Karlis, D. and Ntzoufras, I. (2003). Analysis of sports data by using bivariate
+Poisson models. *Journal of the Royal Statistical Society: Series D (The
+Statistician)* **52**(3), 381–393. <https://doi.org/10.1111/1467-9884.00366>
+
+Kirkpatrick, R. M. (2022). *RMKdiscrete: Sundry discrete probability
+distributions*. R package version 0.2.
+<https://CRAN.R-project.org/package=RMKdiscrete>
+
+Kirkpatrick, R. M. and Neale, M. C. (2016). Applying multivariate discrete
+distributions to genetically informative count data. *Behavior Genetics*
+**46**(2), 252–268. <https://doi.org/10.1007/s10519-015-9757-z>
+
+Each article listed under [Documentation](#documentation) ends with its own
+reference list.
 
 [started]: https://anhsmith.github.io/bicountbrms/articles/bicountbrms.html
 [families]: https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.html
