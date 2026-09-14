@@ -20,8 +20,8 @@ with an additional component each that only one source recorded.
 
 The native parameters
 — means and (for negative binomial) dispersions for each of the three
-latent components — can be reparameterised into four interpretable
-coordinates: the overall count rate, the congruence between the two
+latent components — can be [reparameterised into four interpretable
+coordinates][anatomy]: the overall count rate, the congruence between the two
 sources, the bias toward one of them, and (for negative binomial)
 the excess dispersion of each source.
 The package also allows the model to be fit when one source is only 
