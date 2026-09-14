@@ -3,7 +3,7 @@
 # ==========================================================================
 #
 # WHY THIS EXISTS. The recovery tests used to assert that the true value falls
-# inside a single fit's 90% credible interval. For a CORRECT model with a
+# inside the 90% credible interval from a single fit. For a CORRECT model with a
 # well-calibrated posterior that assertion is a Bernoulli(0.9) draw, so it
 # fails 10% of the time by construction -- and across the ~18 such assertions
 # in this suite roughly 1.8 spurious failures per run were expected. Two were
@@ -30,9 +30,9 @@
 # with `expect_true(max_rhat < 1.02)`. Vehtari et al. (2021) recommend 1.01 for
 # inference, and this suite used it until 0.9.0. It is too tight for a gate on
 # a 4-chain 1000-draw fit: max Rhat at that sample size moves by more than the
-# gate's own margin for reasons unrelated to convergence. Two observations,
-# both on the bipois_partialobs partially observed fit and both with zero divergences
-# and every recovery assertion passing:
+# margin of the gate itself for reasons unrelated to convergence. Two
+# observations, both on the bipois_partialobs partially observed fit and both
+# with zero divergences and every recovery assertion passing:
 #
 #   * 1.008 locally, 1.012 on Linux CI -- the same code, seed and data, differing
 #     only in the floating-point trajectory the platform produces.
@@ -43,8 +43,8 @@
 # Varying only the Stan seed on that fit, data held fixed, gives max Rhat
 # 1.0023 1.0079 1.0055 1.0032 1.0023 -- a span of 0.006 with zero divergences
 # throughout. A platform change is a larger perturbation than a seed change:
-# CI's 1.012 exceeds every one of those. test-binegbin.R records an earlier
-# near-miss at 1.0101.
+# the 1.012 on Linux CI exceeds every one of those. test-binegbin.R records
+# an earlier near-miss at 1.0101.
 #
 # MORE DRAWS IS NOT THE FIX EITHER. At iter = 6000, warmup = 2000 the same five
 # seeds give 1.0016-1.0029, tighter as expected -- but produce 5 divergent
@@ -116,8 +116,8 @@ coverage_floor <- function(R, level = 0.9, alpha = 0.01) {
 #
 # `fit`    a brmsfit to reuse -- reusing its COMPILED Stan model is what keeps this
 #          affordable. update(recompile = FALSE) re-runs sampling only;
-#          measured on this package's binegbin model, compiling costs ~66 s and
-#          each refit ~15 s, so R = 10 is ~3.5 min rather than ~11. stanvars
+#          measured on the binegbin model in this package, compiling costs ~66 s
+#          and each refit ~15 s, so R = 10 is ~3.5 min rather than ~11. stanvars
 #          survive the update (verified), which is why a custom family can be
 #          driven this way at all.
 # `sim`    function(i) -> data.frame with the same columns as the original data.

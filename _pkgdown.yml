@@ -46,7 +46,7 @@ reference:
     they still inform the shared component and the second source rather than
     being dropped. For Poisson components that marginal is closed form; for
     Negative-Binomial components it is a convolution. This is unrelated to
-    brms's own cens() addition term, which means a value known to lie in a set.
+    the brms cens() addition term, which means a value known to lie in a set.
   contents:
   - bipois_partialobs
   - binegbin_partialobs

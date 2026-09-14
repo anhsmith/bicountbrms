@@ -317,7 +317,7 @@ test_that("Stan binegbin_lpmf matches the R reference with shapexone != shapextw
 # the comparison passes it can only change if THIS package changes, and the
 # package-side property is already pinned above without any external dependency
 # (the Stan-vs-R asymmetric grid, the marginal identity, the transposition
-# check, and shapexone's absence from the y2-only branch).
+# check, and the absence of shapexone from the y2-only branch).
 
 test_that("binegbin_partialobs recovers shapexone and shapextwo when they differ", {
   skip_on_cran()
@@ -356,14 +356,14 @@ test_that("binegbin_partialobs recovers shapexone and shapextwo when they differ
   dat <- data.frame(y1 = n_shared + n1, y2 = n_shared + n2,
                     y1_obs = y1_obs, vessel = factor(vessel))
 
-  # brms leaves a custom family's non-mu dpars FLAT AND IMPROPER, and the
+  # brms leaves the non-mu dpars of a custom family FLAT AND IMPROPER, and the
   # likelihood for a Negative-Binomial shape is flat towards large values (a
   # big shape is nearly Poisson, so the data cannot distinguish 30 from 300).
   # With one excess dispersion that is survivable; with two -- one of them,
   # shapexone, informed only by the matched rows -- it is not: run
   # unregularised this model produced 680 divergent transitions and a max Rhat
-  # of 1.54, i.e. chains that never mixed. The README's "Set priors on the
-  # dispersions" section says exactly this.
+  # of 1.54, i.e. chains that never mixed. The "Set priors on the dispersions"
+  # section of the README says exactly this.
   #
   # normal(0, 1.5) on the log scale spans roughly [0.05, 20] at +/- 2 SD,
   # which contains all three true dispersions (0.7, 3, 6) without favouring

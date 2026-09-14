@@ -45,9 +45,9 @@ The indicator is not supplied in cases where both counts are fully observed.
 
 For a row where both counts are observed, the likelihood term is the
 full joint distribution of $(y_1, y_2)$: a function of the shared rate
-and (for negative binomial) dispersion (`mu`, `shapes`), each source's own
-rate and (for negative binomial) dispersion (`lambdaone`, `shapexone`,
-`lambdatwo`, `shapextwo`), and, through
+and (for negative binomial) dispersion (`mu`, `shapes`), the rate and (for
+negative binomial) dispersion specific to each source (`lambdaone`,
+`shapexone`, `lambdatwo`, `shapextwo`), and, through
 `lambdaone` and `lambdatwo`, the bias between the two sources.
 
 For a row where only $y_2$ is observed, the likelihood term is instead
@@ -71,8 +71,9 @@ Either `rstan` or `cmdstanr` works as the `brms` backend.
 
 ## Minimal fits
 
-The second count is provided as supplementary integer data via the `vint()` function, and
-the family's Stan function is specified via the `stanvars` argument. Both are required.
+The second count is provided as supplementary integer data via the `vint()`
+function, and the Stan function for the family is specified via the `stanvars`
+argument. Both are required.
 
 ```r
 library(brms)
@@ -105,11 +106,11 @@ fit_po <- brm(
 
 `y1_obs` is `1` where the first count was recorded and `0` where it was not. On a
 row with `y1_obs == 0`, `y1` may hold any non-negative integer — `0` is the
-conventional placeholder — because that row's likelihood term does not depend on
-it. Do not use `NA`: brms drops such rows before fitting, taking their observed
-$y_2$ with them. `posterior_predict()` and `posterior_epred()` then return a draw
-and $E[y_1 \mid y_2]$ for every row, including the rows where $y_1$ was never
-recorded.
+conventional placeholder — because the likelihood term for that row does not
+depend on it. Do not use `NA`: brms drops such rows before fitting, taking their
+observed $y_2$ with them. `posterior_predict()` and `posterior_epred()` then
+return a draw and $E[y_1 \mid y_2]$ for every row, including the rows where
+$y_1$ was never recorded.
 
 `brms` leaves every distributional parameter of a custom family except `mu`
 without a prior. Set them; see [Choosing priors][priors].
@@ -144,8 +145,8 @@ rates are spelled out (`one` or `two`).
   `class`, `dpar` and `nlpar` slots each prior belongs in.
 - [A worked partially observed fit][partial] — imputing a count that was never
   recorded, scored against values withheld from the model.
-- [The anatomy of a paired count][anatomy] — overall level, congruence and
-  source bias as coordinates, with shrinkage priors.
+- [Mapping native parameters to interpretable coordinates][anatomy] — overall
+  level, congruence and source bias, with shrinkage priors.
 - [Migration and errata][migration] — what each release changed, and two
   corrected results.
 
@@ -166,7 +167,7 @@ citation("bicountbrms")
 The package is archived on Zenodo under the concept DOI
 [10.5281/zenodo.22239120](https://doi.org/10.5281/zenodo.22239120), which resolves to
 the current version. To cite the exact version an analysis used, take the
-version-specific DOI from that release's own Zenodo record.
+version-specific DOI from the Zenodo record for that release.
 
 Holgate (1964) states the trivariate-reduction representation and gives
 maximum-likelihood estimation for it; the regression form is due to Karlis and

@@ -58,10 +58,10 @@ test_that("marginal identity: sum over y1 of the matched branch == LB-only branc
   }
 })
 
-# Up to 0.9.1 a block here checked that binegbin_partialobs's matched branch was
-# byte-for-byte the binegbin lpmf, because they were two separate
-# implementations that could drift. Since 0.10.0 there is one lpmf and the
-# identity is structural, so that check would compare a function to itself.
+# Up to 0.9.1 a block here checked that the matched branch of
+# binegbin_partialobs was byte-for-byte the binegbin lpmf, because they were two
+# separate implementations that could drift. Since 0.10.0 there is one lpmf and
+# the identity is structural, so that check would compare a function to itself.
 # What is still worth pinning is which branch an UNFLAGGED call selects --
 # that is a default, not a structural fact, and getting it wrong would silently
 # score every fully paired row against the marginal.
@@ -188,7 +188,7 @@ test_that("the Stan matched branch routes the two dispersions the way R does", {
   # with the 0.9.1 binegbin_partialobs_lpmf; there is now one function, so it would compare a
   # function to itself. The hazard it guarded against -- the two
   # implementations disagreeing -- is gone, but a sharper one remains: the Stan
-  # signature and the R reference's argument order can be reordered
+  # signature and the argument order of the R reference can be reordered
   # independently, silently swapping which dispersion governs which component.
   # Checked here with shapexone far from shapextwo, which the grid above does
   # not do.
@@ -317,8 +317,8 @@ test_that("binegbin_partialobs fits the SYMMETRIC model via nlf, dispatches, and
     )
   })
 
-  # Dispatch: both must resolve the package's log_lik_/posterior_predict_
-  # methods by name without "no applicable method" errors.
+  # Dispatch: both must resolve the log_lik_/posterior_predict_ methods in this
+  # package by name without "no applicable method" errors.
   ll <- brms::log_lik(fit)
   expect_equal(dim(ll)[2], n)
   expect_true(all(is.finite(ll)))
@@ -333,7 +333,8 @@ test_that("binegbin_partialobs fits the SYMMETRIC model via nlf, dispatches, and
   draws <- as.data.frame(fit)
   # Smoke gate at a wide interval, not a calibration claim. See
   # helper-coverage.R; the calibration assessment is in test-binegbin.R and
-  # applies to this family's matched branch, which is binegbin term for term.
+  # applies to the matched branch of this family, which is binegbin
+  # term for term.
   check_recovery <- function(true_val, draws_col) {
     recovery_ok(draws, true_val, draws_col)
   }

@@ -17,22 +17,22 @@ binegbin_mfd_to_dpars(
 \arguments{
 \item{M}{Overall level: \code{mu + (lambdaone + lambdatwo)/2}. Non-negative.}
 
-\item{f}{Congruence, the share of \code{M} that both sources saw: \code{mu / M}. In
-\verb{[0, 1]}. \code{f = 1} means perfect agreement (both excesses vanish); \code{f = 0}
-means no shared component at all.}
+\item{f}{Congruence, the mean of the shared component as a proportion of
+\code{M}: \code{mu / M}. In \verb{[0, 1]}. \code{f = 1} means perfect agreement (both excesses
+vanish); \code{f = 0} means no shared component at all.}
 
 \item{delta}{Source bias on the log-ratio scale,
 \code{0.5 * log(lambdaone/lambdatwo)}. \code{0} is unbiased. \verb{+/-Inf} is permitted
 and gives the limit where one excess rate is zero.}
 
 \item{kappas, kappax}{Optional SD-scale dispersions. \code{0} is the Poisson
-limit. \code{kappas} is the shared component's, and the returned list gains
-\code{shapes} (\verb{= 1/kappa^2}, so \code{kappa = 0} gives \code{Inf}). \code{kappax} is the
-shorthand for a single excess dispersion governing \emph{both} margins: supply
-it and the returned list gains \code{shapexone} and \code{shapextwo} at that common
-value, which is the symmetric model \code{\link[=binegbin]{binegbin()}} reaches by tying the two
-with \code{nlf()}. Omit both for \code{\link[=bipois]{bipois()}} and \code{\link[=bipois_partialobs]{bipois_partialobs()}}, which
-have no dispersion parameters.}
+limit. \code{kappas} is the dispersion of the shared component, and the
+returned list gains \code{shapes} (\verb{= 1/kappa^2}, so \code{kappa = 0} gives \code{Inf}).
+\code{kappax} is the shorthand for a single excess dispersion governing \emph{both}
+margins: supply it and the returned list gains \code{shapexone} and \code{shapextwo}
+at that common value, which is the symmetric model \code{\link[=binegbin]{binegbin()}} reaches by
+tying the two with \code{nlf()}. Omit both for \code{\link[=bipois]{bipois()}} and
+\code{\link[=bipois_partialobs]{bipois_partialobs()}}, which have no dispersion parameters.}
 
 \item{kappaxone, kappaxtwo}{Optional per-margin SD-scale excess dispersions,
 for the general case in which the two margins are free to differ. If

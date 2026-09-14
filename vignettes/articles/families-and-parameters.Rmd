@@ -17,8 +17,8 @@ library(bicountbrms)
 ```
 
 This article describes the parameters that are fitted. The companion article
-[The anatomy of a paired count](paired-count-anatomy.html) describes the
-coordinates in which they are interpreted, and
+[Mapping native parameters to interpretable coordinates](paired-count-anatomy.html)
+describes the coordinates in which they are interpreted, and
 [Choosing priors](choosing-priors.html) gives the recipes for both.
 
 ## Trivariate reduction
@@ -64,18 +64,18 @@ which is why `bipois()` induces the Skellam as its difference model.
 brms requires one distributional parameter of every family to be named `mu`. In
 these families, `mu` is the rate of the shared latent count. Since
 $\mathrm{E}[y_1] = \mu + \lambda_1$, `mu` is not the mean of either observed
-count, nor of their difference. The constraint is `custom_family()`'s rather
-than a modelling choice, and the same applies to the spelling of the two
-source-specific rates: `custom_family()` rejects a distributional parameter
-name ending in a digit, so the code writes `lambdaone` and `lambdatwo` where the
-documentation writes $\lambda_1$ and $\lambda_2$.
+count, nor of their difference. The constraint is a requirement of
+`custom_family()` rather than a modelling choice, and the same applies to the
+spelling of the two source-specific rates: `custom_family()` rejects a
+distributional parameter name ending in a digit, so the code writes `lambdaone`
+and `lambdatwo` where the documentation writes $\lambda_1$ and $\lambda_2$.
 
 ## Poisson or negative-binomial latent counts
 
 `bipois()` draws each latent count from a Poisson distribution, so the
 variance is equal to the mean. `binegbin()` draws each from NB2 instead and
-estimates three scalar dispersions. NB2$(m, \phi)$ is Stan's
-`neg_binomial_2` and R's `dnbinom(size = phi, mu = m)`: it has mean $m$ and
+estimates three scalar dispersions. NB2$(m, \phi)$ is `neg_binomial_2` in Stan
+and `dnbinom(size = phi, mu = m)` in R: it has mean $m$ and
 variance $m + m^2/\phi$, so a larger $\phi$ means less overdispersion,
 and the Poisson is the $\phi \to \infty$ limit.
 
@@ -373,11 +373,11 @@ so $N_{\text{shared}} \mid y_2 \sim \mathrm{Binomial}(y_2,\ \mu/(\mu +
 \lambda_1$. A sum of negative-binomial counts has no Binomial conditional, so
 `binegbin()` evaluates the discrete conditional law over
 $k = 0, \ldots, y_2$ and sums it. Both are exact, and each agrees with the
-mean of that family's own `posterior_predict()` draws to within Monte Carlo
+mean of `posterior_predict()` draws from the same family to within Monte Carlo
 error.
 
 `posterior_epred(fit)`, and therefore `fitted()` and `conditional_effects()`,
-dispatch to the family's own method in the ordinary way. Neither family
+dispatch to the family method in the ordinary way. Neither family
 supports `resp_trunc()`, so the brms limitation by which `posterior_epred()`
 errors on a truncated custom family cannot arise here.
 

@@ -12,7 +12,7 @@
 #   N1       ~ NB2(lambdaone, shapexone)   (source-1-only excess)
 #   N2       ~ NB2(lambdatwo, shapextwo)   (source-2-only excess)
 #
-# NB2(m, phi) is Stan's neg_binomial_2 / R's dnbinom(size = phi, mu = m):
+# NB2(m, phi) is neg_binomial_2 in Stan / dnbinom(size = phi, mu = m) in R:
 # mean m, variance m + m^2/phi. shapes is the shared-component dispersion;
 # shapexone and shapextwo are the two source-specific excess dispersions.
 #
@@ -37,8 +37,8 @@
 #       P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo),
 #       i.e. the joint with the y1 (N1) term integrated out over all y1.
 #
-# This is not censoring in brms's sense. brms's own cens() addition term means
-# a value known to lie in a set; here y1 is not observed at all and the
+# This is not censoring in the brms sense. The cens() addition term in brms
+# means a value known to lie in a set; here y1 is not observed at all and the
 # likelihood marginalises over its whole support. The families were named
 # `_cens` up to 0.9.1 for that reason and renamed at 0.10.0.
 #
@@ -98,10 +98,10 @@
 # DIRECTLY NegBin, so the marginalisation sum is the same finite sum as
 # bipois with neg_binomial_2_lpmf swapped in for poisson_lpmf. The bipois
 # incremental recurrence does not transfer cleanly (NegBin consecutive-term
-# ratios are less simple than Poisson's), so binegbin_lpmf evaluates the sum
-# directly via log_sum_exp. m = min(y1, y2) is bounded by the data
+# ratios are less simple than the Poisson ratios), so binegbin_lpmf evaluates
+# the sum directly via log_sum_exp. m = min(y1, y2) is bounded by the data
 # (~50-60 terms at most for this project), so the direct sum is not a
-# performance concern -- the same reasoning bipois's own docs give for why no
+# performance concern -- the same reasoning the bipois docs give for why no
 # large-argument branch is needed.
 #
 # WHY A DEDICATED FAMILY AND NOT TWO SEPARATE FITS, under partial observation.
@@ -192,9 +192,9 @@
 #' `dpar = "shapex"`.
 #'
 #' **Names forced by `custom_family()`.** Identical conventions to
-#' [bipois()] -- `mu` is brms's mandatory dpar name, here bound to the shared
-#' component's rate (`lambda_shared`), not a mean of either response; `y2`
-#' is supplied as supplementary integer data through `vint()` because
+#' [bipois()] -- `mu` is the mandatory brms dpar name, here bound to the rate
+#' of the shared component (`lambda_shared`), not a mean of either response;
+#' `y2` is supplied as supplementary integer data through `vint()` because
 #' `custom_family()` declares a single response column. See [bipois()] for
 #' the full explanation, including why the rates are spelled `lambdaone`/
 #' `lambdatwo` in code but written \eqn{\lambda_1}{lambda_1}/
@@ -254,17 +254,17 @@ binegbin_stanvars <- function() {
 #' where the first was not. `y1` may hold any non-negative integer on those
 #' rows -- `0` is the conventional placeholder -- because the likelihood does
 #' not read it. Do not use `NA`, which brms drops before fitting, taking the
-#' row's observed `y2` with it.
+#' observed `y2` on that row with it.
 #'
 #' **Contribution of a matched row and of an unmatched row.** A matched row (`y1_obs == 1`) uses the
 #' full joint lpmf on `(y1, y2)`. A row whose first count was never recorded
-#' (`y1_obs == 0`) contributes the second count's marginal *from the same
-#' model*,
+#' (`y1_obs == 0`) contributes the marginal of the second count *from the
+#' same model*,
 #' `P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo)` --
 #' the joint with the `y1` term integrated out over its whole support. It is
 #' not dropped, and it is not given a different model: it still informs the
-#' shared component (`mu`, `shapes`), the second source's rate and dispersion
-#' (`lambdatwo`, `shapextwo`), and any group-level effects.
+#' shared component (`mu`, `shapes`), the rate and dispersion of the second
+#' source (`lambdatwo`, `shapextwo`), and any group-level effects.
 #'
 #' **Imputation after fitting.** The fitted model can impute the unobserved
 #' first count conditional on the observed second one, which is usually why
@@ -272,14 +272,14 @@ binegbin_stanvars <- function() {
 #' `y1` draw and `E[y1 | y2]` for *every* row, matched and unmatched alike --
 #' `y1_obs` selects a likelihood branch, not a prediction.
 #'
-#' **A design consequence, worth knowing before the data are collected.** The first
-#' source's rate `lambdaone` and excess dispersion `shapexone` appear only on
-#' the matched branch, so they are identified by the matched rows *alone*. A
-#' design with 20 matched rows in 500 learns them weakly and leans on their
-#' priors. `mu`, `shapes`, `lambdatwo` and `shapextwo` appear on both branches
-#' and are informed by every row.
+#' **A design consequence, worth knowing before the data are collected.** The
+#' rate `lambdaone` and excess dispersion `shapexone` of the first source
+#' appear only on the matched branch, so they are identified by the matched
+#' rows *alone*. A design with 20 matched rows in 500 learns them weakly and
+#' leans on their priors. `mu`, `shapes`, `lambdatwo` and `shapextwo` appear
+#' on both branches and are informed by every row.
 #'
-#' **This is not censoring in brms's sense.** brms's `cens()` addition term
+#' **This is not censoring in the brms sense.** The brms `cens()` addition term
 #' means a value known to lie in a set -- `left`, `right`, `interval`. Here the
 #' first count is not observed at all and the likelihood marginalises over its
 #' whole support. This family was called `binegbin_cens()` up to 0.9.1; the
@@ -317,7 +317,7 @@ binegbin_stanvars <- function() {
 #'
 #' **Two `vint()` arguments, in declared order.** brms appends `vint()`
 #' integers to the generated lpmf call in the order they are listed in the
-#' formula's `vint()` term, matching the `vars` declared here: so
+#' `vint()` term of the formula, matching the `vars` declared here: so
 #' `vint(y2, y1_obs)` binds `vint1 = y2` and `vint2 = y1_obs`. Reordering the
 #' two `vint()` terms without matching the Stan signature silently swaps the
 #' second count with the branch flag.
@@ -405,11 +405,11 @@ binegbin_stan_funs <- "
 # R-side reference implementation
 # --------------------------------------------------------------------------
 
-# Independent brute-force evaluation of the same branching sum via R's dnbinom
-# (an independent route from Stan's neg_binomial_2), used to validate the Stan
-# lpmf and to power log_lik_binegbin() post-hoc. Internal reference only,
-# mirroring bipois_lpmf_r's role. Vectorised over all arguments (recycled to
-# common length); y1_obs selects the branch per row.
+# Independent brute-force evaluation of the same branching sum via dnbinom in
+# R (an independent route from neg_binomial_2 in Stan), used to validate the
+# Stan lpmf and to power log_lik_binegbin() post-hoc. Internal reference only,
+# mirroring the role of bipois_lpmf_r. Vectorised over all arguments (recycled
+# to common length); y1_obs selects the branch per row.
 #
 # Two defaults keep the common calls short and are load-bearing for the test
 # suite: `shapextwo` defaults to `shapexone`, so a seven-argument call is the
@@ -522,13 +522,13 @@ posterior_epred_binegbin <- function(prep) {
   # E[y1 | y2] = E[N_shared | y2] + lambdaone, exact, and the expectation of
   # exactly what posterior_predict_binegbin() simulates. A sum of independent
   # negative binomials conditioned on its total is not Binomial, so
-  # E[N_shared | y2] has no closed form as clean as bipois's
-  # y2 * mu/(mu+lambdatwo); it is the mean of the discrete conditional over
+  # E[N_shared | y2] has no closed form as clean as y2 * mu/(mu+lambdatwo) in
+  # bipois; it is the mean of the discrete conditional over
   # k = 0..y2 -- the same weights posterior_predict_binegbin() samples from,
   # summed rather than sampled. See .e_shared_given_y2_nb() in utils.R.
   #
   # `shapextwo` and not `shapexone`: the quantity conditioned on is y2, so it
-  # is the SECOND margin's excess dispersion that enters the conditional
+  # is the excess dispersion of the SECOND margin that enters the conditional
   # weights.
   #
   # y1_obs is not read, as it is not in posterior_predict_binegbin(): the
@@ -537,7 +537,7 @@ posterior_epred_binegbin <- function(prep) {
   # for every row keeps epred and posterior_predict comparable row by row.
   #
   # Before 0.9.0 this substituted the MARGINAL shared fraction
-  # mu/(mu+lambdatwo), which is bipois's answer and exact only in the Poisson
+  # mu/(mu+lambdatwo), which is the bipois answer and exact only in the Poisson
   # limit, so the epred and posterior_predict disagreed by more than Monte
   # Carlo error. They now agree by construction.
   .e_shared_given_y2_nb(mu, lambdatwo, shapes, shapextwo, y2) + lambdaone

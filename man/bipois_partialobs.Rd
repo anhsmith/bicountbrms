@@ -30,13 +30,13 @@ supplies a second integer, an observation flag, through
 where the first was not. \code{y1} may hold any non-negative integer on those
 rows -- \code{0} is the conventional placeholder -- because the likelihood does
 not read it. Do not use \code{NA}, which brms drops before fitting, taking the
-row's observed \code{y2} with it.
+observed \code{y2} on that row with it.
 
 \strong{Contribution of a matched row and of an unmatched row.} A matched row (\code{y1_obs == 1}) uses the
 full joint \code{\link[=bipois]{bipois()}} lpmf on \verb{(y1, y2)}. A row whose first count was never
-recorded (\code{y1_obs == 0}) contributes the second count's marginal \emph{from the
-same model}. For Poisson components that marginal is closed form -- a sum of
-independent Poissons is Poisson -- so it is exactly
+recorded (\code{y1_obs == 0}) contributes the marginal of the second count \emph{from
+the same model}. For Poisson components that marginal is closed form -- a
+sum of independent Poissons is Poisson -- so it is exactly
 \code{y2 ~ Poisson(mu + lambdatwo)}. \code{\link[=binegbin_partialobs]{binegbin_partialobs()}} must evaluate the
 corresponding convolution as a sum; this family does not. Either way the row
 is not dropped and is not given a different model: it still informs \code{mu},
@@ -60,7 +60,7 @@ them, \code{mu} and \code{lambdatwo} trade off along their sum and the prior doe
 correspondingly more of the work, however many unmatched rows the design
 contains.
 
-\strong{This is not censoring in brms's sense.} brms's \code{cens()} addition term
+\strong{This is not censoring in the brms sense.} The brms \code{cens()} addition term
 means a value known to lie in a set -- \code{left}, \code{right}, \code{interval}. Here the
 first count is not observed at all and the likelihood marginalises over its
 whole support. This family was called \code{bipois_cens()} up to 0.9.1; the name
@@ -81,8 +81,8 @@ data     = dat
 }
 \details{
 \strong{Choosing between this family and \code{\link[=binegbin_partialobs]{binegbin_partialobs()}}.} This family fixes
-each latent component's variance equal to its mean. Where the counts are
-genuinely overdispersed relative to that,
+the variance of each latent component equal to its mean. Where the counts
+are genuinely overdispersed relative to that,
 \code{\link[=binegbin_partialobs]{binegbin_partialobs()}} is the correct model and this one will understate
 the marginal variances. Where they are not, \code{\link[=binegbin_partialobs]{binegbin_partialobs()}} can only
 represent the fit by driving its dispersions to their Poisson limit
@@ -100,8 +100,8 @@ plain constructor rather than the two families declaring overloaded Stan
 functions.
 
 \strong{Two \code{vint()} arguments, in declared order.} brms appends \code{vint()} integers
-to the generated lpmf call in the order they are listed in the formula's
-\code{vint()} term, matching the \code{vars} declared here
+to the generated lpmf call in the order they are listed in the \code{vint()} term
+of the formula, matching the \code{vars} declared here
 (\code{c("vint1[n]", "vint2[n]")}): so \code{vint(y2, y1_obs)} binds \code{vint1 = y2} and
 \code{vint2 = y1_obs}. brms generates \verb{target += bipois_lpmf(Y[n] | mu[n], lambdaone[n], lambdatwo[n], vint1[n], vint2[n])}. Reordering the dpars or the
 two \code{vint()} terms without matching the Stan signature silently swaps which

@@ -50,7 +50,7 @@ test_that("y2-only (y1_obs==0) branch normalises to 1 over y2", {
   expect_equal(bipois_lpmf_r(0L,  7L, y1_obs = 0L, 5, 40, 4), base)
 })
 
-test_that("the unmatched branch's closed form equals the brute-force convolution", {
+test_that("the closed form of the unmatched branch equals the brute-force convolution", {
   # THE IDENTITY THAT LICENSES THE ONE-LINE STAN BRANCH. binegbin_partialobs must
   # evaluate P(y2) = sum_k f_s(k) f_2(y2 - k) as a sum because NB2 + NB2 is not
   # NB2. For Poisson components the same convolution collapses exactly to
@@ -97,12 +97,12 @@ test_that("marginal identity: sum over y1 of the matched branch == y2-only branc
   }
 })
 
-# Up to 0.9.1 a block here checked that bipois_partialobs's matched branch equalled
-# the bipois lpmf. There is now one lpmf, so that would compare a function to
-# itself. What is still a choice rather than a structural fact is which branch
-# an UNFLAGGED call takes -- and getting it wrong would score every fully
-# paired row against the marginal, which is a strictly larger number and so
-# would not announce itself as an error.
+# Up to 0.9.1 a block here checked that the matched branch of bipois_partialobs
+# equalled the bipois lpmf. There is now one lpmf, so that would compare a
+# function to itself. What is still a choice rather than a structural fact is
+# which branch an UNFLAGGED call takes -- and getting it wrong would score every
+# fully paired row against the marginal, which is a strictly larger number and
+# so would not announce itself as an error.
 
 test_that("an unflagged call is the matched branch, not the marginal", {
   grid <- expand.grid(
@@ -127,8 +127,8 @@ test_that("an unflagged call is the matched branch, not the marginal", {
 })
 
 test_that("binegbin reduces to bipois in the Poisson limit, on both branches", {
-  # THE CROSS-FAMILY CHECK THIS FAMILY MAKES POSSIBLE. binegbin_partialobs's
-  # unmatched branch is a numerical convolution whose only other test -- the
+  # THE CROSS-FAMILY CHECK THIS FAMILY MAKES POSSIBLE. The unmatched branch of
+  # binegbin_partialobs is a numerical convolution whose only other test -- the
   # marginal identity -- compares it against the matched branch of the same
   # code, so an error shared by both sums would pass. Driving its three
   # dispersions to their Poisson limit gives an INDEPENDENT analytic target:
@@ -275,12 +275,12 @@ test_that("Stan bipois_lpmf matches the R reference (both branches)", {
   expect_true(max(diffs) < 1e-8, label = paste("max diff =", max(diffs)))
 })
 
-test_that("the Stan flag selects the branch the R reference's flag selects", {
+test_that("the Stan flag selects the branch that the flag in the R reference selects", {
   # The equivalence check this replaces compared bipois_lpmf with
   # the 0.9.1 bipois_partialobs_lpmf, two Stan implementations of the recurrence that could
   # drift. There is now one, so that hazard is gone. What remains is that the
   # flag is the LAST argument in the Stan signature and the last in the R
-  # reference's, and the two orders can be changed independently -- so the
+  # reference, and the two orders can be changed independently -- so the
   # branch each selects is checked against the other, at both values.
   skip_if_not(stan_ready, "rstan unavailable or Stan compilation failed")
 
@@ -396,8 +396,8 @@ test_that("bipois_partialobs fits a partially observed design, dispatches, and r
     )
   })
 
-  # Dispatch: both must resolve the package's log_lik_/posterior_predict_
-  # methods by name without "no applicable method" errors.
+  # Dispatch: both must resolve the log_lik_/posterior_predict_ methods in this
+  # package by name without "no applicable method" errors.
   ll <- brms::log_lik(fit)
   expect_equal(dim(ll)[2], n)
   expect_true(all(is.finite(ll)))

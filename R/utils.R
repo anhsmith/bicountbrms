@@ -6,9 +6,10 @@
 # Reading a rate dpar across the 0.7.0 rename
 # --------------------------------------------------------------------------
 #
-# 0.7.0 renamed the joint families' two excess-rate dpars lambdaem/lambdalb
-# to lambdaone/lambdatwo (see NEWS). Fits made before that rename declare the
-# OLD names, in a way post-processing cannot route around generically: a brmsfit stores its own family object, so
+# 0.7.0 renamed the two excess-rate dpars of the joint families,
+# lambdaem/lambdalb, to lambdaone/lambdatwo (see NEWS). Fits made before that
+# rename declare the OLD names, in a way post-processing cannot route around
+# generically: a brmsfit stores its own family object, so
 # prepare_predictions() builds prep$dpars from THAT family, not from
 # whatever the currently-attached package declares. An old fit therefore
 # arrives here with prep$dpars$lambdaem populated and prep$dpars$lambdaone
@@ -17,15 +18,15 @@
 # brms::get_dpar() does `x <- prep$dpars[[dpar]]; stopifnot(!is.null(x))`,
 # so asking an old fit for the new name fails on a bare `!is.null(x) is not
 # TRUE` with nothing pointing at the cause. Worse, brms:::apply_dpar_inv_link()
-# resolves the dpar's LINK by looking the name up in prep$family -- so the
-# name passed to get_dpar() must match the fit's own family object, not
-# merely be present in prep$dpars. Rewriting prep, or aliasing at the family
-# level, would have to satisfy both; reading under the fit's own name
-# satisfies both for free.
+# resolves the LINK of the dpar by looking the name up in prep$family -- so the
+# name passed to get_dpar() must match the family object stored in the fit,
+# not merely be present in prep$dpars. Rewriting prep, or aliasing at the
+# family level, would have to satisfy both; reading under the name stored in
+# the fit satisfies both for free.
 #
 # Hence: resolve the name against the fit, then hand that name to brms.
 # Every rate read in every family goes through here -- bipois.R and
-# binegbin.R, under both of each file's constructors --
+# binegbin.R, under both constructors in each file --
 # which is what lets pre-0.7.0 fits keep working with loo(),
 # posterior_predict() and log_lik() without refitting.
 .get_rate <- function(prep, new, old, i = NULL) {
@@ -37,11 +38,11 @@
 # --------------------------------------------------------------------------
 #
 # The generalisation of .get_rate() to an ordered list of candidate names,
-# needed once 0.8.0 split the partially observed family's single excess
-# dispersion `shapex` into the per-margin pair `shapexone`/`shapextwo`, and
-# again once 0.10.0 did the same for the fully paired one (see NEWS). A stored fit
-# may spell that dispersion any of three ways, and which one it uses is a
-# property of the fit, not of the attached package:
+# needed once 0.8.0 split the single excess dispersion `shapex` of the
+# partially observed family into the per-margin pair `shapexone`/`shapextwo`,
+# and again once 0.10.0 did the same for the fully paired one (see NEWS). A
+# stored fit may spell that dispersion any of three ways, and which one it
+# uses is a property of the fit, not of the attached package:
 #
 #   shapexone <- "shapexone" (0.8.0+) | "shapexem" (project-local ax family)
 #                | "shapex"   (any pre-0.10.0 binegbin fit, and pre-0.8.0
@@ -55,9 +56,9 @@
 #
 # The rationale for resolving names against the fit rather than rewriting prep
 # or aliasing at the family level is given at .get_rate() above and applies
-# unchanged here: brms resolves a dpar's LINK by looking its name up in
-# prep$family, so the name handed to brms::get_dpar() must be one the fit's own
-# family object declares.
+# unchanged here: brms resolves the LINK of a dpar by looking its name up in
+# prep$family, so the name handed to brms::get_dpar() must be one declared by
+# the family object stored in the fit.
 .get_dpar_any <- function(prep, candidates, i = NULL) {
   for (nm in candidates) {
     if (!is.null(prep$dpars[[nm]])) {
@@ -76,7 +77,7 @@
 # E[N_shared | y2] for the negative-binomial joint families
 # --------------------------------------------------------------------------
 #
-# Every joint family's conditional expectation has the same shape,
+# The conditional expectation of every joint family has the same shape,
 #
 #   E[y1 | y2] = E[N_shared | y2] + lambdaone,
 #
@@ -106,15 +107,15 @@
 # only in the Poisson limit and biased otherwise, in the direction set by which
 # component is the more dispersed. See NEWS for the size of the change.
 #
-# `shapex2` is the dispersion of the SECOND margin's excess component
-# (`shapextwo`, or a pre-0.10.0 fit's single `shapex`) -- the y2
-# marginal is what is being conditioned on, so the first margin's dispersion
-# does not enter.
+# `shapex2` is the dispersion of the excess component in the SECOND margin
+# (`shapextwo`, or the single `shapex` of a pre-0.10.0 fit) -- the y2
+# marginal is what is being conditioned on, so the dispersion of the first
+# margin does not enter.
 #
 # Arguments are ndraws x nobs matrices except `y2`, a length-nobs integer
 # vector. Returns an ndraws x nobs matrix. The loop is over observations and
 # over the support 0..y2, vectorised across draws within each, so its cost
-# matches posterior_predict's; both are paid post-hoc, never inside the
+# matches that of posterior_predict; both are paid post-hoc, never inside the
 # sampler.
 .e_shared_given_y2_nb <- function(mu, lambdatwo, shapes, shapex2, y2) {
   out <- matrix(0, nrow = nrow(mu), ncol = ncol(mu))
@@ -147,7 +148,7 @@
 #
 # Only log_lik_* calls this. posterior_predict_* and posterior_epred_* do not
 # read the flag under either shape -- they impute the first margin on every
-# row, which is the package's epred convention (see CLAUDE.md).
+# row, which is the epred convention of the package (see CLAUDE.md).
 .y1_obs_at <- function(prep, i) {
   if (is.null(prep$data$vint2)) 1L else prep$data$vint2[i]
 }

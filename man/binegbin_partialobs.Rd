@@ -29,17 +29,17 @@ a second supplementary integer, an observation flag, through \code{vint()}:
 where the first was not. \code{y1} may hold any non-negative integer on those
 rows -- \code{0} is the conventional placeholder -- because the likelihood does
 not read it. Do not use \code{NA}, which brms drops before fitting, taking the
-row's observed \code{y2} with it.
+observed \code{y2} on that row with it.
 
 \strong{Contribution of a matched row and of an unmatched row.} A matched row (\code{y1_obs == 1}) uses the
 full joint lpmf on \verb{(y1, y2)}. A row whose first count was never recorded
-(\code{y1_obs == 0}) contributes the second count's marginal \emph{from the same
-model},
+(\code{y1_obs == 0}) contributes the marginal of the second count \emph{from the
+same model},
 \verb{P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo)} --
 the joint with the \code{y1} term integrated out over its whole support. It is
 not dropped, and it is not given a different model: it still informs the
-shared component (\code{mu}, \code{shapes}), the second source's rate and dispersion
-(\code{lambdatwo}, \code{shapextwo}), and any group-level effects.
+shared component (\code{mu}, \code{shapes}), the rate and dispersion of the second
+source (\code{lambdatwo}, \code{shapextwo}), and any group-level effects.
 
 \strong{Imputation after fitting.} The fitted model can impute the unobserved
 first count conditional on the observed second one, which is usually why
@@ -47,14 +47,14 @@ someone wanted this. \code{posterior_predict()} and \code{posterior_epred()} ret
 \code{y1} draw and \code{E[y1 | y2]} for \emph{every} row, matched and unmatched alike --
 \code{y1_obs} selects a likelihood branch, not a prediction.
 
-\strong{A design consequence, worth knowing before the data are collected.} The first
-source's rate \code{lambdaone} and excess dispersion \code{shapexone} appear only on
-the matched branch, so they are identified by the matched rows \emph{alone}. A
-design with 20 matched rows in 500 learns them weakly and leans on their
-priors. \code{mu}, \code{shapes}, \code{lambdatwo} and \code{shapextwo} appear on both branches
-and are informed by every row.
+\strong{A design consequence, worth knowing before the data are collected.} The
+rate \code{lambdaone} and excess dispersion \code{shapexone} of the first source
+appear only on the matched branch, so they are identified by the matched
+rows \emph{alone}. A design with 20 matched rows in 500 learns them weakly and
+leans on their priors. \code{mu}, \code{shapes}, \code{lambdatwo} and \code{shapextwo} appear
+on both branches and are informed by every row.
 
-\strong{This is not censoring in brms's sense.} brms's \code{cens()} addition term
+\strong{This is not censoring in the brms sense.} The brms \code{cens()} addition term
 means a value known to lie in a set -- \code{left}, \code{right}, \code{interval}. Here the
 first count is not observed at all and the likelihood marginalises over its
 whole support. This family was called \code{binegbin_cens()} up to 0.9.1; the
@@ -92,7 +92,7 @@ this package to declare a floor on the Stan version. It does not.
 
 \strong{Two \code{vint()} arguments, in declared order.} brms appends \code{vint()}
 integers to the generated lpmf call in the order they are listed in the
-formula's \code{vint()} term, matching the \code{vars} declared here: so
+\code{vint()} term of the formula, matching the \code{vars} declared here: so
 \code{vint(y2, y1_obs)} binds \code{vint1 = y2} and \code{vint2 = y1_obs}. Reordering the
 two \code{vint()} terms without matching the Stan signature silently swaps the
 second count with the branch flag.

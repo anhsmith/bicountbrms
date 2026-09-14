@@ -1,7 +1,7 @@
 # Builds a minimal synthetic brms "prep"-like list sufficient for
 # posterior_predict_<family>()/posterior_epred_<family>() to run without a
-# full brmsfit -- avoids the Stan-compilation dependency the rest of this
-# package's Stan-side tests already gate behind stan_ready.
+# full brmsfit -- avoids the Stan-compilation dependency the rest of the
+# Stan-side tests in this package already gate behind stan_ready.
 # Confirmed sufficient directly against the installed brms package: with
 # class(prep) <- "brmsprep", brms::is.brmsprep() (inherits(x, "brmsprep"))
 # and brms::get_dpar() (which reads prep$dpars[[name]] and, for a plain
@@ -13,7 +13,7 @@
 # or a shorter vector/scalar recycled across all observations (a single
 # dpar value shared by every observation, the common case in these tests).
 # `lb`/`ub` are omitted entirely (not merely set to -Inf/Inf) when NULL, to
-# match brms's own behaviour for untruncated formulas (confirmed via
+# match the behaviour of brms itself for untruncated formulas (confirmed via
 # brms::make_standata(): prep$data$lb/ub are absent, not -Inf/Inf-filled,
 # when no trunc()/resp_trunc() is used).
 make_synthetic_prep <- function(dpars, Y, lb = NULL, ub = NULL,
@@ -34,7 +34,7 @@ make_synthetic_prep <- function(dpars, Y, lb = NULL, ub = NULL,
   data <- list(Y = Y)
   if (!is.null(lb)) data$lb <- lb
   if (!is.null(ub)) data$ub <- ub
-  # Supplementary integer data threaded through brms's vint() addition term;
+  # Supplementary integer data threaded through the brms vint() addition term;
   # the joint families read these as prep$data$vint1/vint2 (e.g. y2 and the
   # y1_obs branch flag for binegbin_partialobs), row-indexed exactly like Y.
   if (!is.null(vint1)) data$vint1 <- vint1

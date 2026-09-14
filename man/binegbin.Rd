@@ -88,9 +88,9 @@ post-processed. Set a prior with \code{nlpar = "shapexx"} rather than
 \code{dpar = "shapex"}.
 
 \strong{Names forced by \code{custom_family()}.} Identical conventions to
-\code{\link[=bipois]{bipois()}} -- \code{mu} is brms's mandatory dpar name, here bound to the shared
-component's rate (\code{lambda_shared}), not a mean of either response; \code{y2}
-is supplied as supplementary integer data through \code{vint()} because
+\code{\link[=bipois]{bipois()}} -- \code{mu} is the mandatory brms dpar name, here bound to the rate
+of the shared component (\code{lambda_shared}), not a mean of either response;
+\code{y2} is supplied as supplementary integer data through \code{vint()} because
 \code{custom_family()} declares a single response column. See \code{\link[=bipois]{bipois()}} for
 the full explanation, including why the rates are spelled \code{lambdaone}/
 \code{lambdatwo} in code but written \eqn{\lambda_1}{lambda_1}/

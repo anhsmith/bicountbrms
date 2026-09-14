@@ -117,8 +117,8 @@ test_that("y1_obs does not change the draws, matched vs unmatched", {
 test_that("epred equals the mean of its own draws on a unmatched asymmetric row", {
   # The epred convention (see test-epred.R) applied where it has not been
   # checked: unmatched row, shapexone != shapextwo. posterior_epred reads only
-  # shapextwo, so this also pins that it is the SECOND margin's dispersion that
-  # enters -- reading .SHAPEXONE_NAMES there would pass every other test.
+  # shapextwo, so this also pins that it is the dispersion of the SECOND margin
+  # that enters -- reading .SHAPEXONE_NAMES there would pass every other test.
   set.seed(20260805)
   draws <- posterior_predict_binegbin(1, asym_prep(vint2 = 0L))
   ep    <- unique(as.vector(posterior_epred_binegbin(asym_prep(vint2 = 0L, ndraws = 2L))))
@@ -176,7 +176,7 @@ test_that("y2 = 0 makes posterior_predict draw the private component alone", {
 #
 #   "y1_obs does not change the draws" has no one-vint counterpart -- there is
 #   no flag on this path. Its cross-shape analogue, that the one-vint answer
-#   equals the two-vint answer at y1_obs = 1, is test-unified-vint.R's subject.
+#   equals the two-vint answer at y1_obs = 1, is tested in test-unified-vint.R.
 
 # The same fixture with no vint2, which is what vint(y2) alone produces.
 asym_prep_matched <- function(y2 = Y2, sx1 = SX1, sx2 = SX2, ndraws = ND) {
@@ -274,9 +274,9 @@ test_that("bipois predicts and expects the same on one-vint and two-vint preps",
 #    seconds -- no Monte Carlo, no sampler. test-epred.R checks it against the
 #    mean of posterior_predict draws at ONE setting plus the Poisson limit, and
 #    this file adds one unmatched asymmetric setting and y2 = 0. Neither is a
-#    grid. The reference to compare against is .e_shared_given_y2_nb()'s
-#    definition in R/utils.R, re-implemented independently rather than called.
-#    Cheap; the natural next addition to this file.
+#    grid. The reference to compare against is the definition of
+#    .e_shared_given_y2_nb() in R/utils.R, re-implemented independently rather
+#    than called. Cheap; the natural next addition to this file.
 #
 # 2. NO FIT-LEVEL TEST THAT UNMATCHED ROWS DO NOT SHARPEN `shapexone`.
 #    test-binegbin-dispersions.R pins at the LIKELIHOOD level that shapexone is
@@ -285,10 +285,10 @@ test_that("bipois predicts and expects the same on one-vint and two-vint preps",
 #    shapexone must WIDEN, and the imputation intervals with them. If adding
 #    y2-only rows tightened shapexone, the unmatched branch would be leaking
 #    information it cannot have. Needs Stan and several fits, so it belongs
-#    behind BICOUNTBRMS_COVERAGE, reusing coverage_recovery()'s compile-once /
-#    update(recompile = FALSE) pattern in helper-coverage.R. Still needs a
-#    concrete spec: which matched fractions, how many replicates, and what
-#    counts as a failure.
+#    behind BICOUNTBRMS_COVERAGE, reusing the compile-once /
+#    update(recompile = FALSE) pattern from coverage_recovery() in
+#    helper-coverage.R. Still needs a concrete spec: which matched fractions,
+#    how many replicates, and what counts as a failure.
 #
 # 3. PREDICTIVE COVERAGE UNDER CORRECT SPECIFICATION IS DELIBERATELY NOT HERE.
 #    Simulating from the generative model, withholding y1, refitting and checking

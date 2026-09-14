@@ -52,8 +52,8 @@ nb_prep <- function(vint2 = NULL, shapex = SHAPEX) {
 
 test_that("both joint families export a posterior_epred method", {
   # brms locates these by name convention, so their existence IS the interface.
-  # A family without one silently falls back to brms's own dispatch and errors
-  # at call time rather than at load time, which is why this is asserted
+  # A family without one silently falls back to the dispatch in brms itself and
+  # errors at call time rather than at load time, which is why this is asserted
   # directly rather than left to the end-to-end tests.
   #
   # There are two names, not four: from 0.10.0 each component distribution has
@@ -132,7 +132,7 @@ test_that("the binegbin epred equals the mean of its draws on a two-vint prep", 
   expect_equal(mean(draws), ep, tolerance = 0.1)
 })
 
-test_that("the observation flag does not change either family's epred", {
+test_that("the observation flag does not change the epred of either family", {
   # posterior_predict imputes y1 on every row, unmatched included; epred must
   # match that convention, or the two become incomparable row by row exactly
   # where imputation matters.
@@ -156,9 +156,9 @@ test_that("the binegbin epred is the same with and without the flag on a matched
 # ---------------------------------------------------------------------------
 
 test_that("the negative-binomial epreds reduce to the Poisson ones as shapes grow", {
-  # NB2(m, phi) -> Poisson(m) as phi -> Inf, so binegbin's exact conditional
-  # expectation must approach bipois's Binomial closed form. This would NOT
-  # have held for the superseded approximation, which equalled the bipois
+  # NB2(m, phi) -> Poisson(m) as phi -> Inf, so the exact binegbin conditional
+  # expectation must approach the Binomial closed form for bipois. This would
+  # NOT have held for the superseded approximation, which equalled the bipois
   # answer at every phi -- it was the Poisson-limit value used everywhere.
   ref <- posterior_epred_bipois(pois_prep())
 

@@ -1,6 +1,6 @@
 # Regression tests for the pre-0.7.0 dpar-name fallback (.get_rate).
 #
-# 0.7.0 renamed the joint families' excess-rate dpars lambdaem/lambdalb to
+# 0.7.0 renamed the excess-rate dpars lambdaem/lambdalb of the joint families to
 # lambdaone/lambdatwo. A brmsfit stores its OWN family object, so
 # prepare_predictions() on a fit made before the rename hands post-processing a
 # prep whose dpars use the old names. Every rate read in bipois/bipois_partialobs/
@@ -14,8 +14,8 @@
 # brms::get_dpar().
 #
 # These use make_synthetic_prep() (helper-prep.R) rather than a real fit, so
-# they run without Stan. The real-fit path -- where brms also resolves each
-# dpar's LINK by name via prep$family -- is exercised separately against an
+# they run without Stan. The real-fit path -- where brms also resolves the LINK
+# of each dpar by name via prep$family -- is exercised separately against an
 # actual pre-rename fit.
 
 # Length-3 vectors => 3 posterior draws; 4 observations.

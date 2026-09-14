@@ -178,7 +178,7 @@ test_that("bipois parameter recovery from simulated vessel-level data", {
     recovery_ok(draws, true_val, draws_col)
   }
 
-  # brms treats "mu" as the family's canonical/default dpar and drops its
+  # brms treats "mu" as the canonical/default dpar of the family and drops its
   # infix from generated column names (b_Intercept, sd_vessel__Intercept),
   # unlike the other two, plainly-named dpars (b_lambdaone_Intercept, etc.)
   # -- so "mu" here reads as b_Intercept even though it stands in for the

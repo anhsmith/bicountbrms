@@ -1,5 +1,5 @@
 ---
-title: "The anatomy of a paired count"
+title: "Mapping native parameters to interpretable coordinates"
 description: >
   What a pair of counts is made of, and the two coordinate systems you can
   describe it in. Interactive, with every knob linked to every other.
@@ -34,9 +34,10 @@ y_1 = N_{\text{shared}} + N_1
 y_2 = N_{\text{shared}} + N_2
 $$
 
-The shared term induces the correlation between the pair. It is never observed, and is
-marginalised out analytically in the likelihood. Everything else is the part
-each source saw alone. The construction and its sources are set out in
+The shared term induces the correlation between the pair. It is never observed,
+and is marginalised out analytically in the likelihood. $N_1$ and $N_2$ are the
+excess counts, each recorded by one source only. The construction and its
+sources are set out in
 [The families and their parameters](families-and-parameters.html).
 
 The widget below shows the same model in both parameterisations, over an expected
@@ -56,7 +57,7 @@ Those three questions have their own coordinates:
 | | | |
 |---|---|---|
 | $M$ | overall level | $\mu + (\lambda_1 + \lambda_2)/2$ |
-| $f$ | congruence, the share of $M$ both sources saw | $\mu / M$ |
+| $f$ | congruence, the mean of the shared component as a proportion of $M$ | $\mu / M$ |
 | $\beta$ | source bias, bounded on $[-1,1]$ | $(\lambda_1 - \lambda_2)/(\lambda_1 + \lambda_2)$ |
 
 The map between them is a bijection, so neither set is more "real": they are
@@ -86,11 +87,11 @@ respond.
   .pca-group h4 { margin:.1rem 0 .5rem; font-size:.95rem; letter-spacing:.02em; }
   .pca-group { border:1px solid var(--pca-edge); border-radius:7px; padding:.7rem .8rem; }
   .pca-dial { display:flex; align-items:center; gap:.45rem; margin:.3rem 0; }
-  /* Widths in rem, not em: `em` on .val resolves against .val's own smaller
-     font-size, which made the box's real width hard to predict. The range needs
-     an explicit min-width or it loses the space war to the number field's
-     intrinsic size. The slider is the thing being dragged, so it gets the
-     remaining space. */
+  /* Widths in rem, not em: `em` on .val resolves against the smaller font-size
+     of .val itself, which made the real width of the box hard to predict. The
+     range needs an explicit min-width or it loses the space war to the
+     intrinsic size of the number field. The slider is the thing being dragged,
+     so it gets the remaining space. */
   .pca-dial .lab { flex:0 0 6rem; font-size:.86rem; }
   .pca-dial .lab sub { line-height:0; font-size:.75em; }
   .pca-dial input[type=range] { flex:1 1 auto; min-width:6rem; width:auto;
@@ -466,15 +467,15 @@ floor, not determinism: there is no parameter setting that stills the stacks.
 
 ## Calling the map directly
 
-The widget's arithmetic is not a separate model: it is the package's own map,
-which you can call directly. The R code below is the authoritative version, and
-the JavaScript above is checked against it:
+The arithmetic in the widget is not a separate model: it is the map exported by
+the package, which you can call directly. The R code below is the authoritative
+version, and the JavaScript above is checked against it:
 
 ```{r}
 #| label: map
 library(bicountbrms)
 
-# The widget's defaults
+# The widget defaults
 binegbin_mfd_to_dpars(
   M      = 12,
   f      = 0.67,
@@ -484,8 +485,8 @@ binegbin_mfd_to_dpars(
   )
 ```
 
-`delta` is the unbounded log-ratio bias; the widget's $\beta$ is the bounded
-$\tanh\delta$. Going back the other way:
+`delta` is the unbounded log-ratio bias; the $\beta$ in the widget is the
+bounded $\tanh\delta$. Going back the other way:
 
 ```{r}
 #| label: inverse
@@ -543,9 +544,10 @@ read first.
 Three of these coordinates have a **null at a finite, interpretable zero**. The
 priors below follow from three statements about that null. Zero is the base
 model: $\kappa = 0$ is a Poisson component, $\delta = 0$ is no bias between the
-two sources. A coordinate's effect on the fit grows as it moves away from zero.
-The prior's density should therefore decrease monotonically away from zero,
-leaving the data rather than the prior to move the estimate off the base model.
+two sources. The effect of a coordinate on the fit grows as the coordinate
+moves away from zero. The prior density should therefore decrease monotonically
+away from zero, leaving the data rather than the prior to move the estimate off
+the base model.
 
 The third statement is Occam's razor in the sense of
 @simpsonPenalisingModelComponent2017 (their Principle 1), with the scale chosen
@@ -583,10 +585,10 @@ for yours is the question to settle before adopting the scale used here.
 
 `exponential(1)` is an alternative of the same shape, with its maximum at zero,
 decaying monotonically, and a heavier tail. The two agree at the median to
-within 3% ($0.693$ against $0.674$) and separate further out: 5.0% of the
-exponential's mass lies beyond $\kappa = 3$, against 0.27% of the
-half-normal's. Either satisfies the three statements above, so the choice is how
-much overdispersion the prior permits before the data are consulted.
+within 3% ($0.693$ against $0.674$) and separate further out: the exponential
+places 5.0% of its mass beyond $\kappa = 3$, against 0.27% for the half-normal.
+Either satisfies the three statements above, so the choice is how much
+overdispersion the prior permits before the data are consulted.
 @simpsonPenalisingModelComponent2017 §3.2 discusses heavy tails and their
 numerical behaviour.
 
@@ -605,9 +607,9 @@ $\mathrm{N}(0, 3)$, `normal(0, 1.5)` among them.
 
 ### Setting the prior on $M$ from your own counts
 
-$M$ is the only coordinate on the counts' own scale. The others are scale-free,
-so one recommendation serves any dataset; $M$ takes a prior chosen from the counts
-being modelled.
+$M$ is the only coordinate on the scale of the counts. The others are
+scale-free, so one recommendation serves any dataset; $M$ takes a prior chosen
+from the counts being modelled.
 
 `normal(4, 1.5)` is used below, which covers roughly 3 to 1000 counts per
 sampling unit and suits the simulated data. For sparser data, lower the mean:
@@ -802,9 +804,9 @@ effect on `mu` alone changes the level and the congruence at once.
 
 The JavaScript is an independent implementation of the *generative* model: it
 draws from the same trivariate reduction, but it is not the likelihood, and no
-part of the package's inference runs in your browser. It uses the rate map
-tested in `test-mfd.R`; the sampler is illustrative. Treat the picture
-as intuition, and the R above as the specification.
+part of the inference performed by the package runs in your browser. It uses
+the rate map tested in `test-mfd.R`; the sampler is illustrative. Treat the
+picture as intuition, and the R above as the specification.
 
 The widget also shows ONE excess-dispersion dial. `binegbin()` estimates two,
 `shapexone` and `shapextwo`, and the (M, f, delta) coordinates this article

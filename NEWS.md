@@ -79,7 +79,7 @@
   was nothing to get wrong.
 
   - `tests/testthat/test-partialobs-predict.R` replaces `test-cens-predict.R`.
-    It keeps all five of that file's blocks and adds a one-`vint` mirror of
+    It keeps all five blocks from that file and adds a one-`vint` mirror of
     each: the same fixtures with `shapexone` and `shapextwo` an order of
     magnitude apart, on a prep with no `vint2`.
   - `tests/testthat/test-unified-vint.R` pins the release criterion that the
@@ -98,9 +98,9 @@
   fallbacks have to line up for that to work: `.get_rate()` resolves pre-0.7.0
   `lambdaem`/`lambdalb`; `.SHAPEXONE_NAMES` and `.SHAPEXTWO_NAMES` both list
   `shapex` last, so both per-margin dispersions resolve to the one such a fit
-  has; and an absent `vint2` selects the matched branch. Scanning the sibling
-  project's fit directory found 103 stored `binegbin` fits, every one of them
-  with the pre-0.7.0 rate names *and* the single `shapex`, so all three
+  has; and an absent `vint2` selects the matched branch. Scanning the fit
+  directory of the sibling project found 103 stored `binegbin` fits, every one
+  of them with the pre-0.7.0 rate names *and* the single `shapex`, so all three
   paths are exercised in practice. `test-dpar-compat.R` now builds that exact
   prep and asserts all three methods agree with the six-dpar answer with the
   dispersions tied.
@@ -207,8 +207,8 @@
   guarantee than a hand-picked subset of forwarders.
 # bicountbrms 0.9.1
 
-* **No behaviour change.** Nothing in the four families' likelihoods,
-  predictions or expectations differs from 0.9.0. This release adds test
+* **No behaviour change.** Nothing in the likelihoods, predictions or
+  expectations of the four families differs from 0.9.0. This release adds test
   coverage that was missing and corrects a claim in the README the suite did not
   support. No fitted model is affected and no code needs changing.
 
@@ -251,7 +251,7 @@
   they were originally released.
 
   **No fitted model needs refitting**, either for the split or for the rename
-  below. brms resolves each fit's `log_lik_*` / `posterior_predict_*` /
+  below. For each fit, brms resolves the `log_lik_*` / `posterior_predict_*` /
   `posterior_epred_*` methods off the attached search path at call time, so a
   stored fit works as soon as the package holding its family is attached. No
   dpar name changed. The only source change the split itself requires is
@@ -301,9 +301,9 @@
   once (a test pins this).
 
 * **New family: `bipois_cens()` / `bipois_cens_stanvars()`.** The
-  censoring-aware bivariate Poisson — `binegbin_cens()`'s equidispersed
-  counterpart, and `bipois()`'s censoring-aware one. Three log-linked dpars
-  (`mu`, `lambdaone`, `lambdatwo`) and two `vint()` integers,
+  censoring-aware bivariate Poisson — the equidispersed counterpart of
+  `binegbin_cens()`, and the censoring-aware counterpart of `bipois()`. Three
+  log-linked dpars (`mu`, `lambdaone`, `lambdatwo`) and two `vint()` integers,
   `vint(y2, y1_obs)`, exactly as `binegbin_cens()` takes them. It has no
   deprecated aliases: it was added in this release under its final name.
 
@@ -316,7 +316,7 @@
   Two things follow. Users whose counts are equidispersed no longer have to fit
   `binegbin_cens()` with its dispersions pressed against the Poisson boundary,
   where sampling degrades. And the suite gains an independent analytic reference
-  for `binegbin_cens()`'s censored branch: driving its three dispersions to
+  for the censored branch of `binegbin_cens()`: driving its three dispersions to
   their Poisson limit must reproduce `bipois_cens()`, checked as a limit — the
   error must shrink in proportion to `1/phi` — rather than at a single
   tolerance. Previously that branch was pinned only by the marginal identity,
@@ -338,7 +338,7 @@
   samples from, summed rather than sampled — so the expectation and the
   predictions agree by construction rather than approximately.
 
-  Numbers produced by an earlier version's `posterior_epred_binegbin()` should
+  Numbers produced by `posterior_epred_binegbin()` in an earlier version should
   be recomputed. `log_lik()`, `loo()` and `posterior_predict()` are unaffected;
   the likelihood has not changed.
 
@@ -346,45 +346,46 @@
   `posterior_epred` at all, on the view that `E[y1]` is ambiguous when `y1` is
   unobserved. It is not: `E[y1 | y2]` is well defined whether or not `y1` was
   recorded, and it is the quantity a user imputing the missing margin wants. It
-  is returned for every row, matched and censored alike, matching
-  `posterior_predict_binegbin_cens()`'s existing convention. Stored fits reach it
+  is returned for every row, matched and censored alike, matching the existing
+  convention of `posterior_predict_binegbin_cens()`. Stored fits reach it
   through the deprecated `posterior_epred_binegbin_joint()` forwarder, so they
   gain the method without refitting.
 
 * **All four families now share one `posterior_epred` convention**, stated once
   in `tests/testthat/test-epred.R` and held to one standard: the expectation
-  must equal the mean of that family's own `posterior_predict` draws to within
-  Monte Carlo error. Before this release, the three families answered three
-  different ways — exactly, approximately, and not at all.
+  must equal the mean of `posterior_predict` draws from the same family to
+  within Monte Carlo error. Before this release, the three families answered
+  three different ways — exactly, approximately, and not at all.
 
 * `skellam` moves from **Imports to Suggests**. No function in `R/` calls it now
   that the Skellam families have left; `tests/testthat/test-bipois.R` still uses
   `skellam::dskellam()` as the independent reference for the induced difference
   distribution, which is worth keeping.
 
-* The coverage gate's environment variable is renamed
+* The environment variable for the coverage gate is renamed
   `PAIREDCOUNTBRMS_COVERAGE` → `BICOUNTBRMS_COVERAGE`.
 
 * The README and the getting-started vignette are rewritten around the four
-  joint families, and the vignette's "one limitation to know about" section —
-  which described brms's `posterior_epred()` failure on *truncated* custom-family
-  fits — is replaced by a statement of the epred convention above. That
-  limitation cannot arise here: these families do not support `resp_trunc()`. It
-  applies to the difference families and is now documented in `skellambrms`.
+  joint families, and the vignette section "one limitation to know about" —
+  which described how `posterior_epred()` in brms fails on *truncated*
+  custom-family fits — is replaced by a statement of the epred convention
+  above. That limitation cannot arise here: these families do not support
+  `resp_trunc()`. It applies to the difference families and is now documented
+  in `skellambrms`.
 
 ---
 
-Entries below record this code's history under its former names. It was
+Entries below record the history of this code under its former names. It was
 `skellambrms` through 0.5.0 and `pairedcountbrms` from 0.6.0 to 0.8.0, and those
 packages contained the difference families as well, so some entries describe
 families that are no longer here. They are left as written rather than
 retrospectively edited. Releases before 0.4.0, which predate the joint families
 entirely, are recorded in
-[`skellambrms`'s NEWS](https://github.com/anhsmith/skellambrms/blob/master/NEWS.md).
+[the `skellambrms` NEWS](https://github.com/anhsmith/skellambrms/blob/master/NEWS.md).
 
 # pairedcountbrms 0.8.0
 
-* **Breaking (dpar split): `binegbin_joint()`'s single excess dispersion
+* **Breaking (dpar split): in `binegbin_joint()`, the single excess dispersion
   `shapex` is now the per-margin pair `shapexone`/`shapextwo`**, giving the
   family six dpars (`mu`, `lambdaone`, `lambdatwo`, `shapes`, `shapexone`,
   `shapextwo`), all log-linked. The two source-only excess components may now
@@ -408,11 +409,11 @@ entirely, are recorded in
   `prior(..., nlpar = "shapexx")`.
 
 * **Fits made before this release still post-process; no refitting and no shim
-  are required.** brms resolves a custom family's `log_lik_*` /
-  `posterior_predict_*` by name against the live search path at call time, not
-  from anything frozen in the fit, so a stored fit always runs the currently
+  are required.** brms resolves `log_lik_*` / `posterior_predict_*` for a
+  custom family by name against the live search path at call time, not from
+  anything frozen in the fit, so a stored fit always runs the currently
   attached code. Only the dpar NAMES it declares are frozen, and both excess
-  dispersions now fall back to a five-dpar fit's single `shapex` — which is
+  dispersions now fall back to the single `shapex` of a five-dpar fit — which is
   precisely the constraint that fit was estimated under. Verified on stored
   five-dpar fits: `log_lik()` and `posterior_predict()` agree with 0.7.0
   bitwise, and `loo()` runs unchanged.
@@ -425,9 +426,9 @@ entirely, are recorded in
 
 * `binegbin_mfd_to_dpars()` gains `kappaxone`/`kappaxtwo`, and
   `binegbin_dpars_to_mfd()` gains `shapexone`/`shapextwo`, so the
-  $(M, f, \delta)$ converters serve `binegbin_joint()`'s per-margin excess
-  dispersions under the family's own dpar names instead of leaving the caller
-  to re-derive `shape = 1/kappa^2`. Purely additive: the existing
+  $(M, f, \delta)$ converters serve the per-margin excess dispersions of
+  `binegbin_joint()` under the dpar names of that family instead of leaving
+  the caller to re-derive `shape = 1/kappa^2`. Purely additive: the existing
   `kappax`/`shapex` arguments are unchanged and still return `shapex`/`kappax`.
   Supplying `kappax` together with either of the new arguments is an error,
   since they are two spellings of the same quantity for different families.
@@ -440,8 +441,8 @@ entirely, are recorded in
 
 # pairedcountbrms 0.7.0
 
-* **Breaking (dpar rename): the joint families' excess-rate dpars
-  `lambdaem`/`lambdalb` are now `lambdaone`/`lambdatwo`**, affecting `bipois()`,
+* **Breaking (dpar rename): the excess-rate dpars `lambdaem`/`lambdalb` of the
+  joint families are now `lambdaone`/`lambdatwo`**, affecting `bipois()`,
   `binegbin()` and `binegbin_joint()`. The former names referred to electronic
   monitoring and vessel logbooks, the two sources in the project from which the
   package was extracted, and carried no meaning outside it. The new names are
@@ -471,19 +472,19 @@ entirely, are recorded in
 
 * **Documentation notation unified.** The joint families previously used
   $y_{\mathrm{em}}, y_{\mathrm{lb}}, N_{10}, N_{01}$ while the difference
-  families used $y_1, y_2$, so the identity between the bivariate Poisson's
-  difference and the Skellam distribution was stated in one notation and
+  families used $y_1, y_2$, so the identity between the difference under the
+  bivariate Poisson and the Skellam distribution was stated in one notation and
   demonstrated in another. All documentation now uses $y_1, y_2$, $N_1, N_2$ and
   $\lambda_1, \lambda_2$, making $d = y_1 - y_2 = N_1 - N_2$ continuous across
   both suites.
 
 * **Recovery tests separated into smoke gates and a calibration assessment.**
-  The recovery tests asserted that the true value fell within a single fit's 90%
-  credible interval. For a correct model with a calibrated posterior, this is a
-  Bernoulli(0.9) draw, failing 10% of the time by construction; across the ~18
-  such assertions in the suite, spurious failures were the norm. Two assertions
-  in `test-binegbin.R` had been failing on every run since they were written,
-  identically before and after the dpar rename, undetected because
+  The recovery tests asserted that the true value fell within the 90% credible
+  interval from a single fit. For a correct model with a calibrated posterior,
+  this is a Bernoulli(0.9) draw, failing 10% of the time by construction; across
+  the ~18 such assertions in the suite, spurious failures were the norm. Two
+  assertions in `test-binegbin.R` had been failing on every run since they were
+  written, identically before and after the dpar rename, undetected because
   `skip_on_cran()` excludes the fitting tests from `R CMD check`.
 
   Single-fit checks are now smoke gates: convergence plus a wide (99%) interval,
@@ -501,18 +502,18 @@ entirely, are recorded in
 
 * **`binegbin` recovery and group-level composition are now separate tests, with
   less extreme generative truths.** A single test previously did both, on data
-  with a vessel effect over 8 levels and severe overdispersion (the shared
-  component's variance was 40 against a mean of 8). Three variance channels —
+  with a vessel effect over 8 levels and severe overdispersion (the variance of
+  the shared component was 40 against a mean of 8). Three variance channels —
   the group-level SD, `shapes` and `shapex` — competed for the same residual.
-  `shapex` is identified only through the difference's variance, and with the
-  excess rate also unknown the two trade off along `shapex` = `lambda`^2 /
+  `shapex` is identified only through the variance of the difference, and with
+  the excess rate also unknown the two trade off along `shapex` = `lambda`^2 /
   (*V* − `lambda`) at fixed *V* = Var(*d*)/2, so a 1.5 SD fluctuation in Var(*d*)
   displaced the posterior substantially.
 
   Recovery is now asserted on an intercepts-only fit at *n* = 400 with
-  approximately half of each component's variance from overdispersion
+  approximately half the variance of each component from overdispersion
   (`shapes` = 8, `shapex` = 3), identifiable from both directions. A second test
-  adds a group-level term and checks only that the family composes with brms's
+  adds a group-level term and checks only that the family composes with the brms
   random-effects machinery and samples cleanly, making no dispersion-recovery
   claim. Recovery also includes a posterior-predictive check on Var(*d*), the
   quantity `shapex` governs.
@@ -525,7 +526,7 @@ entirely, are recorded in
   regression-to-the-mean rationale for modelling the pair jointly, the
   observation-level random-effect failure behind the Negative-Binomial
   components, the prior-scale translation on `skellam1()`), that argument is now
-  stated inline. Validation claims cite the package's own test files.
+  stated inline. Validation claims cite the test files in the package itself.
 
 * **Continuous integration now runs the tests.** The repository previously
   contained one workflow, `pkgdown.yaml`, which built and deployed the
@@ -569,20 +570,20 @@ entirely, are recorded in
 * **New README section on priors.** `get_prior()` on a `binegbin()` model shows
   that brms assigns the `mu` dpar a default `student_t` prior but leaves `lamx`,
   `shapes` and `shapex` flat and improper; these are the weakly-identified
-  parameters. In this package's recovery test, omitting priors produced a
+  parameters. In the recovery test for this package, omitting priors produced a
   divergent transition and an Rhat of 1.0101. The section gives a
   weakly-informative set, notes that the `class`/`dpar`/`nlpar` slots differ
   between a rate supplied through `nlf()` and the dispersions, and advises
   shifting the prior mean rather than increasing its SD. The recovery tests use
   these priors.
 
-* **New README note on `nl = TRUE`.** In a non-linear brms formula the main
-  formula's right-hand side is a non-linear expression for `mu`, not a request
-  for an intercept. `bf(y1 | vint(y2) ~ 1, nlf(...), ..., nl = TRUE)` without a
-  `mu ~ 1` term therefore generates `mu[n] = exp(1)`, fixing the shared rate at
-  *e*. This does not error; sampling becomes very slow. All the joint families'
-  documented examples use `nl = TRUE` so that `nlf()` can tie the two excess
-  rates.
+* **New README note on `nl = TRUE`.** In a non-linear brms formula the
+  right-hand side of the main formula is a non-linear expression for `mu`, not a
+  request for an intercept. `bf(y1 | vint(y2) ~ 1, nlf(...), ..., nl = TRUE)`
+  without a `mu ~ 1` term therefore generates `mu[n] = exp(1)`, fixing the
+  shared rate at *e*. This does not error; sampling becomes very slow. All the
+  documented examples for the joint families use `nl = TRUE` so that `nlf()` can
+  tie the two excess rates.
 
 * **`citation("pairedcountbrms")` now returns a usable citation.** There was no
   `inst/CITATION`, and the auto-generated fallback could not determine a year
@@ -592,25 +593,25 @@ entirely, are recorded in
   the distribution papers in the README.
 
 * Examples and vignettes use `y1`/`y2` for the two count columns and `y1_obs`
-  for `binegbin_joint()`'s observation flag, previously `y_em`/`y_lb`/`em_obs`.
-  These are illustrative data column names, not API.
+  for the observation flag of `binegbin_joint()`, previously
+  `y_em`/`y_lb`/`em_obs`. These are illustrative data column names, not API.
 
 # pairedcountbrms 0.6.0
 
 * **Renamed: `skellambrms` is now `pairedcountbrms`.** The old name named one
-  family; the package's subject is the comparison of two paired count sources,
-  by two complementary routes — the difference families (`skellam1`/`skellam2`,
-  `dnorm1`/`dnorm2`, `dlaplace1`/`dlaplace2`) and the joint bivariate families
-  (`bipois`, `binegbin`, `binegbin_joint`). Skellam is one member of that set,
-  and no longer the most used one.
+  family; the subject of the package is the comparison of two paired count
+  sources, by two complementary routes — the difference families
+  (`skellam1`/`skellam2`, `dnorm1`/`dnorm2`, `dlaplace1`/`dlaplace2`) and the
+  joint bivariate families (`bipois`, `binegbin`, `binegbin_joint`). Skellam is
+  one member of that set, and no longer the most used one.
 
   **No family names change**, so no fitted model needs refitting: `binegbin`,
   `binegbin_joint`, `bipois`, `skellam1`/`skellam2`, `dnorm1`/`dnorm2` and
   `dlaplace1`/`dlaplace2` all keep their names, and brms continues to resolve
-  each fit's `log_lik_*` / `posterior_predict_*` / `posterior_epred_*` methods
-  off the attached search path exactly as before. The only change a user needs
-  to make is `library(skellambrms)` → `library(pairedcountbrms)` (and any
-  `skellambrms::` prefix).
+  the `log_lik_*` / `posterior_predict_*` / `posterior_epred_*` methods for
+  each fit off the attached search path exactly as before. The only change a
+  user needs to make is `library(skellambrms)` → `library(pairedcountbrms)` (and
+  any `skellambrms::` prefix).
 
   The GitHub repository moves to `anhsmith/pairedcountbrms`. GitHub serves a
   permanent redirect from the old path for both web and git, so existing
@@ -664,8 +665,8 @@ entirely, are recorded in
   interface functions; the latter simulates `y_em` conditional on the observed
   `y_lb` for **every** row (matched and LB-only alike, ignoring `em_obs`) via
   the same discrete `N_shared | y_lb` conditional as `binegbin()`.
-* On `em_obs == 1` rows `binegbin_joint`'s lpmf equals `binegbin`'s exactly;
-  the suite pins this equivalence (R reference and Stan), the marginal
+* On `em_obs == 1` rows the `binegbin_joint` lpmf equals the `binegbin` lpmf
+  exactly; the suite pins this equivalence (R reference and Stan), the marginal
   identity (sum over `y_em` of the matched branch == the LB-only branch), and
   the conditional-prediction identity (`posterior_predict` draws ==
   joint / marginal), alongside normalisation, a Stan-vs-R grid cross-check to
@@ -683,7 +684,7 @@ entirely, are recorded in
   overdispersion alongside their difference. Both are built by trivariate
   reduction — `y_em = N_shared + N10`, `y_lb = N_shared + N01`, with
   `N_shared` marginalised out of the joint likelihood analytically — and take
-  the second count via brms's `vint()` addition term.
+  the second count via the brms `vint()` addition term.
 * Added `bipois()` / `bipois_stanvars()`: the **bivariate Poisson**, with
   three independent Poisson latent components (`mu` = shared rate,
   `lambdaem`/`lambdalb` = the two private rates). The Stan log-likelihood uses

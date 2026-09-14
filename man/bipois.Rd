@@ -41,8 +41,8 @@ missing on some rows, use \code{\link[=bipois_partialobs]{bipois_partialobs()}},
 with an observation flag -- same \code{name}, same three dpars, same likelihood,
 same post-processing.
 
-\code{y1} is the family's response; \code{y2} is passed in as supplementary
-integer data via brms's \code{vint()} addition term, since brms's
+\code{y1} is the response of the family; \code{y2} is passed in as supplementary
+integer data via the brms \code{vint()} addition term, since the brms
 \code{custom_family()} machinery is built around a single declared response
 column -- see Details.
 
@@ -71,7 +71,7 @@ rates as \eqn{\lambda_1}{lambda_1} and \eqn{\lambda_2}{lambda_2} while the
 code must spell them \code{lambdaone}/\code{lambdatwo}. See the notation table in
 the package README.
 
-\strong{\code{y2} as supplementary data rather than a second response.} brms's
+\strong{\code{y2} as supplementary data rather than a second response.} The brms
 \code{custom_family()} API supports exactly one declared response column
 (\code{Y}) plus optional supplementary integer/real data (\code{vint()}/\code{vreal()}
 addition terms) -- the same mechanism used for, e.g., binomial trial

@@ -33,10 +33,10 @@
 #
 # The (M, f, delta) coordinates separate exactly those three questions:
 #
-#   M     = mu + (lambdaone + lambdatwo)/2  overall level (midpoint of the two
-#                                           sources' expectations)
-#   f     = mu / M                          congruence: the share of M that
-#                                           both sources saw
+#   M     = mu + (lambdaone + lambdatwo)/2  overall level (midpoint between the
+#                                           expectations of the two sources)
+#   f     = mu / M                          congruence: the mean of the shared
+#                                           component as a proportion of M
 #   delta = 0.5 * log(lambdaone/lambdatwo)  source bias, on a log-ratio scale
 #
 # with inverse
@@ -95,20 +95,20 @@
 #' its input is a stored fit and pre-0.10.0 `binegbin` fits declare that name.
 #'
 #' @param M Overall level: `mu + (lambdaone + lambdatwo)/2`. Non-negative.
-#' @param f Congruence, the share of `M` that both sources saw: `mu / M`. In
-#'   `[0, 1]`. `f = 1` means perfect agreement (both excesses vanish); `f = 0`
-#'   means no shared component at all.
+#' @param f Congruence, the mean of the shared component as a proportion of
+#'   `M`: `mu / M`. In `[0, 1]`. `f = 1` means perfect agreement (both excesses
+#'   vanish); `f = 0` means no shared component at all.
 #' @param delta Source bias on the log-ratio scale,
 #'   `0.5 * log(lambdaone/lambdatwo)`. `0` is unbiased. `+/-Inf` is permitted
 #'   and gives the limit where one excess rate is zero.
 #' @param kappas,kappax Optional SD-scale dispersions. `0` is the Poisson
-#'   limit. `kappas` is the shared component's, and the returned list gains
-#'   `shapes` (`= 1/kappa^2`, so `kappa = 0` gives `Inf`). `kappax` is the
-#'   shorthand for a single excess dispersion governing *both* margins: supply
-#'   it and the returned list gains `shapexone` and `shapextwo` at that common
-#'   value, which is the symmetric model [binegbin()] reaches by tying the two
-#'   with `nlf()`. Omit both for [bipois()] and [bipois_partialobs()], which
-#'   have no dispersion parameters.
+#'   limit. `kappas` is the dispersion of the shared component, and the
+#'   returned list gains `shapes` (`= 1/kappa^2`, so `kappa = 0` gives `Inf`).
+#'   `kappax` is the shorthand for a single excess dispersion governing *both*
+#'   margins: supply it and the returned list gains `shapexone` and `shapextwo`
+#'   at that common value, which is the symmetric model [binegbin()] reaches by
+#'   tying the two with `nlf()`. Omit both for [bipois()] and
+#'   [bipois_partialobs()], which have no dispersion parameters.
 #' @param kappaxone,kappaxtwo Optional per-margin SD-scale excess dispersions,
 #'   for the general case in which the two margins are free to differ. If
 #'   supplied, the returned list gains `shapexone`/`shapextwo`. Mutually

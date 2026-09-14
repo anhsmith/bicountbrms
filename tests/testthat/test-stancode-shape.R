@@ -9,7 +9,7 @@
 #   binegbin()             vars = c("vint1[n]", "1")
 #   binegbin_partialobs()  vars = c("vint1[n]", "vint2[n]")
 #
-# The second entry of the plain constructor's `vars` is not a variable. It is a
+# The second entry of `vars` in the plain constructor is not a variable. It is a
 # literal that brms pastes into the generated call, so the fully paired model
 # reaches the same lpmf with y1_obs fixed at 1 and never asks the user for a
 # flag column. The literal is what gives one Stan function instead of two overloaded
@@ -200,7 +200,7 @@ test_that("nlf tying really gives both dispersions one parameter", {
   expect_length(grep("vector[K_shapextwo] b_shapextwo;", lines, fixed = TRUE), 0L)
 })
 
-test_that("the tied model's prior is class 'b' / nlpar, not dpar", {
+test_that("the prior in the tied model is class 'b' / nlpar, not dpar", {
   p <- as.data.frame(brms::get_prior(tied_formula(), data = sd,
                                      family = binegbin(),
                                      stanvars = binegbin_stanvars()))

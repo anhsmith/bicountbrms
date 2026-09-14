@@ -4,7 +4,7 @@
 # in STAN", stan-users Google Group, March 2016 -- thread SUcp-ktkXn4,
 # posted by Andre, refined by Bob Carpenter -- adapted below from
 # log-rate/`poisson_log_lpmf` parameterisation to the natural-scale-rate
-# parameterisation this package's dpars use post-link.)
+# parameterisation the dpars in this package use post-link.)
 #
 # Unlike a difference family -- the Skellam, discrete Laplace and discrete
 # normal families in the companion package skellambrms
@@ -50,10 +50,10 @@
 #   y1_obs == 1 (matched row):  full joint bipois lpmf on (y1, y2).
 #   y1_obs == 0 (y2-only row):  the y2 MARGINAL of the SAME bivariate model.
 #
-# This is not censoring in brms's sense: brms's own cens() addition term means
-# a value known to lie in a set, whereas here y1 is not observed at all and
-# the likelihood marginalises over its whole support. The partially observed
-# family was called bipois_cens() up to 0.9.1 and renamed at 0.10.0.
+# This is not censoring in the brms sense: the cens() addition term in brms
+# means a value known to lie in a set, whereas here y1 is not observed at all
+# and the likelihood marginalises over its whole support. The partially
+# observed family was called bipois_cens() up to 0.9.1 and renamed at 0.10.0.
 #
 # THE UNMATCHED BRANCH IS ANALYTIC. For binegbin the
 # y1-integrated marginal is a convolution that must be evaluated as a sum,
@@ -70,13 +70,13 @@
 # one closed-form line with no sum, no cutoff and no accumulated rounding. Two
 # consequences beyond the branch being cheap to evaluate:
 #
-#   * It supplies an ANALYTIC REFERENCE for binegbin's unmatched branch, which
-#     the package otherwise lacks. That branch's marginal-identity test checks
-#     the NB sum against itself -- summing the matched branch over y1 and
-#     comparing to the unmatched branch -- so both sides share any error in
-#     the convolution. Taking the NB family to its Poisson limit and comparing
-#     against this closed form is an independent check of the same code path.
-#     See test-bipois-partialobs.R.
+#   * It supplies an ANALYTIC REFERENCE for the unmatched branch of binegbin,
+#     which the package otherwise lacks. The marginal-identity test for that
+#     branch checks the NB sum against itself -- summing the matched branch
+#     over y1 and comparing to the unmatched branch -- so both sides share any
+#     error in the convolution. Taking the NB family to its Poisson limit and
+#     comparing against this closed form is an independent check of the same
+#     code path. See test-bipois-partialobs.R.
 #   * It avoids a boundary. A user whose counts really are equidispersed must
 #     otherwise fit binegbin with the dispersions pressed against their
 #     Poisson limit (shape -> Inf, i.e. kappa -> 0), which is exactly where
@@ -85,8 +85,8 @@
 # WHY A DEDICATED FAMILY AND NOT TWO SEPARATE FITS, under partial observation.
 # Unchanged from binegbin, and the argument does not depend on the component
 # distribution: the unmatched rows never observe y1, so a matched-only fit
-# could use the matched rows alone, yet those rows' y2 is a draw from the same
-# bivariate model and still informs mu, lambdatwo and any group-level
+# could use the matched rows alone, yet y2 on those rows is a draw from the
+# same bivariate model and still informs mu, lambdatwo and any group-level
 # structure. Integrating the unobserved margin out pools every row under one
 # coherent likelihood. See binegbin.R for the full statement.
 #
@@ -125,8 +125,8 @@
 #' with an observation flag -- same `name`, same three dpars, same likelihood,
 #' same post-processing.
 #'
-#' `y1` is the family's response; `y2` is passed in as supplementary
-#' integer data via brms's `vint()` addition term, since brms's
+#' `y1` is the response of the family; `y2` is passed in as supplementary
+#' integer data via the brms `vint()` addition term, since the brms
 #' `custom_family()` machinery is built around a single declared response
 #' column -- see Details.
 #'
@@ -155,7 +155,7 @@
 #' code must spell them `lambdaone`/`lambdatwo`. See the notation table in
 #' the package README.
 #'
-#' **`y2` as supplementary data rather than a second response.** brms's
+#' **`y2` as supplementary data rather than a second response.** The brms
 #' `custom_family()` API supports exactly one declared response column
 #' (`Y`) plus optional supplementary integer/real data (`vint()`/`vreal()`
 #' addition terms) -- the same mechanism used for, e.g., binomial trial
@@ -224,13 +224,13 @@ bipois_stanvars <- function() {
 #' where the first was not. `y1` may hold any non-negative integer on those
 #' rows -- `0` is the conventional placeholder -- because the likelihood does
 #' not read it. Do not use `NA`, which brms drops before fitting, taking the
-#' row's observed `y2` with it.
+#' observed `y2` on that row with it.
 #'
 #' **Contribution of a matched row and of an unmatched row.** A matched row (`y1_obs == 1`) uses the
 #' full joint [bipois()] lpmf on `(y1, y2)`. A row whose first count was never
-#' recorded (`y1_obs == 0`) contributes the second count's marginal *from the
-#' same model*. For Poisson components that marginal is closed form -- a sum of
-#' independent Poissons is Poisson -- so it is exactly
+#' recorded (`y1_obs == 0`) contributes the marginal of the second count *from
+#' the same model*. For Poisson components that marginal is closed form -- a
+#' sum of independent Poissons is Poisson -- so it is exactly
 #' `y2 ~ Poisson(mu + lambdatwo)`. [binegbin_partialobs()] must evaluate the
 #' corresponding convolution as a sum; this family does not. Either way the row
 #' is not dropped and is not given a different model: it still informs `mu`,
@@ -254,7 +254,7 @@ bipois_stanvars <- function() {
 #' correspondingly more of the work, however many unmatched rows the design
 #' contains.
 #'
-#' **This is not censoring in brms's sense.** brms's `cens()` addition term
+#' **This is not censoring in the brms sense.** The brms `cens()` addition term
 #' means a value known to lie in a set -- `left`, `right`, `interval`. Here the
 #' first count is not observed at all and the likelihood marginalises over its
 #' whole support. This family was called `bipois_cens()` up to 0.9.1; the name
@@ -275,8 +275,8 @@ bipois_stanvars <- function() {
 #'
 #' @details
 #' **Choosing between this family and [binegbin_partialobs()].** This family fixes
-#' each latent component's variance equal to its mean. Where the counts are
-#' genuinely overdispersed relative to that,
+#' the variance of each latent component equal to its mean. Where the counts
+#' are genuinely overdispersed relative to that,
 #' [binegbin_partialobs()] is the correct model and this one will understate
 #' the marginal variances. Where they are not, [binegbin_partialobs()] can only
 #' represent the fit by driving its dispersions to their Poisson limit
@@ -294,8 +294,8 @@ bipois_stanvars <- function() {
 #' functions.
 #'
 #' **Two `vint()` arguments, in declared order.** brms appends `vint()` integers
-#' to the generated lpmf call in the order they are listed in the formula's
-#' `vint()` term, matching the `vars` declared here
+#' to the generated lpmf call in the order they are listed in the `vint()` term
+#' of the formula, matching the `vars` declared here
 #' (`c("vint1[n]", "vint2[n]")`): so `vint(y2, y1_obs)` binds `vint1 = y2` and
 #' `vint2 = y1_obs`. brms generates `target += bipois_lpmf(Y[n] | mu[n],
 #' lambdaone[n], lambdatwo[n], vint1[n], vint2[n])`. Reordering the dpars or the
@@ -345,9 +345,9 @@ bipois_partialobs_stanvars <- function() {
 # Stan function block
 # --------------------------------------------------------------------------
 
-# Derivation of the recurrence, in this package's natural-scale-rate terms
+# Derivation of the recurrence, in the natural-scale-rate terms of this package
 # (the cited stan-users thread works in log-rates via poisson_log_lpmf;
-# translated here since this package's dpars are already inv-link-
+# translated here since the dpars in this package are already inv-link-
 # transformed to natural scale by the time they reach the lpmf, the same
 # convention as every other family in this package: binegbin_lpmf likewise
 # takes `mu`, not `log(mu)`).
@@ -362,8 +362,8 @@ bipois_partialobs_stanvars <- function() {
 # (the `+lambdaone +lambdatwo` inside each poisson_lpmf cancels algebraically
 # against the `-lambdaone -lambdatwo` that would otherwise appear from
 # factoring exp(-mu-lambdaone-lambdatwo) out front -- this is exactly the
-# same cancellation used in the cited thread's `ss <- poisson_log_log(r,
-# mu1) + poisson_log_log(s, mu2) - exp(mu3)` starting term).
+# same cancellation used in the starting term of the cited thread,
+# `ss <- poisson_log_log(r, mu1) + poisson_log_log(s, mu2) - exp(mu3)`).
 #
 # The ratio between consecutive terms is:
 #   term(k) / term(k-1) = [(r-k+1)/lambdaone] * [(s-k+1)/lambdatwo] * [mu/k]
@@ -372,7 +372,7 @@ bipois_partialobs_stanvars <- function() {
 # factorial/combinatorial adjustment (r-k+1), (s-k+1), 1/k). In log space:
 #   log(term(k)) = log(term(k-1)) + log(r-k+1) + log(s-k+1) - log(k)
 #                  + log(mu) - log(lambdaone) - log(lambdatwo)
-# which is exactly the cited thread's per-step update (`log_s <- log_s +
+# which is exactly the per-step update in the cited thread (`log_s <- log_s +
 # log(r-k+1) + mus + log(s-k+1) - log(k)`, with `mus = -mu1-mu2+mu3`
 # translating directly to `log(mu) - log(lambdaone) - log(lambdatwo)` once
 # mu1, mu2, mu3 are read as log-rates). Each term is accumulated into the
@@ -429,9 +429,9 @@ bipois_stan_funs <- "
 # The matched branch is computed term-by-term from the original
 # P(N_shared=k) P(N1=x-k) P(N2=y-k) definition rather than via the recurrence
 # -- an independent route to the same quantity, so it verifies the Stan
-# implementation rather than restating it. It is evaluated post-hoc, not inside the
-# sampler's hot loop, so there is no reason to use the recurrence's algebraic
-# shortcuts here.
+# implementation rather than restating it. It is evaluated post-hoc, not inside
+# the hot loop of the sampler, so there is no reason to use the algebraic
+# shortcuts of the recurrence here.
 #
 # The unmatched branch uses the closed form, as Stan does. The independent
 # route -- brute-force convolution over k = 0..y2 -- is in

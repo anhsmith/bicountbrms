@@ -138,23 +138,23 @@ test_that("Stan binegbin_lpmf is numerically stable at extreme rates and shapes"
 #
 # Two tests, deliberately doing different jobs.
 #
-# A. RECOVERY (intercepts only). Validates the family's parameterisation and,
+# A. RECOVERY (intercepts only). Validates the binegbin parameterisation and,
 #    critically, the POSITIONAL correspondence between the dpars vector and the
 #    Stan lpmf signature -- a mismatch there does not error, it silently swaps
 #    which rate or dispersion governs which component. Kept well conditioned on
 #    purpose: no group-level terms, n = 400, moderate overdispersion.
 #
 # B. COMPOSITION (adds (1 | vessel)). Checks only that the family composes with
-#    brms's group-level machinery and samples cleanly. It makes NO recovery
+#    the group-level machinery of brms and samples cleanly. It makes NO recovery
 #    claim about the dispersions -- see below.
 #
 # WHY THE SPLIT. One test used to do both jobs at once, with a vessel effect on
-# 8 levels and severe overdispersion (the shared component's variance was 40
-# against a mean of 8, i.e. 80% of it overdispersion). Three variance channels
-# -- the group-level SD, the shared dispersion, the private dispersion -- then
-# competed for the same residual, and shapex lost. shapex is identified only
-# through the difference's variance, and with lambda also unknown the two trade
-# off along a ridge:
+# 8 levels and severe overdispersion (the variance of the shared component was
+# 40 against a mean of 8, i.e. 80% of it overdispersion). Three variance
+# channels -- the group-level SD, the shared dispersion, the private dispersion
+# -- then competed for the same residual, and shapex lost. shapex is identified
+# only through the variance of the difference, and with lambda also unknown the
+# two trade off along a ridge:
 #
 #   Var(d) = 2 (lambda + lambda^2 / shapex)  =>  shapex = lambda^2 / (V - lambda)
 #
@@ -167,11 +167,11 @@ test_that("Stan binegbin_lpmf is numerically stable at extreme rates and shapes"
 # DRAW, not of the estimator. Calibration of the estimator is what the coverage
 # test at the bottom of this file measures.
 #
-# The truths below put ~50% of each component's variance into overdispersion
-# (shapes = 8 gives var 16 vs mean 8; shapex = 3 gives var 6 vs mean 3). That is
-# identifiable from both directions -- far enough from the Poisson limit that
-# 1/phi is clearly non-zero, far enough from the extreme that the ridge does not
-# dominate.
+# The truths below put ~50% of the variance in each component into
+# overdispersion (shapes = 8 gives var 16 vs mean 8; shapex = 3 gives var 6 vs
+# mean 3). That is identifiable from both directions -- far enough from the
+# Poisson limit that 1/phi is clearly non-zero, far enough from the extreme that
+# the ridge does not dominate.
 
 BINEGBIN_TRUTH <- list(
   log_mu_int = log(8),
@@ -181,10 +181,10 @@ BINEGBIN_TRUTH <- list(
 )
 
 # shapes is log-linked, so brms reports it as b_<dpar>_Intercept. "mu" is the
-# family's canonical dpar, so brms drops its infix (b_Intercept). The excess
-# dispersion arrives through the non-linear parameter `shapexx` (see the fit
-# below), so it is b_shapexx_Intercept rather than b_shapex_Intercept -- the
-# spelling changed at 0.10.0 when `shapex` stopped being a dpar.
+# canonical dpar of the family, so brms drops its infix (b_Intercept). The
+# excess dispersion arrives through the non-linear parameter `shapexx` (see the
+# fit below), so it is b_shapexx_Intercept rather than b_shapex_Intercept --
+# the spelling changed at 0.10.0 when `shapex` stopped being a dpar.
 BINEGBIN_DRAWS_TRUTH <- c(
   b_Intercept         = BINEGBIN_TRUTH$log_mu_int,
   b_lamx_Intercept    = log(BINEGBIN_TRUTH$lone),
@@ -217,8 +217,8 @@ binegbin_sim_re <- function(seed, n_vessel = 8L, n_per_vessel = 25L) {
   data.frame(y1 = n_shared + n1, y2 = n_shared + n2, vessel = factor(vessel))
 }
 
-# NOTE: `mu` MUST get its own explicit formula. Under nl = TRUE the main
-# formula's right-hand side is a NON-LINEAR EXPRESSION for mu, not a request for
+# NOTE: `mu` MUST get its own explicit formula. Under nl = TRUE the right-hand
+# side of the main formula is a NON-LINEAR EXPRESSION for mu, not a request for
 # an intercept -- so `bf(y1 | vint(y2) ~ 1, nl = TRUE)` without a `mu ~ 1` term
 # generates `mu[n] = exp(1);`, pinning the shared rate at e and never estimating
 # it. It does not error; brms just fits a model you did not ask for, and with the
@@ -247,7 +247,7 @@ binegbin_fit <- function(dat, mu_re = FALSE, ...) {
       lamx ~ 1, shapes ~ 1, shapexx ~ 1, nl = TRUE
     )
   }
-  # PRIORS MATTER HERE. get_prior() on this model shows brms's defaults leave
+  # PRIORS MATTER HERE. get_prior() on this model shows the brms defaults leave
   # `lamx`, `shapes` and `shapexx` with FLAT IMPROPER priors -- only mu gets a
   # student_t. Those three are the weakly-identified ones, so unregularised they
   # let the chains wander into the flat tail: without these priors this fit
@@ -340,8 +340,8 @@ test_that("binegbin composes with a group-level term on mu and samples cleanly",
   # Deliberately NO dispersion-recovery assertions. With 8 groups the
   # group-level SD is barely identified, and its slack is absorbed by
   # shapes/shapex; asserting tight recovery here tests the draw, not the code.
-  # The random-effects machinery is brms's own -- what needs checking is that
-  # this custom family composes with it and samples cleanly.
+  # The random-effects machinery is implemented in brms -- what needs checking
+  # is that this custom family composes with it and samples cleanly.
   expect_true("sd_vessel__Intercept" %in% names(draws))
   sd_draws <- draws[["sd_vessel__Intercept"]]
   expect_true(all(is.finite(sd_draws)))
@@ -380,12 +380,12 @@ test_that("binegbin posterior intervals are calibrated (coverage over replicates
   floor_count <- coverage_floor(R, level)   # 6 of 10 at alpha = 0.01
 
   # Compile once on the well-conditioned intercepts-only model; update() re-runs
-  # sampling only. Replicate seeds are offset from the recovery fit's so the
-  # first replicate is not that same dataset.
+  # sampling only. Replicate seeds are offset from the seed of the recovery fit
+  # so the first replicate is not that same dataset.
   fit0 <- binegbin_fit(binegbin_sim(20260705))
 
   # Shorter chains for the replicates: 3000 draws is ample for a 5%/95%
-  # quantile, and cuts each refit to a fraction of the parent fit's cost.
+  # quantile, and cuts each refit to a fraction of the cost of the parent fit.
   cov <- coverage_recovery(
     fit0,
     sim    = function(i) binegbin_sim(20260800 + i),

@@ -1,7 +1,7 @@
 # (M, f, delta) <-> native dpar coordinate transforms.
 #
-# These are the R-side statement of a map that also appears in the project's
-# brms nlf() formulas and in illustrative JS. Testing the round trip and the
+# These are the R-side statement of a map that also appears in the brms nlf()
+# formulas in the project and in illustrative JS. Testing the round trip and the
 # defining identities here is what keeps those in step.
 
 test_that("forward map satisfies its defining identities", {
@@ -119,11 +119,11 @@ test_that("dispersion conversion inverts, with the direction reversed", {
             binegbin_mfd_to_dpars(1, 0.5, 0, kappas = 1)$shapes)
 })
 
-test_that("the inverse still reads a pre-0.10.0 fit's single `shapex`", {
+test_that("the inverse still reads the single `shapex` in a pre-0.10.0 fit", {
   # The asymmetry between the two directions, asserted rather than assumed.
-  # binegbin_dpars_to_mfd() takes a STORED FIT's dpars, and every binegbin fit
-  # made before 0.10.0 declares one `shapex`; 103 such fits exist in the
-  # sibling project. The forward direction writes current names only.
+  # binegbin_dpars_to_mfd() takes the dpars from a STORED FIT, and every
+  # binegbin fit made before 0.10.0 declares one `shapex`; 103 such fits exist
+  # in the sibling project. The forward direction writes current names only.
   back <- binegbin_dpars_to_mfd(7.2, 2.4, 2.4, shapes = 4, shapex = 1 / 2^2)
   expect_equal(back$kappas, 0.5)
   expect_equal(back$kappax, 2)
@@ -143,8 +143,8 @@ test_that("the inverse still reads a pre-0.10.0 fit's single `shapex`", {
 
 test_that("kappaxone/kappaxtwo convert to shapexone/shapextwo and round-trip", {
   # binegbin_partialobs takes one excess dispersion per margin, so the converters
-  # accept and return the pair under the family's own dpar names rather than
-  # making the caller re-derive shape = 1/kappa^2 by hand.
+  # accept and return the pair under the dpar names the family declares rather
+  # than making the caller re-derive shape = 1/kappa^2 by hand.
   d <- binegbin_mfd_to_dpars(12, 0.6, 0.2, kappas = 0.5,
                              kappaxone = 2, kappaxtwo = 0.25)
   expect_equal(d$shapes,    1 / 0.5^2)
@@ -217,9 +217,9 @@ test_that("the forward direction emits only names a shipping family accepts", {
   expect_true(all(ok %in% binegbin()$dpars))
 })
 
-test_that("the forward direction returns dpars in the family's own order", {
-  # Not cosmetic. The generated Stan call takes dpars positionally, and this
-  # package's docs warn repeatedly that reordering them without reordering the
+test_that("the forward direction returns dpars in the order the family declares them", {
+  # Not cosmetic. The generated Stan call takes dpars positionally, and the
+  # package docs warn repeatedly that reordering them without reordering the
   # Stan signature silently swaps which rate or dispersion governs which
   # component. A converter whose printed output reads shapextwo before
   # shapexone would lead a reader to infer the wrong signature.
@@ -281,7 +281,7 @@ test_that("the map agrees with the trivariate-reduction moment identities", {
 test_that("the rate half of the map serves bipois unchanged", {
   # bipois_partialobs takes the same three rates and no dispersion, so only the rate
   # half of the converters applies to it -- there is no kappa to supply. Rather
-  # than assert that in prose, feed the converted rates to the family's unmatched
+  # than assert that in prose, feed the converted rates to the unmatched bipois
   # branch and check the resulting distribution has the mean the map predicts:
   # that branch is Poisson(mu + lambdatwo), so its mean must be E[y2] = mu +
   # lambdatwo, which by the identity above is M(1 - (1 - f) * tanh(delta)).
