@@ -10,12 +10,12 @@ y1_obs is a 0/1 integer column: 1 where both counts were recorded, 0
 where the first was not. y1 may hold any non-negative integer on those
 rows – 0 is the conventional placeholder – because the likelihood does
 not read it. Do not use NA, which brms drops before fitting, taking the
-row's observed y2 with it.
+observed y2 on that row with it.
 Contribution of a matched row and of an unmatched row. A matched row (y1_obs == 1) uses the
 full joint bipois() lpmf on (y1, y2). A row whose first count was never
-recorded (y1_obs == 0) contributes the second count's marginal from the
-same model. For Poisson components that marginal is closed form – a sum of
-independent Poissons is Poisson – so it is exactly
+recorded (y1_obs == 0) contributes the marginal of the second count from
+the same model. For Poisson components that marginal is closed form – a
+sum of independent Poissons is Poisson – so it is exactly
 y2 ~ Poisson(mu + lambdatwo). binegbin_partialobs() must evaluate the
 corresponding convolution as a sum; this family does not. Either way the row
 is not dropped and is not given a different model: it still informs mu,
@@ -36,7 +36,7 @@ congruence \(f\), is therefore also informed by the matched rows. With few of
 them, mu and lambdatwo trade off along their sum and the prior does
 correspondingly more of the work, however many unmatched rows the design
 contains.
-This is not censoring in brms's sense. brms's cens() addition term
+This is not censoring in the brms sense. The brms cens() addition term
 means a value known to lie in a set – left, right, interval. Here the
 first count is not observed at all and the likelihood marginalises over its
 whole support. This family was called bipois_cens() up to 0.9.1; the name
@@ -63,12 +63,12 @@ y1_obs is a 0/1 integer column: 1 where both counts were recorded, 0
 where the first was not. y1 may hold any non-negative integer on those
 rows – 0 is the conventional placeholder – because the likelihood does
 not read it. Do not use NA, which brms drops before fitting, taking the
-row's observed y2 with it.
+observed y2 on that row with it.
 Contribution of a matched row and of an unmatched row. A matched row (y1_obs == 1) uses the
 full joint bipois() lpmf on (y1, y2). A row whose first count was never
-recorded (y1_obs == 0) contributes the second count's marginal from the
-same model. For Poisson components that marginal is closed form – a sum of
-independent Poissons is Poisson – so it is exactly
+recorded (y1_obs == 0) contributes the marginal of the second count from
+the same model. For Poisson components that marginal is closed form – a
+sum of independent Poissons is Poisson – so it is exactly
 y2 ~ Poisson(mu + lambdatwo). binegbin_partialobs() must evaluate the
 corresponding convolution as a sum; this family does not. Either way the row
 is not dropped and is not given a different model: it still informs mu,
@@ -89,7 +89,7 @@ congruence \(f\), is therefore also informed by the matched rows. With few of
 them, mu and lambdatwo trade off along their sum and the prior does
 correspondingly more of the work, however many unmatched rows the design
 contains.
-This is not censoring in brms's sense. brms's cens() addition term
+This is not censoring in the brms sense. The brms cens() addition term
 means a value known to lie in a set – left, right, interval. Here the
 first count is not observed at all and the likelihood marginalises over its
 whole support. This family was called bipois_cens() up to 0.9.1; the name
@@ -130,7 +130,7 @@ data     = dat
     <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Interpretation and history</h6></li>
-    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">Mapping native parameters to interpretable coordinates</a></li>
     <li><a class="dropdown-item" href="../articles/migration-and-errata.html">Migration and errata</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -160,12 +160,12 @@ supplies a second integer, an observation flag, through
 where the first was not. <code>y1</code> may hold any non-negative integer on those
 rows – <code>0</code> is the conventional placeholder – because the likelihood does
 not read it. Do not use <code>NA</code>, which brms drops before fitting, taking the
-row's observed <code>y2</code> with it.</p>
+observed <code>y2</code> on that row with it.</p>
 <p><strong>Contribution of a matched row and of an unmatched row.</strong> A matched row (<code>y1_obs == 1</code>) uses the
 full joint <code><a href="bipois.html">bipois()</a></code> lpmf on <code>(y1, y2)</code>. A row whose first count was never
-recorded (<code>y1_obs == 0</code>) contributes the second count's marginal <em>from the
-same model</em>. For Poisson components that marginal is closed form – a sum of
-independent Poissons is Poisson – so it is exactly
+recorded (<code>y1_obs == 0</code>) contributes the marginal of the second count <em>from
+the same model</em>. For Poisson components that marginal is closed form – a
+sum of independent Poissons is Poisson – so it is exactly
 <code>y2 ~ Poisson(mu + lambdatwo)</code>. <code><a href="binegbin_partialobs.html">binegbin_partialobs()</a></code> must evaluate the
 corresponding convolution as a sum; this family does not. Either way the row
 is not dropped and is not given a different model: it still informs <code>mu</code>,
@@ -186,7 +186,7 @@ congruence \(f\), is therefore also informed by the matched rows. With few of
 them, <code>mu</code> and <code>lambdatwo</code> trade off along their sum and the prior does
 correspondingly more of the work, however many unmatched rows the design
 contains.</p>
-<p><strong>This is not censoring in brms's sense.</strong> brms's <code>cens()</code> addition term
+<p><strong>This is not censoring in the brms sense.</strong> The brms <code>cens()</code> addition term
 means a value known to lie in a set – <code>left</code>, <code>right</code>, <code>interval</code>. Here the
 first count is not observed at all and the likelihood marginalises over its
 whole support. This family was called <code>bipois_cens()</code> up to 0.9.1; the name
@@ -223,8 +223,8 @@ apply to a fit made with either constructor.</p>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p><strong>Choosing between this family and <code><a href="binegbin_partialobs.html">binegbin_partialobs()</a></code>.</strong> This family fixes
-each latent component's variance equal to its mean. Where the counts are
-genuinely overdispersed relative to that,
+the variance of each latent component equal to its mean. Where the counts
+are genuinely overdispersed relative to that,
 <code><a href="binegbin_partialobs.html">binegbin_partialobs()</a></code> is the correct model and this one will understate
 the marginal variances. Where they are not, <code><a href="binegbin_partialobs.html">binegbin_partialobs()</a></code> can only
 represent the fit by driving its dispersions to their Poisson limit
@@ -240,8 +240,8 @@ code. See <code><a href="binegbin_partialobs.html">binegbin_partialobs()</a></co
 plain constructor rather than the two families declaring overloaded Stan
 functions.</p>
 <p><strong>Two <code>vint()</code> arguments, in declared order.</strong> brms appends <code>vint()</code> integers
-to the generated lpmf call in the order they are listed in the formula's
-<code>vint()</code> term, matching the <code>vars</code> declared here
+to the generated lpmf call in the order they are listed in the <code>vint()</code> term
+of the formula, matching the <code>vars</code> declared here
 (<code>c("vint1[n]", "vint2[n]")</code>): so <code>vint(y2, y1_obs)</code> binds <code>vint1 = y2</code> and
 <code>vint2 = y1_obs</code>. brms generates <code>target += bipois_lpmf(Y[n] | mu[n], lambdaone[n], lambdatwo[n], vint1[n], vint2[n])</code>. Reordering the dpars or the
 two <code>vint()</code> terms without matching the Stan signature silently swaps which

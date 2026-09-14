@@ -6,8 +6,9 @@ library(brms)
 library(bicountbrms)
 ```
 
-brms gives a custom family’s `mu` a default `student_t` prior and leaves
-every other distributional parameter flat and improper. For a six-dpar
+brms gives the `mu` parameter of a custom family a default `student_t`
+prior and leaves every other distributional parameter flat and improper.
+For a six-dpar
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 model,
 [`get_prior()`](https://paulbuerkner.com/brms/reference/default_prior.html)
@@ -46,12 +47,12 @@ prior has been set.
 
 For
 [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md),
-the statement needs one qualification. On an unmatched row, that
-family’s likelihood involves `mu` only through the sum `mu + lambdatwo`,
-so those rows constrain the total rate of the observed margin without
-dividing it between the shared and the source-specific component.
-Separating `mu` from `lambdatwo`, and so estimating the congruence
-$`f`$, is also informed by the matched rows alone.
+the statement needs one qualification. On an unmatched row, the
+likelihood of that family involves `mu` only through the sum
+`mu + lambdatwo`, so those rows constrain the total rate of the observed
+margin without dividing it between the shared and the source-specific
+component. Separating `mu` from `lambdatwo`, and so estimating the
+congruence $`f`$, is also informed by the matched rows alone.
 
 ## The symptom is divergent transitions
 
@@ -169,8 +170,8 @@ They follow the principles of Simpson et al.
 and a density decaying away from it, without being penalised-complexity
 priors in the strict sense.
 
-[The anatomy of a paired
-count](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.md)
+The article [Mapping native parameters to interpretable
+coordinates](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.md)
 sets out that argument in full, shows the prior pushforward onto the
 native scale, and fits a model in those coordinates. Read it after this
 page rather than instead of it: the recipes above apply whichever

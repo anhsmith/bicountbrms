@@ -15,8 +15,8 @@ is missing on some rows, use
 which is the same family with an observation flag – same `name`, same
 three dpars, same likelihood, same post-processing.
 
-`y1` is the family's response; `y2` is passed in as supplementary
-integer data via brms's `vint()` addition term, since brms's
+`y1` is the response of the family; `y2` is passed in as supplementary
+integer data via the brms `vint()` addition term, since the brms
 [`custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
 machinery is built around a single declared response column – see
 Details.
@@ -69,7 +69,7 @@ underscores. The documentation therefore writes these rates as
 \\\lambda_1\\ and \\\lambda_2\\ while the code must spell them
 `lambdaone`/`lambdatwo`. See the notation table in the package README.
 
-**`y2` as supplementary data rather than a second response.** brms's
+**`y2` as supplementary data rather than a second response.** The brms
 [`custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
 API supports exactly one declared response column (`Y`) plus optional
 supplementary integer/real data (`vint()`/`vreal()` addition terms) –

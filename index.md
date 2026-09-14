@@ -45,8 +45,8 @@ cases where both counts are fully observed.
 
 For a row where both counts are observed, the likelihood term is the
 full joint distribution of $`(y_1, y_2)`$: a function of the shared rate
-and (for negative binomial) dispersion (`mu`, `shapes`), each source’s
-own rate and (for negative binomial) dispersion (`lambdaone`,
+and (for negative binomial) dispersion (`mu`, `shapes`), the rate and
+(for negative binomial) dispersion specific to each source (`lambdaone`,
 `shapexone`, `lambdatwo`, `shapextwo`), and, through `lambdaone` and
 `lambdatwo`, the bias between the two sources.
 
@@ -72,8 +72,8 @@ Either `rstan` or `cmdstanr` works as the `brms` backend.
 ## Minimal fits
 
 The second count is provided as supplementary integer data via the
-`vint()` function, and the family’s Stan function is specified via the
-`stanvars` argument. Both are required.
+`vint()` function, and the Stan function for the family is specified via
+the `stanvars` argument. Both are required.
 
 ``` r
 
@@ -108,9 +108,9 @@ fit_po <- brm(
 
 `y1_obs` is `1` where the first count was recorded and `0` where it was
 not. On a row with `y1_obs == 0`, `y1` may hold any non-negative integer
-— `0` is the conventional placeholder — because that row’s likelihood
-term does not depend on it. Do not use `NA`: brms drops such rows before
-fitting, taking their observed $`y_2`$ with them.
+— `0` is the conventional placeholder — because the likelihood term for
+that row does not depend on it. Do not use `NA`: brms drops such rows
+before fitting, taking their observed $`y_2`$ with them.
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
 and
 [`posterior_epred()`](https://mc-stan.org/rstantools/reference/posterior_epred.html)
@@ -158,10 +158,9 @@ are spelled out (`one` or `two`).
   fit](https://anhsmith.github.io/bicountbrms/articles/partially-observed-fit.html)
   — imputing a count that was never recorded, scored against values
   withheld from the model.
-- [The anatomy of a paired
-  count](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html)
-  — overall level, congruence and source bias as coordinates, with
-  shrinkage priors.
+- [Mapping native parameters to interpretable
+  coordinates](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html)
+  — overall level, congruence and source bias, with shrinkage priors.
 - [Migration and
   errata](https://anhsmith.github.io/bicountbrms/articles/migration-and-errata.html)
   — what each release changed, and two corrected results.
@@ -187,8 +186,8 @@ citation("bicountbrms")
 The package is archived on Zenodo under the concept DOI
 [10.5281/zenodo.22239120](https://doi.org/10.5281/zenodo.22239120),
 which resolves to the current version. To cite the exact version an
-analysis used, take the version-specific DOI from that release’s own
-Zenodo record.
+analysis used, take the version-specific DOI from the Zenodo record for
+that release.
 
 Holgate (1964) states the trivariate-reduction representation and gives
 maximum-likelihood estimation for it; the regression form is due to

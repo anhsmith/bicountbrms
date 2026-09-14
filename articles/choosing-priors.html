@@ -44,7 +44,7 @@
     <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Interpretation and history</h6></li>
-    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">Mapping native parameters to interpretable coordinates</a></li>
     <li><a class="dropdown-item" href="../articles/migration-and-errata.html">Migration and errata</a></li>
   </ul>
 </li>
@@ -79,7 +79,7 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paul-buerkner/brms" class="external-link">brms</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/anhsmith/bicountbrms" class="external-link">bicountbrms</a></span><span class="op">)</span></span></code></pre></div>
-<p>brms gives a custom family’s <code>mu</code> a default
+<p>brms gives the <code>mu</code> parameter of a custom family a default
 <code>student_t</code> prior and leaves every other distributional
 parameter flat and improper. For a six-dpar <code><a href="../reference/binegbin.html">binegbin()</a></code>
 model, <code><a href="https://paulbuerkner.com/brms/reference/default_prior.html" class="external-link">get_prior()</a></code> returns</p>
@@ -114,12 +114,12 @@ is informed by every row. Under a design in which few rows are matched,
 the parameters whose posteriors depend most on their priors are all
 parameters for which no prior has been set.</p>
 <p>For <code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code>, the statement needs one
-qualification. On an unmatched row, that family’s likelihood involves
-<code>mu</code> only through the sum <code>mu + lambdatwo</code>, so
-those rows constrain the total rate of the observed margin without
-dividing it between the shared and the source-specific component.
-Separating <code>mu</code> from <code>lambdatwo</code>, and so
-estimating the congruence
+qualification. On an unmatched row, the likelihood of that family
+involves <code>mu</code> only through the sum
+<code>mu + lambdatwo</code>, so those rows constrain the total rate of
+the observed margin without dividing it between the shared and the
+source-specific component. Separating <code>mu</code> from
+<code>lambdatwo</code>, and so estimating the congruence
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>,
 is also informed by the matched rows alone.</p>
 </div>
@@ -238,11 +238,12 @@ data rather than the prior must move the fit. They follow the principles
 of <span class="citation">Simpson et al. (<a href="#ref-simpsonPenalisingModelComponent2017">2017</a>)</span>, a base
 model at zero and a density decaying away from it, without being
 penalised-complexity priors in the strict sense.</p>
-<p><a href="paired-count-anatomy.html">The anatomy of a paired count</a>
-sets out that argument in full, shows the prior pushforward onto the
-native scale, and fits a model in those coordinates. Read it after this
-page rather than instead of it: the recipes above apply whichever
-parameterisation is used, because a prior in
+<p>The article <a href="paired-count-anatomy.html">Mapping native
+parameters to interpretable coordinates</a> sets out that argument in
+full, shows the prior pushforward onto the native scale, and fits a
+model in those coordinates. Read it after this page rather than instead
+of it: the recipes above apply whichever parameterisation is used,
+because a prior in
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mo>,</mo><mi>f</mi><mo>,</mo><mi>δ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(M, f, \delta)</annotation></semantics></math>
 still occupies one of the three slots described here.</p>
 </div>

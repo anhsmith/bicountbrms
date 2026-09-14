@@ -29,8 +29,8 @@ recorded. Those rows are scored by the integrated-out marginal of the
 same joint, so they still inform the shared component and the second
 source rather than being dropped. For Poisson components that marginal
 is closed form; for Negative-Binomial components it is a convolution.
-This is unrelated to brms’s own cens() addition term, which means a
-value known to lie in a set.
+This is unrelated to the brms cens() addition term, which means a value
+known to lie in a set.
 
 - [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
   [`bipois_partialobs_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)

@@ -39,7 +39,7 @@
     <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Interpretation and history</h6></li>
-    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">Mapping native parameters to interpretable coordinates</a></li>
     <li><a class="dropdown-item" href="../articles/migration-and-errata.html">Migration and errata</a></li>
   </ul>
 </li>
@@ -82,7 +82,7 @@ checked against the values that generated them. The other joint families
 <code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code> and <code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code>)
 follow the same pattern; the README compares them.</p>
 <p>Everything here is a brms custom family <span class="citation">(<a href="#ref-burkner2017">Bürkner 2017</a>)</span>, so the fitting,
-prediction and model-comparison interfaces are brms’s own. The
+prediction and model-comparison interfaces are those of brms. The
 non-linear formula syntax used further down is documented in <span class="citation">Bürkner (<a href="#ref-burkner2018">2018</a>)</span>.</p>
 <div class="section level2">
 <h2 id="the-generative-model">The generative model<a class="anchor" aria-label="anchor" href="#the-generative-model"></a>
@@ -104,18 +104,25 @@ y_1 &amp;= N_{\text{shared}} + N_1 \qquad
 y_2 = N_{\text{shared}} + N_2
 \end{aligned}
 </annotation></semantics></math></p>
-<p>The shared component is what both sources saw; the two excesses are
-what each saw alone.
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><annotation encoding="application/x-tex">N_{\text{shared}}</annotation></semantics></math>
+is the latent count recorded by both sources;
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mn>1</mn></msub><annotation encoding="application/x-tex">N_1</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mn>2</mn></msub><annotation encoding="application/x-tex">N_2</annotation></semantics></math>
+are the two excesses, each recorded by one source only.
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><annotation encoding="application/x-tex">N_{\text{shared}}</annotation></semantics></math>
-is never observed — it is marginalised out analytically in the
-likelihood — but it is what induces the correlation between the
-pair.</p>
-<p><code>NB2(m, phi)</code> is Stan’s <code>neg_binomial_2</code> and
-R’s <code>dnbinom(size = phi, mu = m)</code>: mean <code>m</code>,
+induces the correlation between the pair. It is never observed, and is
+marginalised out analytically in the likelihood.</p>
+<p><code>NB2(m, phi)</code> is <code>neg_binomial_2</code> in Stan and
+<code>dnbinom(size = phi, mu = m)</code> in R: mean <code>m</code>,
 variance <code>m + m^2/phi</code>. Larger <code>phi</code> means
 <em>less</em> overdispersion.</p>
 <p>Six dpars, all with a log link:</p>
 <table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
 <thead><tr class="header">
 <th>dpar</th>
 <th>role</th>
@@ -129,13 +136,13 @@ variance <code>m + m^2/phi</code>. Larger <code>phi</code> means
 </tr>
 <tr class="even">
 <td><code>lambdaone</code></td>
-<td>rate of the first source’s excess,
+<td>rate of the excess for the first source,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>
 </td>
 </tr>
 <tr class="odd">
 <td><code>lambdatwo</code></td>
-<td>rate of the second source’s excess,
+<td>rate of the excess for the second source,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>
 </td>
 </tr>
@@ -149,22 +156,22 @@ of the shared component</td>
 <td><code>shapexone</code></td>
 <td>dispersion
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>
-of the first source’s excess</td>
+of the excess for the first source</td>
 </tr>
 <tr class="even">
 <td><code>shapextwo</code></td>
 <td>dispersion
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x2}</annotation></semantics></math>
-of the second source’s excess</td>
+of the excess for the second source</td>
 </tr>
 </tbody>
 </table>
 <p><code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">brms::custom_family()</a></code> rejects any family whose dpars do
 not include one named literally <code>mu</code>. The requirement is on
 the name, not on the position: <code>mu</code> may appear anywhere in
-the vector. Here it is bound to the shared component’s <em>rate</em>, so
-it is not the mean of either response, nor the mean of their difference.
-<code>E[y1] = mu + lambdaone</code>.</p>
+the vector. Here it is bound to the <em>rate</em> of the shared
+component, so it is not the mean of either response, nor the mean of
+their difference. <code>E[y1] = mu + lambdaone</code>.</p>
 <p>The two rates are spelled
 <code>lambdaone</code>/<code>lambdatwo</code> rather than
 <code>lambda1</code>/<code>lambda2</code> because
@@ -218,11 +225,11 @@ include the same <code>n_shared</code>.</p>
 <code>vint()</code>.</strong> <code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">brms::custom_family()</a></code>
 declares a single response column, so only <code>y1</code> can be the
 response. <code>y2</code> is passed alongside as supplementary integer
-data, and the family’s Stan signature reads it from there.</p>
+data, and the Stan signature of the family reads it from there.</p>
 <p><strong><code>stanvars</code> is not optional.</strong>
 <code><a href="../reference/binegbin.html">binegbin_stanvars()</a></code> injects the <code>binegbin_lpmf</code>
-Stan function into the model’s <code>functions</code> block. Without it,
-the generated model will not compile.</p>
+Stan function into the <code>functions</code> block of the model.
+Without it, the generated model will not compile.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brm.html" class="external-link">brm</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula.html" class="external-link">bf</a></span><span class="op">(</span></span>
@@ -255,13 +262,13 @@ here is a log-linked positive quantity</strong> of similar magnitude. On
 the natural scale <code>normal(2, 1)</code> is lognormal, with 95% of
 its mass between 1 and 52.</p>
 <p>The six truths span 0.69 to 2.08 on the log scale, so no single prior
-sits away from all of them: the shared rate’s truth falls near the prior
-mean, the second excess rate’s 1.3 prior SDs below it. Recovery here is
-therefore not on its own evidence that the prior is uninfluential. The
-article <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html"><em>The
-anatomy of a paired count</em></a> tests that directly, shifting a prior
-median sevenfold and moving the corresponding posterior median by
-0.005.</p>
+sits away from all of them: the true shared rate falls near the prior
+mean, the true second excess rate 1.3 prior SDs below it. Recovery here
+is therefore not on its own evidence that the prior is uninfluential.
+The article <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html"><em>Mapping
+native parameters to interpretable coordinates</em></a> tests that
+directly, shifting a prior median sevenfold and moving the corresponding
+posterior median by 0.005.</p>
 <p>To adapt these priors, shift the <strong>mean</strong> to the scale
 of the counts rather than increasing the SD. All six dpars are
 log-linked, so a normal prior is lognormal on the natural scale, and
@@ -363,16 +370,16 @@ exponentiates back onto the natural scale.</p>
 dispersions are estimated from an aggregate mean–variance mismatch
 rather than from any directly observed quantity, so their intervals are
 wider; the two excess dispersions especially, since they are identified
-only through the part of the pair’s spread that the shared component
-cannot explain. Wide but covering is the expected result here, not a
-warning sign.</p>
+only through the part of the spread in the pair that the shared
+component cannot explain. Wide but covering is the expected result here,
+not a warning sign.</p>
 </div>
 <div class="section level2">
 <h2 id="predict-and-score">Predict and score<a class="anchor" aria-label="anchor" href="#predict-and-score"></a>
 </h2>
 <p><code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> draws new <code>y1</code>
-<strong>conditional on each row’s observed <code>y2</code></strong>. It
-samples the discrete conditional distribution of
+<strong>conditional on the observed <code>y2</code> in each
+row</strong>. It samples the discrete conditional distribution of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><annotation encoding="application/x-tex">N_{\text{shared}}</annotation></semantics></math>
 given <code>y2</code>, then adds a fresh excess draw — the exact
 conditional, not an approximation.</p>
@@ -464,7 +471,7 @@ under <code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs(
 was never observed. Imputing the unobserved margin is what those two
 constructors are for.</p>
 <p><code>posterior_epred(fit)</code> needs no special handling: it
-dispatches to the family’s method, as do <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code> and
+dispatches to the family method, as do <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code> and
 <code><a href="https://paulbuerkner.com/brms/reference/conditional_effects.brmsfit.html" class="external-link">conditional_effects()</a></code>.</p>
 </div>
 <div class="section level2">
@@ -504,7 +511,7 @@ count conditional on the observed one. Note that
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>
 are then identified by the matched rows alone. Despite its former name,
-this is unrelated to brms’s <code>cens()</code> addition term, which
+this is unrelated to the brms <code>cens()</code> addition term, which
 means a value known to lie in a set.</li>
 <li>The
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mo>,</mo><mi>f</mi><mo>,</mo><mi>δ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(M, f, \delta)</annotation></semantics></math><strong>reparameterisation</strong> — overall level
@@ -526,12 +533,13 @@ and
 are finite, interpretable nulls, these coordinates admit shrinkage
 priors towards the simpler model unless the data support otherwise <span class="citation">(<a href="#ref-simpsonPenalisingModelComponent2017">Simpson et al.
 2017</a>)</span>. The rate parameterisation has no such nulls. Worked
-end to end in the article <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html"><em>The
-anatomy of a paired count</em></a>.</li>
+end to end in the article <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html"><em>Mapping
+native parameters to interpretable coordinates</em></a>.</li>
 <li>
 <code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code> — the same partial observation,
-equidispersed: <code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code>’s Poisson special
-case. Its integrated-out marginal is closed form,
+equidispersed: the Poisson special case of
+<code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code>. Its integrated-out marginal is
+closed form,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mn>2</mn></msub><mo>∼</mo><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">y_2 \sim \mathrm{Poisson}(\mu + \lambda_2)</annotation></semantics></math>,
 since a sum of independent Poissons is Poisson. Use it when the margins
 are not overdispersed, rather than fitting

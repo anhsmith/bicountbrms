@@ -48,9 +48,9 @@ binegbin_mfd_to_dpars(
 
 - f:
 
-  Congruence, the share of `M` that both sources saw: `mu / M`. In
-  `[0, 1]`. `f = 1` means perfect agreement (both excesses vanish);
-  `f = 0` means no shared component at all.
+  Congruence, the mean of the shared component as a proportion of `M`:
+  `mu / M`. In `[0, 1]`. `f = 1` means perfect agreement (both excesses
+  vanish); `f = 0` means no shared component at all.
 
 - delta:
 
@@ -61,11 +61,11 @@ binegbin_mfd_to_dpars(
 - kappas, kappax:
 
   Optional SD-scale dispersions. `0` is the Poisson limit. `kappas` is
-  the shared component's, and the returned list gains `shapes`
-  (`= 1/kappa^2`, so `kappa = 0` gives `Inf`). `kappax` is the shorthand
-  for a single excess dispersion governing *both* margins: supply it and
-  the returned list gains `shapexone` and `shapextwo` at that common
-  value, which is the symmetric model
+  the dispersion of the shared component, and the returned list gains
+  `shapes` (`= 1/kappa^2`, so `kappa = 0` gives `Inf`). `kappax` is the
+  shorthand for a single excess dispersion governing *both* margins:
+  supply it and the returned list gains `shapexone` and `shapextwo` at
+  that common value, which is the symmetric model
   [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
   reaches by tying the two with
   [`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html).

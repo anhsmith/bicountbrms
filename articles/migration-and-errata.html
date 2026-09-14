@@ -44,7 +44,7 @@
     <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Interpretation and history</h6></li>
-    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">Mapping native parameters to interpretable coordinates</a></li>
     <li><a class="dropdown-item" href="../articles/migration-and-errata.html">Migration and errata</a></li>
   </ul>
 </li>
@@ -210,11 +210,10 @@ likelihood and partial pooling.</p>
 <code><a href="../reference/binegbin.html">posterior_epred_binegbin()</a></code> using the <em>marginal</em>
 shared fraction
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mu/(\mu + \lambda_2)</annotation></semantics></math>
-in place of the <em>conditional</em> fraction. That substitution is
-<code>bipois</code>’s answer, exact only in the Poisson limit, and it
-made the expectation disagree with the family’s own
-<code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> draws by more than Monte Carlo
-error.</p>
+in place of the <em>conditional</em> fraction. That substitution is the
+answer <code>bipois</code> gives, exact only in the Poisson limit, and
+it made the expectation disagree with <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code>
+draws from the same family by more than Monte Carlo error.</p>
 <p>Over a grid of plausible rates and dispersions, with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>2</mn></msub><annotation encoding="application/x-tex">y_2</annotation></semantics></math>
 within one standard deviation of its mean, the substituted value was in
@@ -232,7 +231,7 @@ before 0.9.1<a class="anchor" aria-label="anchor" href="#erratum-the-dispersion-
 </h2>
 <p>Release 0.9.1 added <code>tests/testthat/test-cens-predict.R</code>,
 since superseded by <code>test-partialobs-predict.R</code>, after a
-check of the test suite’s discrimination. In
+discrimination check on the test suite. In
 <code>posterior_predict_binegbin_cens()</code>, the conditional split of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">N_{\text{shared}} \mid y_2</annotation></semantics></math>
 is weighted by <code>shapextwo</code>, while the fresh source-specific
@@ -242,7 +241,7 @@ because every prediction test then in the suite built its fixture from a
 single five-dpar <code>shapex</code>, which both name vectors resolve to
 identically.</p>
 <p>No released version computed the exchanged quantity. The defect was
-in the test suite’s power to detect an error, not in the shipped
+in the power of the test suite to detect an error, not in the shipped
 code.</p>
 </div>
 <div class="section level2">

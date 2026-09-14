@@ -7,8 +7,8 @@ library(bicountbrms)
 ```
 
 This article describes the parameters that are fitted. The companion
-article [The anatomy of a paired
-count](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.md)
+article [Mapping native parameters to interpretable
+coordinates](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.md)
 describes the coordinates in which they are interpreted, and [Choosing
 priors](https://anhsmith.github.io/bicountbrms/articles/choosing-priors.md)
 gives the recipes for both.
@@ -64,8 +64,9 @@ induces the Skellam as its difference model.
 brms requires one distributional parameter of every family to be named
 `mu`. In these families, `mu` is the rate of the shared latent count.
 Since $`\mathrm{E}[y_1] = \mu + \lambda_1`$, `mu` is not the mean of
-either observed count, nor of their difference. The constraint is
-[`custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)’s
+either observed count, nor of their difference. The constraint is a
+requirement of
+[`custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
 rather than a modelling choice, and the same applies to the spelling of
 the two source-specific rates:
 [`custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
@@ -80,8 +81,8 @@ draws each latent count from a Poisson distribution, so the variance is
 equal to the mean.
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 draws each from NB2 instead and estimates three scalar dispersions.
-NB2$`(m, \phi)`$ is Stan’s `neg_binomial_2` and R’s
-`dnbinom(size = phi, mu = m)`: it has mean $`m`$ and variance
+NB2$`(m, \phi)`$ is `neg_binomial_2` in Stan and
+`dnbinom(size = phi, mu = m)` in R: it has mean $`m`$ and variance
 $`m + m^2/\phi`$, so a larger $`\phi`$ means less overdispersion, and
 the Poisson is the $`\phi \to \infty`$ limit.
 
@@ -392,15 +393,14 @@ $`N_{\text{shared}} \mid y_2 \sim \mathrm{Binomial}(y_2,\ \mu/(\mu +
 conditional, so
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 evaluates the discrete conditional law over $`k = 0, \ldots, y_2`$ and
-sums it. Both are exact, and each agrees with the mean of that family’s
-own
+sums it. Both are exact, and each agrees with the mean of
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
-draws to within Monte Carlo error.
+draws from the same family to within Monte Carlo error.
 
 `posterior_epred(fit)`, and therefore
 [`fitted()`](https://rdrr.io/r/stats/fitted.values.html) and
 [`conditional_effects()`](https://paulbuerkner.com/brms/reference/conditional_effects.brmsfit.html),
-dispatch to the family’s own method in the ordinary way. Neither family
+dispatch to the family method in the ordinary way. Neither family
 supports
 [`resp_trunc()`](https://paulbuerkner.com/brms/reference/addition-terms.html),
 so the brms limitation by which

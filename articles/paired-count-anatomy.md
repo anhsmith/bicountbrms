@@ -1,4 +1,4 @@
-# The anatomy of a paired count
+# Mapping native parameters to interpretable coordinates
 
 Every joint family in this package —
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
@@ -17,8 +17,9 @@ y_2 = N_{\text{shared}} + N_2
 
 The shared term induces the correlation between the pair. It is never
 observed, and is marginalised out analytically in the likelihood.
-Everything else is the part each source saw alone. The construction and
-its sources are set out in [The families and their
+$`N_1`$ and $`N_2`$ are the excess counts, each recorded by one source
+only. The construction and its sources are set out in [The families and
+their
 parameters](https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.md).
 
 The widget below shows the same model in both parameterisations, over an
@@ -38,7 +39,7 @@ Those three questions have their own coordinates:
 |  |  |  |
 |----|----|----|
 | $`M`$ | overall level | $`\mu + (\lambda_1 + \lambda_2)/2`$ |
-| $`f`$ | congruence, the share of $`M`$ both sources saw | $`\mu / M`$ |
+| $`f`$ | congruence, the mean of the shared component as a proportion of $`M`$ | $`\mu / M`$ |
 | $`\beta`$ | source bias, bounded on $`[-1,1]`$ | $`(\lambda_1 - \lambda_2)/(\lambda_1 + \lambda_2)`$ |
 
 The map between them is a bijection, so neither set is more “real”: they
@@ -88,15 +89,16 @@ stills the stacks.
 
 ## Calling the map directly
 
-The widget’s arithmetic is not a separate model: it is the package’s own
-map, which you can call directly. The R code below is the authoritative
-version, and the JavaScript above is checked against it:
+The arithmetic in the widget is not a separate model: it is the map
+exported by the package, which you can call directly. The R code below
+is the authoritative version, and the JavaScript above is checked
+against it:
 
 ``` r
 
 library(bicountbrms)
 
-# The widget's defaults
+# The widget defaults
 binegbin_mfd_to_dpars(
   M      = 12,
   f      = 0.67,
@@ -123,8 +125,8 @@ binegbin_mfd_to_dpars(
 #> [1] 1
 ```
 
-`delta` is the unbounded log-ratio bias; the widget’s $`\beta`$ is the
-bounded $`\tanh\delta`$. Going back the other way:
+`delta` is the unbounded log-ratio bias; the $`\beta`$ in the widget is
+the bounded $`\tanh\delta`$. Going back the other way:
 
 ``` r
 
@@ -200,10 +202,11 @@ which is the page to read first.
 Three of these coordinates have a **null at a finite, interpretable
 zero**. The priors below follow from three statements about that null.
 Zero is the base model: $`\kappa = 0`$ is a Poisson component,
-$`\delta = 0`$ is no bias between the two sources. A coordinate’s effect
-on the fit grows as it moves away from zero. The prior’s density should
-therefore decrease monotonically away from zero, leaving the data rather
-than the prior to move the estimate off the base model.
+$`\delta = 0`$ is no bias between the two sources. The effect of a
+coordinate on the fit grows as the coordinate moves away from zero. The
+prior density should therefore decrease monotonically away from zero,
+leaving the data rather than the prior to move the estimate off the base
+model.
 
 The third statement is Occam’s razor in the sense of Simpson et al.
 ([2017](#ref-simpsonPenalisingModelComponent2017)) (their Principle 1),
@@ -246,10 +249,10 @@ to settle before adopting the scale used here.
 `exponential(1)` is an alternative of the same shape, with its maximum
 at zero, decaying monotonically, and a heavier tail. The two agree at
 the median to within 3% ($`0.693`$ against $`0.674`$) and separate
-further out: 5.0% of the exponential’s mass lies beyond $`\kappa = 3`$,
-against 0.27% of the half-normal’s. Either satisfies the three
-statements above, so the choice is how much overdispersion the prior
-permits before the data are consulted. Simpson et al.
+further out: the exponential places 5.0% of its mass beyond
+$`\kappa = 3`$, against 0.27% for the half-normal. Either satisfies the
+three statements above, so the choice is how much overdispersion the
+prior permits before the data are consulted. Simpson et al.
 ([2017](#ref-simpsonPenalisingModelComponent2017)) §3.2 discusses heavy
 tails and their numerical behaviour.
 
@@ -271,7 +274,7 @@ them.
 
 ### Setting the prior on $`M`$ from your own counts
 
-$`M`$ is the only coordinate on the counts’ own scale. The others are
+$`M`$ is the only coordinate on the scale of the counts. The others are
 scale-free, so one recommendation serves any dataset; $`M`$ takes a
 prior chosen from the counts being modelled.
 
@@ -493,10 +496,10 @@ and the congruence at once.
 
 The JavaScript is an independent implementation of the *generative*
 model: it draws from the same trivariate reduction, but it is not the
-likelihood, and no part of the package’s inference runs in your browser.
-It uses the rate map tested in `test-mfd.R`; the sampler is
-illustrative. Treat the picture as intuition, and the R above as the
-specification.
+likelihood, and no part of the inference performed by the package runs
+in your browser. It uses the rate map tested in `test-mfd.R`; the
+sampler is illustrative. Treat the picture as intuition, and the R above
+as the specification.
 
 The widget also shows ONE excess-dispersion dial.
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)

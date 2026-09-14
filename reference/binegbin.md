@@ -86,8 +86,8 @@ rather than `dpar = "shapex"`.
 [`custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html).**
 Identical conventions to
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
-– `mu` is brms's mandatory dpar name, here bound to the shared
-component's rate (`lambda_shared`), not a mean of either response; `y2`
+– `mu` is the mandatory brms dpar name, here bound to the rate of the
+shared component (`lambda_shared`), not a mean of either response; `y2`
 is supplied as supplementary integer data through `vint()` because
 [`custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
 declares a single response column. See

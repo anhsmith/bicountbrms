@@ -50,7 +50,7 @@ its input is a stored fit and pre-0.10.0 binegbin fits declare that name."><meta
     <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Interpretation and history</h6></li>
-    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">Mapping native parameters to interpretable coordinates</a></li>
     <li><a class="dropdown-item" href="../articles/migration-and-errata.html">Migration and errata</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -108,9 +108,9 @@ its input is a stored fit and pre-0.10.0 <code>binegbin</code> fits declare that
 
 
 <dt id="arg-f">f<a class="anchor" aria-label="anchor" href="#arg-f"></a></dt>
-<dd><p>Congruence, the share of <code>M</code> that both sources saw: <code>mu / M</code>. In
-<code>[0, 1]</code>. <code>f = 1</code> means perfect agreement (both excesses vanish); <code>f = 0</code>
-means no shared component at all.</p></dd>
+<dd><p>Congruence, the mean of the shared component as a proportion of
+<code>M</code>: <code>mu / M</code>. In <code>[0, 1]</code>. <code>f = 1</code> means perfect agreement (both excesses
+vanish); <code>f = 0</code> means no shared component at all.</p></dd>
 
 
 <dt id="arg-delta">delta<a class="anchor" aria-label="anchor" href="#arg-delta"></a></dt>
@@ -121,13 +121,13 @@ and gives the limit where one excess rate is zero.</p></dd>
 
 <dt id="arg-kappas-kappax">kappas, kappax<a class="anchor" aria-label="anchor" href="#arg-kappas-kappax"></a></dt>
 <dd><p>Optional SD-scale dispersions. <code>0</code> is the Poisson
-limit. <code>kappas</code> is the shared component's, and the returned list gains
-<code>shapes</code> (<code>= 1/kappa^2</code>, so <code>kappa = 0</code> gives <code>Inf</code>). <code>kappax</code> is the
-shorthand for a single excess dispersion governing <em>both</em> margins: supply
-it and the returned list gains <code>shapexone</code> and <code>shapextwo</code> at that common
-value, which is the symmetric model <code><a href="binegbin.html">binegbin()</a></code> reaches by tying the two
-with <code><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf()</a></code>. Omit both for <code><a href="bipois.html">bipois()</a></code> and <code><a href="bipois_partialobs.html">bipois_partialobs()</a></code>, which
-have no dispersion parameters.</p></dd>
+limit. <code>kappas</code> is the dispersion of the shared component, and the
+returned list gains <code>shapes</code> (<code>= 1/kappa^2</code>, so <code>kappa = 0</code> gives <code>Inf</code>).
+<code>kappax</code> is the shorthand for a single excess dispersion governing <em>both</em>
+margins: supply it and the returned list gains <code>shapexone</code> and <code>shapextwo</code>
+at that common value, which is the symmetric model <code><a href="binegbin.html">binegbin()</a></code> reaches by
+tying the two with <code><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf()</a></code>. Omit both for <code><a href="bipois.html">bipois()</a></code> and
+<code><a href="bipois_partialobs.html">bipois_partialobs()</a></code>, which have no dispersion parameters.</p></dd>
 
 
 <dt id="arg-kappaxone-kappaxtwo">kappaxone, kappaxtwo<a class="anchor" aria-label="anchor" href="#arg-kappaxone-kappaxtwo"></a></dt>

@@ -91,7 +91,7 @@
   nothing to get wrong.
 
   - `tests/testthat/test-partialobs-predict.R` replaces
-    `test-cens-predict.R`. It keeps all five of that file’s blocks and
+    `test-cens-predict.R`. It keeps all five blocks from that file and
     adds a one-`vint` mirror of each: the same fixtures with `shapexone`
     and `shapextwo` an order of magnitude apart, on a prep with no
     `vint2`.
@@ -113,7 +113,7 @@
   `lambdaem`/`lambdalb`; `.SHAPEXONE_NAMES` and `.SHAPEXTWO_NAMES` both
   list `shapex` last, so both per-margin dispersions resolve to the one
   such a fit has; and an absent `vint2` selects the matched branch.
-  Scanning the sibling project’s fit directory found 103 stored
+  Scanning the fit directory of the sibling project found 103 stored
   `binegbin` fits, every one of them with the pre-0.7.0 rate names *and*
   the single `shapex`, so all three paths are exercised in practice.
   `test-dpar-compat.R` now builds that exact prep and asserts all three
@@ -237,11 +237,11 @@
   shim: pinning the whole package is a stronger guarantee than a
   hand-picked subset of forwarders. \# bicountbrms 0.9.1
 
-- **No behaviour change.** Nothing in the four families’ likelihoods,
-  predictions or expectations differs from 0.9.0. This release adds test
-  coverage that was missing and corrects a claim in the README the suite
-  did not support. No fitted model is affected and no code needs
-  changing.
+- **No behaviour change.** Nothing in the likelihoods, predictions or
+  expectations of the four families differs from 0.9.0. This release
+  adds test coverage that was missing and corrects a claim in the README
+  the suite did not support. No fitted model is affected and no code
+  needs changing.
 
 - **New tests: prediction on censored rows, with the two excess
   dispersions distinct** (`tests/testthat/test-cens-predict.R`). The
@@ -287,7 +287,7 @@
   under which they were originally released.
 
   **No fitted model needs refitting**, either for the split or for the
-  rename below. brms resolves each fit’s `log_lik_*` /
+  rename below. For each fit, brms resolves the `log_lik_*` /
   `posterior_predict_*` / `posterior_epred_*` methods off the attached
   search path at call time, so a stored fit works as soon as the package
   holding its family is attached. No dpar name changed. The only source
@@ -337,13 +337,13 @@
   layers at once (a test pins this).
 
 - **New family: `bipois_cens()` / `bipois_cens_stanvars()`.** The
-  censoring-aware bivariate Poisson — `binegbin_cens()`’s equidispersed
-  counterpart, and
-  [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)’s
-  censoring-aware one. Three log-linked dpars (`mu`, `lambdaone`,
-  `lambdatwo`) and two `vint()` integers, `vint(y2, y1_obs)`, exactly as
-  `binegbin_cens()` takes them. It has no deprecated aliases: it was
-  added in this release under its final name.
+  censoring-aware bivariate Poisson — the equidispersed counterpart of
+  `binegbin_cens()`, and the censoring-aware counterpart of
+  [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md).
+  Three log-linked dpars (`mu`, `lambdaone`, `lambdatwo`) and two
+  `vint()` integers, `vint(y2, y1_obs)`, exactly as `binegbin_cens()`
+  takes them. It has no deprecated aliases: it was added in this release
+  under its final name.
 
   Its censored branch is closed form. A sum of independent Poissons is
   Poisson, so the `y1`-integrated marginal collapses to
@@ -355,13 +355,13 @@
   Two things follow. Users whose counts are equidispersed no longer have
   to fit `binegbin_cens()` with its dispersions pressed against the
   Poisson boundary, where sampling degrades. And the suite gains an
-  independent analytic reference for `binegbin_cens()`’s censored
-  branch: driving its three dispersions to their Poisson limit must
-  reproduce `bipois_cens()`, checked as a limit — the error must shrink
-  in proportion to `1/phi` — rather than at a single tolerance.
-  Previously that branch was pinned only by the marginal identity, which
-  compares it against the matched branch of the same code and so shares
-  any error common to both sums.
+  independent analytic reference for the censored branch of
+  `binegbin_cens()`: driving its three dispersions to their Poisson
+  limit must reproduce `bipois_cens()`, checked as a limit — the error
+  must shrink in proportion to `1/phi` — rather than at a single
+  tolerance. Previously that branch was pinned only by the marginal
+  identity, which compares it against the matched branch of the same
+  code and so shares any error common to both sums.
 
 - **Breaking (numerical):
   [`posterior_epred_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
@@ -382,9 +382,9 @@
   already samples from, summed rather than sampled — so the expectation
   and the predictions agree by construction rather than approximately.
 
-  Numbers produced by an earlier version’s
+  Numbers produced by
   [`posterior_epred_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-  should be recomputed.
+  in an earlier version should be recomputed.
   [`log_lik()`](https://mc-stan.org/rstantools/reference/log_lik.html),
   [`loo()`](https://mc-stan.org/loo/reference/loo.html) and
   [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
@@ -395,17 +395,17 @@
   ambiguous when `y1` is unobserved. It is not: `E[y1 | y2]` is well
   defined whether or not `y1` was recorded, and it is the quantity a
   user imputing the missing margin wants. It is returned for every row,
-  matched and censored alike, matching
-  `posterior_predict_binegbin_cens()`’s existing convention. Stored fits
-  reach it through the deprecated `posterior_epred_binegbin_joint()`
-  forwarder, so they gain the method without refitting.
+  matched and censored alike, matching the existing convention of
+  `posterior_predict_binegbin_cens()`. Stored fits reach it through the
+  deprecated `posterior_epred_binegbin_joint()` forwarder, so they gain
+  the method without refitting.
 
 - **All four families now share one `posterior_epred` convention**,
   stated once in `tests/testthat/test-epred.R` and held to one standard:
-  the expectation must equal the mean of that family’s own
-  `posterior_predict` draws to within Monte Carlo error. Before this
-  release, the three families answered three different ways — exactly,
-  approximately, and not at all.
+  the expectation must equal the mean of `posterior_predict` draws from
+  the same family to within Monte Carlo error. Before this release, the
+  three families answered three different ways — exactly, approximately,
+  and not at all.
 
 - `skellam` moves from **Imports to Suggests**. No function in `R/`
   calls it now that the Skellam families have left;
@@ -413,26 +413,26 @@
   independent reference for the induced difference distribution, which
   is worth keeping.
 
-- The coverage gate’s environment variable is renamed
+- The environment variable for the coverage gate is renamed
   `PAIREDCOUNTBRMS_COVERAGE` → `BICOUNTBRMS_COVERAGE`.
 
 - The README and the getting-started vignette are rewritten around the
-  four joint families, and the vignette’s “one limitation to know about”
-  section — which described brms’s
+  four joint families, and the vignette section “one limitation to know
+  about” — which described how
   [`posterior_epred()`](https://mc-stan.org/rstantools/reference/posterior_epred.html)
-  failure on *truncated* custom-family fits — is replaced by a statement
-  of the epred convention above. That limitation cannot arise here:
-  these families do not support
+  in brms fails on *truncated* custom-family fits — is replaced by a
+  statement of the epred convention above. That limitation cannot arise
+  here: these families do not support
   [`resp_trunc()`](https://paulbuerkner.com/brms/reference/addition-terms.html).
   It applies to the difference families and is now documented in
   `skellambrms`.
 
 ------------------------------------------------------------------------
 
-Entries below record this code’s history under its former names. It was
-`skellambrms` through 0.5.0 and `pairedcountbrms` from 0.6.0 to 0.8.0,
-and those packages contained the difference families as well, so some
-entries describe families that are no longer here. They are left as
+Entries below record the history of this code under its former names. It
+was `skellambrms` through 0.5.0 and `pairedcountbrms` from 0.6.0 to
+0.8.0, and those packages contained the difference families as well, so
+some entries describe families that are no longer here. They are left as
 written rather than retrospectively edited. Releases before 0.4.0, which
-predate the joint families entirely, are recorded in [`skellambrms`’s
+predate the joint families entirely, are recorded in [the `skellambrms`
 NEWS](https://github.com/anhsmith/skellambrms/blob/master/NEWS.md).

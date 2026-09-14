@@ -110,11 +110,11 @@ partial likelihood and partial pooling.
 Releases before 0.9.0 computed
 [`posterior_epred_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 using the *marginal* shared fraction $`\mu/(\mu + \lambda_2)`$ in place
-of the *conditional* fraction. That substitution is `bipois`’s answer,
-exact only in the Poisson limit, and it made the expectation disagree
-with the family’s own
+of the *conditional* fraction. That substitution is the answer `bipois`
+gives, exact only in the Poisson limit, and it made the expectation
+disagree with
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
-draws by more than Monte Carlo error.
+draws from the same family by more than Monte Carlo error.
 
 Over a grid of plausible rates and dispersions, with $`y_2`$ within one
 standard deviation of its mean, the substituted value was in error by
@@ -132,8 +132,8 @@ should be recomputed.
 ## Erratum: the dispersion routing in `posterior_predict()`, before 0.9.1
 
 Release 0.9.1 added `tests/testthat/test-cens-predict.R`, since
-superseded by `test-partialobs-predict.R`, after a check of the test
-suite’s discrimination. In `posterior_predict_binegbin_cens()`, the
+superseded by `test-partialobs-predict.R`, after a discrimination check
+on the test suite. In `posterior_predict_binegbin_cens()`, the
 conditional split of $`N_{\text{shared}} \mid y_2`$ is weighted by
 `shapextwo`, while the fresh source-specific count added on top takes
 `shapexone`. Exchanging those two passed 412 assertions across six test
@@ -142,6 +142,6 @@ the suite built its fixture from a single five-dpar `shapex`, which both
 name vectors resolve to identically.
 
 No released version computed the exchanged quantity. The defect was in
-the test suite’s power to detect an error, not in the shipped code.
+the power of the test suite to detect an error, not in the shipped code.
 
 ## References

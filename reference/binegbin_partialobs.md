@@ -13,17 +13,17 @@ supplies a second supplementary integer, an observation flag, through
 `0` where the first was not. `y1` may hold any non-negative integer on
 those rows – `0` is the conventional placeholder – because the
 likelihood does not read it. Do not use `NA`, which brms drops before
-fitting, taking the row's observed `y2` with it.
+fitting, taking the observed `y2` on that row with it.
 
 **Contribution of a matched row and of an unmatched row.** A matched row
 (`y1_obs == 1`) uses the full joint lpmf on `(y1, y2)`. A row whose
-first count was never recorded (`y1_obs == 0`) contributes the second
-count's marginal *from the same model*,
+first count was never recorded (`y1_obs == 0`) contributes the marginal
+of the second count *from the same model*,
 `P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo)` –
 the joint with the `y1` term integrated out over its whole support. It
 is not dropped, and it is not given a different model: it still informs
-the shared component (`mu`, `shapes`), the second source's rate and
-dispersion (`lambdatwo`, `shapextwo`), and any group-level effects.
+the shared component (`mu`, `shapes`), the rate and dispersion of the
+second source (`lambdatwo`, `shapextwo`), and any group-level effects.
 
 **Imputation after fitting.** The fitted model can impute the unobserved
 first count conditional on the observed second one, which is usually why
@@ -36,18 +36,18 @@ unmatched alike – `y1_obs` selects a likelihood branch, not a
 prediction.
 
 **A design consequence, worth knowing before the data are collected.**
-The first source's rate `lambdaone` and excess dispersion `shapexone`
-appear only on the matched branch, so they are identified by the matched
-rows *alone*. A design with 20 matched rows in 500 learns them weakly
-and leans on their priors. `mu`, `shapes`, `lambdatwo` and `shapextwo`
-appear on both branches and are informed by every row.
+The rate `lambdaone` and excess dispersion `shapexone` of the first
+source appear only on the matched branch, so they are identified by the
+matched rows *alone*. A design with 20 matched rows in 500 learns them
+weakly and leans on their priors. `mu`, `shapes`, `lambdatwo` and
+`shapextwo` appear on both branches and are informed by every row.
 
-**This is not censoring in brms's sense.** brms's `cens()` addition term
-means a value known to lie in a set – `left`, `right`, `interval`. Here
-the first count is not observed at all and the likelihood marginalises
-over its whole support. This family was called `binegbin_cens()` up to
-0.9.1; the name was wrong and was changed at 0.10.0. Do not combine this
-family with `cens()`.
+**This is not censoring in the brms sense.** The brms `cens()` addition
+term means a value known to lie in a set – `left`, `right`, `interval`.
+Here the first count is not observed at all and the likelihood
+marginalises over its whole support. This family was called
+`binegbin_cens()` up to 0.9.1; the name was wrong and was changed at
+0.10.0. Do not combine this family with `cens()`.
 
 Use in a brm() call as: brm( bf(y1 \| vint(y2, y1_obs) ~ 1, mu ~ 1 + (1
 \| vessel) + (1 \| vessel:trip_id), nlf(lambdaone ~ lamx + methd),
@@ -100,7 +100,7 @@ this package to declare a floor on the Stan version. It does not.
 
 **Two `vint()` arguments, in declared order.** brms appends `vint()`
 integers to the generated lpmf call in the order they are listed in the
-formula's `vint()` term, matching the `vars` declared here: so
+`vint()` term of the formula, matching the `vars` declared here: so
 `vint(y2, y1_obs)` binds `vint1 = y2` and `vint2 = y1_obs`. Reordering
 the two `vint()` terms without matching the Stan signature silently
 swaps the second count with the branch flag.

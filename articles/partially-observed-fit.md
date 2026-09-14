@@ -11,10 +11,10 @@ first count on only some of them.
 [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
 admits both kinds of row under one likelihood: a matched row contributes
 the full joint probability of the pair, and a row whose first count was
-never recorded contributes the second count’s marginal, taken from that
-same joint model.
+never recorded contributes the marginal of the second count, taken from
+that same joint model.
 
-Partial observation is not censoring in the sense of brms’s `cens()`
+Partial observation is not censoring in the sense of the brms `cens()`
 addition term, which describes a value known to lie in a set. Here the
 first count was not observed at all, and the likelihood marginalises
 over its whole support.
@@ -23,8 +23,8 @@ over its whole support.
 
 The complete pair is generated first, and the first count is then
 withheld on the unmatched rows. Keeping the withheld values aside makes
-it possible to score the model’s imputation against them at the end,
-which is not something a real dataset permits.
+it possible to score the imputation from the model against them at the
+end, which is not something a real dataset permits.
 
 ``` r
 
@@ -267,11 +267,11 @@ from the second counts however few pairs are matched.
 The matched rows also do work for the other four parameters, which the
 branch structure alone does not show. An unmatched row constrains
 $`\mu`$ and $`\lambda_2`$ only through the convolution that gives the
-second count’s marginal, and that convolution determines the sum of the
-two components better than it determines the division between them.
-Separating the shared component from the second source’s own is done by
-the matched rows, because only a matched row observes both counts of a
-pair. For
+marginal of the second count, and that convolution determines the sum of
+the two components better than it determines the division between them.
+Separating the shared component from the excess for the second source is
+done by the matched rows, because only a matched row observes both
+counts of a pair. For
 [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md),
 this is sharper still: an unmatched row involves $`\mu`$ and
 $`\lambda_2`$ through their sum $`\mu + \lambda_2`$ exactly, with no

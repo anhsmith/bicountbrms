@@ -44,7 +44,7 @@
     <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Interpretation and history</h6></li>
-    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">Mapping native parameters to interpretable coordinates</a></li>
     <li><a class="dropdown-item" href="../articles/migration-and-errata.html">Migration and errata</a></li>
   </ul>
 </li>
@@ -80,10 +80,10 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paul-buerkner/brms" class="external-link">brms</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/anhsmith/bicountbrms" class="external-link">bicountbrms</a></span><span class="op">)</span></span></code></pre></div>
 <p>This article describes the parameters that are fitted. The companion
-article <a href="paired-count-anatomy.html">The anatomy of a paired
-count</a> describes the coordinates in which they are interpreted, and
-<a href="choosing-priors.html">Choosing priors</a> gives the recipes for
-both.</p>
+article <a href="paired-count-anatomy.html">Mapping native parameters to
+interpretable coordinates</a> describes the coordinates in which they
+are interpreted, and <a href="choosing-priors.html">Choosing priors</a>
+gives the recipes for both.</p>
 <div class="section level2">
 <h2 id="trivariate-reduction">Trivariate reduction<a class="anchor" aria-label="anchor" href="#trivariate-reduction"></a>
 </h2>
@@ -132,12 +132,12 @@ named <code>mu</code>. In these families, <code>mu</code> is the rate of
 the shared latent count. Since
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>y</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\mathrm{E}[y_1] = \mu + \lambda_1</annotation></semantics></math>,
 <code>mu</code> is not the mean of either observed count, nor of their
-difference. The constraint is <code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">custom_family()</a></code>’s rather than
-a modelling choice, and the same applies to the spelling of the two
-source-specific rates: <code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">custom_family()</a></code> rejects a
-distributional parameter name ending in a digit, so the code writes
-<code>lambdaone</code> and <code>lambdatwo</code> where the
-documentation writes
+difference. The constraint is a requirement of
+<code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">custom_family()</a></code> rather than a modelling choice, and the
+same applies to the spelling of the two source-specific rates:
+<code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">custom_family()</a></code> rejects a distributional parameter name
+ending in a digit, so the code writes <code>lambdaone</code> and
+<code>lambdatwo</code> where the documentation writes
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>.</p>
@@ -150,8 +150,8 @@ distribution, so the variance is equal to the mean.
 <code><a href="../reference/binegbin.html">binegbin()</a></code> draws each from NB2 instead and estimates three
 scalar dispersions.
 NB2<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>m</mi><mo>,</mo><mi>ϕ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(m, \phi)</annotation></semantics></math>
-is Stan’s <code>neg_binomial_2</code> and R’s
-<code>dnbinom(size = phi, mu = m)</code>: it has mean
+is <code>neg_binomial_2</code> in Stan and
+<code>dnbinom(size = phi, mu = m)</code> in R: it has mean
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math>
 and variance
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>+</mo><msup><mi>m</mi><mn>2</mn></msup><mi>/</mi><mi>ϕ</mi></mrow><annotation encoding="application/x-tex">m + m^2/\phi</annotation></semantics></math>,
@@ -487,12 +487,12 @@ total gives a Binomial, so
 counts has no Binomial conditional, so <code><a href="../reference/binegbin.html">binegbin()</a></code> evaluates
 the discrete conditional law over
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>0</mn><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">k = 0, \ldots, y_2</annotation></semantics></math>
-and sums it. Both are exact, and each agrees with the mean of that
-family’s own <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> draws to within Monte
-Carlo error.</p>
+and sums it. Both are exact, and each agrees with the mean of
+<code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> draws from the same family to within
+Monte Carlo error.</p>
 <p><code>posterior_epred(fit)</code>, and therefore
 <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code> and <code><a href="https://paulbuerkner.com/brms/reference/conditional_effects.brmsfit.html" class="external-link">conditional_effects()</a></code>, dispatch
-to the family’s own method in the ordinary way. Neither family supports
+to the family method in the ordinary way. Neither family supports
 <code><a href="https://paulbuerkner.com/brms/reference/addition-terms.html" class="external-link">resp_trunc()</a></code>, so the brms limitation by which
 <code><a href="https://mc-stan.org/rstantools/reference/posterior_epred.html" class="external-link">posterior_epred()</a></code> errors on a truncated custom family
 cannot arise here.</p>

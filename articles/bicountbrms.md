@@ -20,7 +20,7 @@ follow the same pattern; the README compares them.
 
 Everything here is a brms custom family ([Bürkner
 2017](#ref-burkner2017)), so the fitting, prediction and
-model-comparison interfaces are brms’s own. The non-linear formula
+model-comparison interfaces are those of brms. The non-linear formula
 syntax used further down is documented in Bürkner
 ([2018](#ref-burkner2018)).
 
@@ -47,32 +47,33 @@ y_2 = N_{\text{shared}} + N_2
 \end{aligned}
 ```
 
-The shared component is what both sources saw; the two excesses are what
-each saw alone. $`N_{\text{shared}}`$ is never observed — it is
-marginalised out analytically in the likelihood — but it is what induces
-the correlation between the pair.
+$`N_{\text{shared}}`$ is the latent count recorded by both sources;
+$`N_1`$ and $`N_2`$ are the two excesses, each recorded by one source
+only. $`N_{\text{shared}}`$ induces the correlation between the pair. It
+is never observed, and is marginalised out analytically in the
+likelihood.
 
-`NB2(m, phi)` is Stan’s `neg_binomial_2` and R’s
-`dnbinom(size = phi, mu = m)`: mean `m`, variance `m + m^2/phi`. Larger
-`phi` means *less* overdispersion.
+`NB2(m, phi)` is `neg_binomial_2` in Stan and
+`dnbinom(size = phi, mu = m)` in R: mean `m`, variance `m + m^2/phi`.
+Larger `phi` means *less* overdispersion.
 
 Six dpars, all with a log link:
 
-| dpar        | role                                                   |
-|-------------|--------------------------------------------------------|
-| `mu`        | rate of the shared component, $`\mu`$                  |
-| `lambdaone` | rate of the first source’s excess, $`\lambda_1`$       |
-| `lambdatwo` | rate of the second source’s excess, $`\lambda_2`$      |
-| `shapes`    | dispersion $`\phi_s`$ of the shared component          |
-| `shapexone` | dispersion $`\phi_{x1}`$ of the first source’s excess  |
-| `shapextwo` | dispersion $`\phi_{x2}`$ of the second source’s excess |
+| dpar        | role                                                         |
+|-------------|--------------------------------------------------------------|
+| `mu`        | rate of the shared component, $`\mu`$                        |
+| `lambdaone` | rate of the excess for the first source, $`\lambda_1`$       |
+| `lambdatwo` | rate of the excess for the second source, $`\lambda_2`$      |
+| `shapes`    | dispersion $`\phi_s`$ of the shared component                |
+| `shapexone` | dispersion $`\phi_{x1}`$ of the excess for the first source  |
+| `shapextwo` | dispersion $`\phi_{x2}`$ of the excess for the second source |
 
 [`brms::custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
 rejects any family whose dpars do not include one named literally `mu`.
 The requirement is on the name, not on the position: `mu` may appear
-anywhere in the vector. Here it is bound to the shared component’s
-*rate*, so it is not the mean of either response, nor the mean of their
-difference. `E[y1] = mu + lambdaone`.
+anywhere in the vector. Here it is bound to the *rate* of the shared
+component, so it is not the mean of either response, nor the mean of
+their difference. `E[y1] = mu + lambdaone`.
 
 The two rates are spelled `lambdaone`/`lambdatwo` rather than
 `lambda1`/`lambda2` because
@@ -127,13 +128,13 @@ Two things are specific to this package.
 **The second count is supplied through `vint()`.**
 [`brms::custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
 declares a single response column, so only `y1` can be the response.
-`y2` is passed alongside as supplementary integer data, and the family’s
-Stan signature reads it from there.
+`y2` is passed alongside as supplementary integer data, and the Stan
+signature of the family reads it from there.
 
 **`stanvars` is not optional.**
 [`binegbin_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-injects the `binegbin_lpmf` Stan function into the model’s `functions`
-block. Without it, the generated model will not compile.
+injects the `binegbin_lpmf` Stan function into the `functions` block of
+the model. Without it, the generated model will not compile.
 
 ``` r
 
@@ -171,11 +172,11 @@ scale `normal(2, 1)` is lognormal, with 95% of its mass between 1 and
 52.
 
 The six truths span 0.69 to 2.08 on the log scale, so no single prior
-sits away from all of them: the shared rate’s truth falls near the prior
-mean, the second excess rate’s 1.3 prior SDs below it. Recovery here is
-therefore not on its own evidence that the prior is uninfluential. The
-article [*The anatomy of a paired
-count*](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html)
+sits away from all of them: the true shared rate falls near the prior
+mean, the true second excess rate 1.3 prior SDs below it. Recovery here
+is therefore not on its own evidence that the prior is uninfluential.
+The article [*Mapping native parameters to interpretable
+coordinates*](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html)
 tests that directly, shifting a prior median sevenfold and moving the
 corresponding posterior median by 0.005.
 
@@ -232,17 +233,17 @@ The three rates should land tightly on their true values. The three
 dispersions are estimated from an aggregate mean–variance mismatch
 rather than from any directly observed quantity, so their intervals are
 wider; the two excess dispersions especially, since they are identified
-only through the part of the pair’s spread that the shared component
-cannot explain. Wide but covering is the expected result here, not a
-warning sign.
+only through the part of the spread in the pair that the shared
+component cannot explain. Wide but covering is the expected result here,
+not a warning sign.
 
 ## Predict and score
 
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
-draws new `y1` **conditional on each row’s observed `y2`**. It samples
-the discrete conditional distribution of $`N_{\text{shared}}`$ given
-`y2`, then adds a fresh excess draw — the exact conditional, not an
-approximation.
+draws new `y1` **conditional on the observed `y2` in each row**. It
+samples the discrete conditional distribution of $`N_{\text{shared}}`$
+given `y2`, then adds a fresh excess draw — the exact conditional, not
+an approximation.
 
 ``` r
 
@@ -328,7 +329,7 @@ and
 is what those two constructors are for.
 
 `posterior_epred(fit)` needs no special handling: it dispatches to the
-family’s method, as do
+family method, as do
 [`fitted()`](https://rdrr.io/r/stats/fitted.values.html) and
 [`conditional_effects()`](https://paulbuerkner.com/brms/reference/conditional_effects.brmsfit.html).
 
@@ -355,7 +356,7 @@ family’s method, as do
   and any group-level effects; afterwards the fit imputes the missing
   count conditional on the observed one. Note that $`\lambda_1`$ and
   $`\phi_{x1}`$ are then identified by the matched rows alone. Despite
-  its former name, this is unrelated to brms’s `cens()` addition term,
+  its former name, this is unrelated to the brms `cens()` addition term,
   which means a value known to lie in a set.
 - The $`(M, f, \delta)`$**reparameterisation** — overall level $`M`$,
   congruence $`f`$, and source bias $`\delta`$, with the dispersions on
@@ -369,12 +370,13 @@ family’s method, as do
   priors towards the simpler model unless the data support otherwise
   ([Simpson et al. 2017](#ref-simpsonPenalisingModelComponent2017)). The
   rate parameterisation has no such nulls. Worked end to end in the
-  article [*The anatomy of a paired
-  count*](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html).
+  article [*Mapping native parameters to interpretable
+  coordinates*](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html).
 - [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
-  — the same partial observation, equidispersed:
-  [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)’s
-  Poisson special case. Its integrated-out marginal is closed form,
+  — the same partial observation, equidispersed: the Poisson special
+  case of
+  [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md).
+  Its integrated-out marginal is closed form,
   $`y_2 \sim \mathrm{Poisson}(\mu + \lambda_2)`$, since a sum of
   independent Poissons is Poisson. Use it when the margins are not
   overdispersed, rather than fitting

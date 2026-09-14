@@ -44,7 +44,7 @@
     <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Interpretation and history</h6></li>
-    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">Mapping native parameters to interpretable coordinates</a></li>
     <li><a class="dropdown-item" href="../articles/migration-and-errata.html">Migration and errata</a></li>
   </ul>
 </li>
@@ -83,9 +83,9 @@
 the first count on only some of them. <code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code>
 admits both kinds of row under one likelihood: a matched row contributes
 the full joint probability of the pair, and a row whose first count was
-never recorded contributes the second count’s marginal, taken from that
-same joint model.</p>
-<p>Partial observation is not censoring in the sense of brms’s
+never recorded contributes the marginal of the second count, taken from
+that same joint model.</p>
+<p>Partial observation is not censoring in the sense of the brms
 <code>cens()</code> addition term, which describes a value known to lie
 in a set. Here the first count was not observed at all, and the
 likelihood marginalises over its whole support.</p>
@@ -94,8 +94,8 @@ likelihood marginalises over its whole support.</p>
 </h2>
 <p>The complete pair is generated first, and the first count is then
 withheld on the unmatched rows. Keeping the withheld values aside makes
-it possible to score the model’s imputation against them at the end,
-which is not something a real dataset permits.</p>
+it possible to score the imputation from the model against them at the
+end, which is not something a real dataset permits.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">20260826</span><span class="op">)</span></span>
 <span></span>
@@ -377,13 +377,13 @@ the branch structure alone does not show. An unmatched row constrains
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>
-only through the convolution that gives the second count’s marginal, and
-that convolution determines the sum of the two components better than it
-determines the division between them. Separating the shared component
-from the second source’s own is done by the matched rows, because only a
-matched row observes both counts of a pair. For
-<code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code>, this is sharper still: an unmatched
-row involves
+only through the convolution that gives the marginal of the second
+count, and that convolution determines the sum of the two components
+better than it determines the division between them. Separating the
+shared component from the excess for the second source is done by the
+matched rows, because only a matched row observes both counts of a pair.
+For <code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code>, this is sharper still: an
+unmatched row involves
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>

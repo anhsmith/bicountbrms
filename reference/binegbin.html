@@ -88,7 +88,7 @@ data     = dat
     <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Interpretation and history</h6></li>
-    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">The anatomy of a paired count</a></li>
+    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">Mapping native parameters to interpretable coordinates</a></li>
     <li><a class="dropdown-item" href="../articles/migration-and-errata.html">Migration and errata</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -185,9 +185,9 @@ their single <code>shapex</code> resolves to both <code>shapexone</code> and <co
 post-processed. Set a prior with <code>nlpar = "shapexx"</code> rather than
 <code>dpar = "shapex"</code>.</p>
 <p><strong>Names forced by <code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">custom_family()</a></code>.</strong> Identical conventions to
-<code><a href="bipois.html">bipois()</a></code> – <code>mu</code> is brms's mandatory dpar name, here bound to the shared
-component's rate (<code>lambda_shared</code>), not a mean of either response; <code>y2</code>
-is supplied as supplementary integer data through <code>vint()</code> because
+<code><a href="bipois.html">bipois()</a></code> – <code>mu</code> is the mandatory brms dpar name, here bound to the rate
+of the shared component (<code>lambda_shared</code>), not a mean of either response;
+<code>y2</code> is supplied as supplementary integer data through <code>vint()</code> because
 <code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">custom_family()</a></code> declares a single response column. See <code><a href="bipois.html">bipois()</a></code> for
 the full explanation, including why the rates are spelled <code>lambdaone</code>/
 <code>lambdatwo</code> in code but written \(\lambda_1\)/
