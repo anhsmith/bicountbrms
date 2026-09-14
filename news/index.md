@@ -409,10 +409,9 @@
 
 - `skellam` moves from **Imports to Suggests**. No function in `R/`
   calls it now that the Skellam families have left;
-  `tests/testthat/test-bipois.R` still uses
-  [`skellam::dskellam()`](https://rdrr.io/pkg/skellam/man/skellam.html)
-  as the independent reference for the induced difference distribution,
-  which is worth keeping.
+  `tests/testthat/test-bipois.R` still uses `skellam::dskellam()` as the
+  independent reference for the induced difference distribution, which
+  is worth keeping.
 
 - The coverage gate’s environment variable is renamed
   `PAIREDCOUNTBRMS_COVERAGE` → `BICOUNTBRMS_COVERAGE`.

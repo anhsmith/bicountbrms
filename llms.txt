@@ -19,13 +19,15 @@ unobserved shared latent component, with an additional component each
 that only one source recorded.
 
 The native parameters — means and (for negative binomial) dispersions
-for each of the three latent components — can be reparameterised into
-four interpretable coordinates: the overall count rate, the congruence
-between the two sources, the bias toward one of them, and (for negative
-binomial) the excess dispersion of each source. The package also allows
-the model to be fit when one source is only partially observed (the
-`*_partialobs` variants); posterior predictions can then be made for the
-missing values of that source based on the observed values of the other.
+for each of the three latent components — can be [reparameterised into
+four interpretable
+coordinates](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html):
+the overall count rate, the congruence between the two sources, the bias
+toward one of them, and (for negative binomial) the excess dispersion of
+each source. The package also allows the model to be fit when one source
+is only partially observed (the `*_partialobs` variants); posterior
+predictions can then be made for the missing values of that source based
+on the observed values of the other.
 
 ## The core functions
 
