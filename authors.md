@@ -2,8 +2,14 @@
 
 ## Authors
 
-- **Adam N. H. Smith**. Author, maintainer.
+- **Adam N. H. Smith**. Author, maintainer, copyright holder.
   [](https://orcid.org/0000-0003-0059-6206)
+
+- **The Nature Conservancy**. Funder.
+
+- **Belize Blue Bonds for Ocean Conservation**. Funder.
+
+- **Belize Fund for a Sustainable Future**. Funder.
 
 ## Citation
 

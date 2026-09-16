@@ -195,6 +195,15 @@ Karlis and Ntzoufras (2003). Kirkpatrick and Neale (2016) and
 Kirkpatrick (2022) use the same construction with negative-binomial
 components.
 
+## Funding
+
+This package was developed by [Sea Through
+Science](https://www.seathrough.science) for a fisheries
+electronic-monitoring project led by Johanna Pierre of [JPEC
+Consulting](https://jpec.co.nz/), with support from The Nature
+Conservancy, the Belize Blue Bonds for Ocean Conservation and the Belize
+Fund for a Sustainable Future.
+
 ## References
 
 Holgate, P. (1964). Estimation for the bivariate Poisson distribution.
