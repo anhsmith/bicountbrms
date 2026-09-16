@@ -2,10 +2,14 @@ Package: bicountbrms
 Title: Joint Bivariate-Count 'brms' Custom Families for Paired Counts
 Version: 0.10.0
 Date: 2026-09-01
-Authors@R:
+Authors@R: c(
     person("Adam N. H.", "Smith", , "anhsmith@gmail.com",
-           role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0003-0059-6206"))
+           role = c("aut", "cre", "cph"),
+           comment = c(ORCID = "0000-0003-0059-6206")),
+    person("The Nature Conservancy", role = "fnd"),
+    person("Belize Blue Bonds for Ocean Conservation", role = "fnd"),
+    person("Belize Fund for a Sustainable Future", role = "fnd")
+  )
 Description: Provides custom 'brms' families for comparing two paired count
     sources, modelling the pair jointly via trivariate reduction rather than
     reducing it to a difference. Two families are supplied: a bivariate
