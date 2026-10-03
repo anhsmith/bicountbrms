@@ -183,8 +183,9 @@ parameter.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"shapexx"</span><span class="op">)</span></span></code></pre></div>
 <p>rather than the pre-0.10.0
 <code>class = "Intercept", dpar = "shapex"</code>. Both fields change. A
-prior written the old way names no parameter in the new model and is
-dropped without a warning, which leaves the dispersion improper. See <a href="choosing-priors.html">Choosing priors</a>.</p>
+prior written the old way names no parameter in the new model, so brms
+stops with the error that the prior does not correspond to any model
+parameter. See <a href="choosing-priors.html">Choosing priors</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="cens-named-the-wrong-mechanism">
@@ -199,7 +200,7 @@ rather than over a bounded set. A brms user meeting <code>_cens</code>
 had every reason to map one mechanism onto the other.</p>
 <p><code>partialobs</code> names what is partial, which is the
 <em>pair</em>, and which is a property of the data rather than of the
-model. <code>unobs</code> and <code>unmatched</code> name only the
+model. <code>unobs</code> and <code>unpaired</code> name only the
 minority class of rows; <code>partial</code> alone collides with partial
 likelihood and partial pooling.</p>
 </div>

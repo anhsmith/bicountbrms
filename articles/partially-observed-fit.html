@@ -81,7 +81,7 @@
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/anhsmith/bicountbrms" class="external-link">bicountbrms</a></span><span class="op">)</span></span></code></pre></div>
 <p>A partially paired design records the second count on every row and
 the first count on only some of them. <code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code>
-admits both kinds of row under one likelihood: a matched row contributes
+admits both kinds of row under one likelihood: a paired row contributes
 the full joint probability of the pair, and a row whose first count was
 never recorded contributes the marginal of the second count, taken from
 that same joint model.</p>
@@ -93,7 +93,7 @@ likelihood marginalises over its whole support.</p>
 <h2 id="simulating-a-design-with-40-of-first-counts-unrecorded">Simulating a design with 40% of first counts unrecorded<a class="anchor" aria-label="anchor" href="#simulating-a-design-with-40-of-first-counts-unrecorded"></a>
 </h2>
 <p>The complete pair is generated first, and the first count is then
-withheld on the unmatched rows. Keeping the withheld values aside makes
+withheld on the unpaired rows. Keeping the withheld values aside makes
 it possible to score the imputation from the model against them at the
 end, which is not something a real dataset permits.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -123,16 +123,15 @@ end, which is not something a real dataset permits.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">withheld</span> <span class="op">&lt;-</span> <span class="va">y1_full</span><span class="op">[</span><span class="va">y1_obs</span> <span class="op">==</span> <span class="fl">0L</span><span class="op">]</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">n</span>, matched <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">y1_obs</span><span class="op">)</span>, unmatched <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fl">1L</span> <span class="op">-</span> <span class="va">y1_obs</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;         n   matched unmatched </span></span>
-<span><span class="co">#&gt;       400       243       157</span></span></code></pre></div>
-<p>Two details of the data matter.</p>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">n</span>, paired <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">y1_obs</span><span class="op">)</span>, unpaired <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fl">1L</span> <span class="op">-</span> <span class="va">y1_obs</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;        n   paired unpaired </span></span>
+<span><span class="co">#&gt;      400      243      157</span></span></code></pre></div>
 <p>The observation flag is a 0/1 integer column, supplied through
 <code>vint()</code> alongside the second count:
 <code>vint(y2, y1_obs)</code> binds <code>vint1</code> to the second
 count and <code>vint2</code> to the flag, in the order they are
 listed.</p>
-<p>On an unmatched row, the response column is not read by the
+<p>On an unpaired row, the response column is not read by the
 likelihood, so any non-negative integer serves as a placeholder;
 <code>0</code> is used above. Do not write <code>NA</code> there. brms
 drops rows with a missing response before the family is reached, which
@@ -171,9 +170,9 @@ use.</p>
 <span><span class="co">#&gt;    0.000000    1.005449</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="the-contribution-of-an-unmatched-row">The contribution of an unmatched row<a class="anchor" aria-label="anchor" href="#the-contribution-of-an-unmatched-row"></a>
+<h2 id="the-contribution-of-an-unpaired-row">The contribution of an unpaired row<a class="anchor" aria-label="anchor" href="#the-contribution-of-an-unpaired-row"></a>
 </h2>
-<p>An unmatched row is scored by</p>
+<p>An unpaired row is scored by</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>2</mn></msub><mo>=</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mi>y</mi></munderover><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><mi>k</mi><mo>∣</mo><mi>μ</mi><mo>,</mo><msub><mi>ϕ</mi><mtext mathvariant="normal">s</mtext></msub><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo>−</mo><mi>k</mi><mo>∣</mo><msub><mi>λ</mi><mn>2</mn></msub><mo>,</mo><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
 P(y_2 = y) = \sum_{k=0}^{y}
   \mathrm{NB2}(k \mid \mu, \phi_{\text{s}})\,
@@ -182,8 +181,8 @@ P(y_2 = y) = \sum_{k=0}^{y}
 <p>which is the joint model with the first count summed out over its
 whole support. The row is neither dropped nor given a separate
 univariate model on the second count, either of which would be a
-different model from the one the matched rows are fitted to.</p>
-<p>Two consequences follow. An unmatched row informs
+different model from the one the paired rows are fitted to.</p>
+<p>Two consequences follow. An unpaired row informs
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mtext mathvariant="normal">s</mtext></msub><annotation encoding="application/x-tex">\phi_{\text{s}}</annotation></semantics></math>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>,
@@ -192,8 +191,8 @@ and any group-level effects. It does not inform
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>
 or
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>,
-which appear only in the matched branch.</p>
-<p>Which parameters an unmatched row informs is a property of the
+which appear only in the paired branch.</p>
+<p>Which parameters an unpaired row informs is a property of the
 likelihood rather than of this fit. What that property implies for a
 particular design is taken up further down.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -210,7 +209,7 @@ particular design is taken up further down.</p>
 <span>  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">draws</span><span class="op">[[</span><span class="va">pars</span><span class="op">[[</span><span class="va">p</span><span class="op">]</span><span class="op">]</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>    dpar     <span class="op">=</span> <span class="va">p</span>,</span>
-<span>    informed <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="va">p</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lambdaone"</span>, <span class="st">"shapexone"</span><span class="op">)</span><span class="op">)</span> <span class="st">"matched rows"</span> <span class="kw">else</span> <span class="st">"every row"</span>,</span>
+<span>    informed <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="va">p</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lambdaone"</span>, <span class="st">"shapexone"</span><span class="op">)</span><span class="op">)</span> <span class="st">"paired rows"</span> <span class="kw">else</span> <span class="st">"every row"</span>,</span>
 <span>    truth    <span class="op">=</span> <span class="va">truth</span><span class="op">[[</span><span class="va">p</span><span class="op">]</span><span class="op">]</span>,</span>
 <span>    median   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>,</span>
 <span>    lower    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">0.025</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -239,7 +238,7 @@ particular design is taken up further down.</p>
 </tr>
 <tr class="even">
 <td align="left">lambdaone</td>
-<td align="left">matched rows</td>
+<td align="left">paired rows</td>
 <td align="right">4</td>
 <td align="right">5.08</td>
 <td align="right">3.90</td>
@@ -263,7 +262,7 @@ particular design is taken up further down.</p>
 </tr>
 <tr class="odd">
 <td align="left">shapexone</td>
-<td align="left">matched rows</td>
+<td align="left">paired rows</td>
 <td align="right">2</td>
 <td align="right">4.41</td>
 <td align="right">2.03</td>
@@ -302,7 +301,7 @@ directly observed quantity.</p>
 for every row, conditional on the second count recorded there. The
 observation flag selects a branch of the likelihood; it does not change
 the prediction. Rows on which the first count was never recorded are
-therefore predicted in exactly the same way as matched rows, which is
+therefore predicted in exactly the same way as paired rows, which is
 what the imputation depends on.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pp</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
@@ -316,10 +315,10 @@ what the imputation depends on.</p>
 <span><span class="op">)</span></span>
 <span><span class="va">imp</span><span class="op">$</span><span class="va">covered</span> <span class="op">&lt;-</span> <span class="va">imp</span><span class="op">$</span><span class="va">withheld</span> <span class="op">&gt;=</span> <span class="va">imp</span><span class="op">$</span><span class="va">lower</span> <span class="op">&amp;</span> <span class="va">imp</span><span class="op">$</span><span class="va">withheld</span> <span class="op">&lt;=</span> <span class="va">imp</span><span class="op">$</span><span class="va">upper</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>n_unmatched      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">imp</span><span class="op">)</span>,</span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>n_unpaired      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">imp</span><span class="op">)</span>,</span>
 <span>  empirical_cover  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">imp</span><span class="op">$</span><span class="va">covered</span><span class="op">)</span>,</span>
 <span>  nominal          <span class="op">=</span> <span class="fl">0.90</span><span class="op">)</span></span>
-<span><span class="co">#&gt;     n_unmatched empirical_cover         nominal </span></span>
+<span><span class="co">#&gt;      n_unpaired empirical_cover         nominal </span></span>
 <span><span class="co">#&gt;     157.0000000       0.8980892       0.9000000</span></span></code></pre></div>
 <p>The empirical coverage of the nominal 90% interval is a check on the
 imputation, not a test of the method: simulating from the model and
@@ -361,38 +360,64 @@ slope 0.27 rather than 1. The vertical spread measures what the second
 count leaves undetermined about the first.</p>
 </div>
 <div class="section level2">
-<h2 id="choosing-a-matched-fraction">Choosing a matched fraction<a class="anchor" aria-label="anchor" href="#choosing-a-matched-fraction"></a>
+<h2 id="choosing-the-fraction-of-paired-rows">Choosing the fraction of paired rows<a class="anchor" aria-label="anchor" href="#choosing-the-fraction-of-paired-rows"></a>
 </h2>
 <p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>
-appear only in the matched branch, so as the matched count approaches
-zero they stop being identified and their posteriors return their
-priors.
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>
-continues to be estimated from the second counts however few pairs are
-matched.</p>
-<p>The matched rows also do work for the other four parameters, which
-the branch structure alone does not show. An unmatched row constrains
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>
-only through the convolution that gives the marginal of the second
-count, and that convolution determines the sum of the two components
-better than it determines the division between them. Separating the
-shared component from the excess for the second source is done by the
-matched rows, because only a matched row observes both counts of a pair.
-For <code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code>, this is sharper still: an
-unmatched row involves
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>
-through their sum
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\mu + \lambda_2</annotation></semantics></math>
-exactly, with no convolution to separate them.</p>
-<p>Where the between-source bias or the congruence is the quantity of
-interest, the matched subset is the effective sample size for it. That
-is worth knowing before the data are collected.</p>
+appear only in the likelihood term for a paired row, so their precision
+is set by the number of paired rows rather than by
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>.
+The same is true of the between-source bias and the congruence, because
+both depend on
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>.
+Where either is the quantity of interest, the number of paired rows
+should therefore be chosen when the study is designed.</p>
+</div>
+<div class="section level2">
+<h2 id="tying-the-excess-and-shared-dispersions">Tying the excess and shared dispersions<a class="anchor" aria-label="anchor" href="#tying-the-excess-and-shared-dispersions"></a>
+</h2>
+<p>With few paired rows, a small
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>,
+or both, <code>shapexone</code> is weakly identified and therefore its
+posterior stays close to its prior. Where there is no evidence that the
+two sources differ in the overdispersion of their excess counts,
+constraining
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">\phi_{x1} = \phi_{x2}</annotation></semantics></math>
+estimates one excess dispersion from every row, because
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x2}</annotation></semantics></math>
+appears in the likelihood term for both kinds of row. Where the shared
+component is not expected to differ either, all three dispersions can be
+constrained to be equal.</p>
+<p>Each constraint is imposed by routing the tied dispersions through
+one non-linear parameter:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># phi_x1 = phi_x2</span></span>
+<span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula.html" class="external-link">bf</a></span><span class="op">(</span><span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span>, <span class="va">y1_obs</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>   <span class="va">mu</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>   <span class="va">lambdaone</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">lambdatwo</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>   <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapexone</span> <span class="op">~</span> <span class="va">shapexx</span><span class="op">)</span>, <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapextwo</span> <span class="op">~</span> <span class="va">shapexx</span><span class="op">)</span>,</span>
+<span>   <span class="va">shapes</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">shapexx</span> <span class="op">~</span> <span class="fl">1</span>, nl <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"shapexx"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># phi_s = phi_x1 = phi_x2</span></span>
+<span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula.html" class="external-link">bf</a></span><span class="op">(</span><span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span>, <span class="va">y1_obs</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>   <span class="va">mu</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>   <span class="va">lambdaone</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">lambdatwo</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>   <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapes</span> <span class="op">~</span> <span class="va">shapeall</span><span class="op">)</span>, <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapexone</span> <span class="op">~</span> <span class="va">shapeall</span><span class="op">)</span>,</span>
+<span>   <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapextwo</span> <span class="op">~</span> <span class="va">shapeall</span><span class="op">)</span>,</span>
+<span>   <span class="va">shapeall</span> <span class="op">~</span> <span class="fl">1</span>, nl <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"shapeall"</span><span class="op">)</span></span></code></pre></div>
+<p>The prior on the tied parameter takes <code>class = "b"</code> and
+<code>nlpar</code>, not <code>class = "Intercept"</code> and
+<code>dpar</code>; <code><a href="https://paulbuerkner.com/brms/reference/default_prior.html" class="external-link">get_prior()</a></code> on the formula lists the
+slots. <a href="families-and-parameters.html">The families and their
+parameters</a> shows the generated Stan for the two-way tie. Either
+constraint is an assumption rather than an estimate. If the dispersions
+differ, each tied value is biased towards a common one, and with few
+paired rows the data may not reveal the difference.</p>
 </div>
 <div class="section level2">
 <h2 id="telling-which-constructor-a-stored-fit-used">Telling which constructor a stored fit used<a class="anchor" aria-label="anchor" href="#telling-which-constructor-a-stored-fit-used"></a>
@@ -400,7 +425,7 @@ is worth knowing before the data are collected.</p>
 <p><code>family$name</code> is <code>"binegbin"</code> for both
 constructors, so it does not distinguish them. The presence of the
 second supplementary integer does:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>has_vint2 <span class="op">=</span> <span class="st">"vint2"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/standata.html" class="external-link">standata</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  vars      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">family</span><span class="op">$</span><span class="va">vars</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;            has_vint2                 vars </span></span>

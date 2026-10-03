@@ -2,8 +2,8 @@
 
 Overdispersed sibling of
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md).
-Returns a brms custom family for the joint distribution of a matched
-count pair `(y1, y2)` via trivariate reduction with Negative-Binomial
+Returns a brms custom family for the joint distribution of a pair of
+counts `(y1, y2)` via trivariate reduction with Negative-Binomial
 (rather than Poisson) latent components: `y1 = N_shared + N1`,
 `y2 = N_shared + N2`, with `N_shared ~ NB2(mu, shapes)`,
 `N1 ~ NB2(lambdaone, shapexone)`, `N2 ~ NB2(lambdatwo, shapextwo)`

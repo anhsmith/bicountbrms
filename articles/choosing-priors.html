@@ -94,12 +94,12 @@ model, <code><a href="https://paulbuerkner.com/brms/reference/default_prior.html
 whole real line. This is the standard default for parameters other than
 <code>mu</code> in custom brms families.</p>
 <div class="section level2">
-<h2 id="every-parameter-identified-by-the-matched-rows-alone-is-left-improper">Every parameter identified by the matched rows alone is left
-improper<a class="anchor" aria-label="anchor" href="#every-parameter-identified-by-the-matched-rows-alone-is-left-improper"></a>
+<h2 id="every-parameter-identified-by-the-paired-rows-alone-is-left-improper">Every parameter identified by the paired rows alone is left
+improper<a class="anchor" aria-label="anchor" href="#every-parameter-identified-by-the-paired-rows-alone-is-left-improper"></a>
 </h2>
 <p>Under partial observation, the two constructors do not identify every
 parameter equally well. <code>lambdaone</code> and
-<code>shapexone</code> appear only on the matched branch of the
+<code>shapexone</code> appear only on the paired branch of the
 likelihood, as does any between-source bias, so the rows on which the
 first count was recorded are the only rows that inform them.
 <code>mu</code>, <code>shapes</code>, <code>lambdatwo</code> and
@@ -110,18 +110,18 @@ Every parameter in the first group is left without a prior.
 <code>shapes</code> and <code>shapextwo</code> are left without one as
 well, although every row informs them, so the containment runs one way
 only. The one parameter brms does supply a prior for, <code>mu</code>,
-is informed by every row. Under a design in which few rows are matched,
+is informed by every row. Under a design in which few rows are paired,
 the parameters whose posteriors depend most on their priors are all
 parameters for which no prior has been set.</p>
 <p>For <code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code>, the statement needs one
-qualification. On an unmatched row, the likelihood of that family
+qualification. On an unpaired row, the likelihood of that family
 involves <code>mu</code> only through the sum
 <code>mu + lambdatwo</code>, so those rows constrain the total rate of
 the observed margin without dividing it between the shared and the
 source-specific component. Separating <code>mu</code> from
 <code>lambdatwo</code>, and so estimating the congruence
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>,
-is also informed by the matched rows alone.</p>
+is also informed by the paired rows alone.</p>
 </div>
 <div class="section level2">
 <h2 id="the-symptom-is-divergent-transitions">The symptom is divergent transitions<a class="anchor" aria-label="anchor" href="#the-symptom-is-divergent-transitions"></a>
@@ -192,10 +192,10 @@ as a distributional parameter takes <code>class = "Intercept"</code> and
 <span>  <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span>, dpar  <span class="op">=</span> <span class="st">"shapes"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="https://paulbuerkner.com/brms/reference/default_prior.html" class="external-link">get_prior()</a></code> on the formula returns the combination each
-parameter requires, and is the reliable way to find it. A prior naming a
-slot the model does not contain is dropped without a warning, which
-leaves the parameter improper and the symptom above unexplained.</p>
-<p>That failure mode has one especially easy instance. To impose
+parameter requires, and is the reliable way to find it. When a prior
+names a slot the model does not contain, brms stops with the error that
+the prior does not correspond to any model parameter.</p>
+<p>That error has one especially easy instance. To impose
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">\phi_{x1} = \phi_{x2}</annotation></semantics></math>,
 the two excess dispersions are routed through a single non-linear
 parameter, described in <a href="families-and-parameters.html">The
@@ -203,13 +203,13 @@ families and their parameters</a>:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula.html" class="external-link">bf</a></span><span class="op">(</span><span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">mu</span> <span class="op">~</span> <span class="fl">1</span>,</span>
 <span>   <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapexone</span> <span class="op">~</span> <span class="va">shapexx</span><span class="op">)</span>, <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapextwo</span> <span class="op">~</span> <span class="va">shapexx</span><span class="op">)</span>,</span>
-<span>   <span class="va">lamx</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">shapes</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">shapexx</span> <span class="op">~</span> <span class="fl">1</span>, nl <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>   <span class="va">lambdaone</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">lambdatwo</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">shapes</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">shapexx</span> <span class="op">~</span> <span class="fl">1</span>, nl <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"shapexx"</span><span class="op">)</span></span></code></pre></div>
 <p>Both fields differ from the pre-0.10.0 spelling, which was
 <code>class = "Intercept", dpar = "shapex"</code>. A prior written the
-old way names no parameter in the tied model, is dropped silently, and
-leaves <code>shapexx</code> flat.</p>
+old way names no parameter in the tied model, so brms stops with that
+error rather than fitting.</p>
 </div>
 <div class="section level2">
 <h2 id="shrinkage-priors-in-the-m-f-δ-coordinates">Shrinkage priors in the (M, f, δ) coordinates<a class="anchor" aria-label="anchor" href="#shrinkage-priors-in-the-m-f-%CE%B4-coordinates"></a>

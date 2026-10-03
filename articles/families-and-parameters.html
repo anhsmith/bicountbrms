@@ -272,12 +272,13 @@ quietly fit the six-parameter model the formula was meant to constrain.
 <code>class = "b"</code> and <code>nlpar = "shapexx"</code>. Both fields
 differ from the pre-0.10.0 spelling, which was
 <code>class = "Intercept"</code> with <code>dpar = "shapex"</code>. A
-prior written the old way names no parameter in the tied model and is
-dropped without a warning, which leaves the dispersion improper; see <a href="choosing-priors.html">Choosing priors</a>.</p>
+prior written the old way names no parameter in the tied model, so brms
+stops with the error that the prior does not correspond to any model
+parameter; see <a href="choosing-priors.html">Choosing priors</a>.</p>
 <p>Under full pairing, every row informs both dispersions. Under partial
 observation, the two are not equally identified: <code>shapextwo</code>
 governs the always-observed margin and appears on both branches of the
-likelihood, while <code>shapexone</code> appears on the matched branch
+likelihood, while <code>shapexone</code> appears on the paired branch
 alone. <a href="partially-observed-fit.html">A worked partially observed
 fit</a> shows what follows from that asymmetry.</p>
 </div>
@@ -460,8 +461,8 @@ plot of chunk dispersion-posteriors
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
 <p>Under partial observation, the same demonstration requires a majority
-of rows to be matched, because <code>shapexone</code> is then informed
-by those rows alone.
+of rows to be paired, because <code>shapexone</code> is then informed by
+those rows alone.
 <code>tests/testthat/test-binegbin-dispersions.R</code> runs both
 designs.</p>
 </div>
@@ -508,14 +509,14 @@ verifies:</p>
 written in R, agreeing to about
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>14</mn></mrow></msup><annotation encoding="application/x-tex">10^{-14}</annotation></semantics></math>
 across a grid of rates and dispersions and at edge cases;</li>
-<li>normalisation to 1, over the pair on the matched branch and over
+<li>normalisation to 1, over the pair on the paired branch and over
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>2</mn></msub><annotation encoding="application/x-tex">y_2</annotation></semantics></math>
-on the unmatched one;</li>
+on the unpaired one;</li>
 <li>the moment identities above, by exact summation over the joint
 probability mass function rather than by simulation;</li>
-<li>the marginal identity, that summing the matched branch over
+<li>the marginal identity, that summing the paired branch over
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math>
-reproduces the unmatched branch;</li>
+reproduces the unpaired branch;</li>
 <li>the Poisson limit, checked as a limit — the discrepancy must shrink
 as
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ϕ</mi><annotation encoding="application/x-tex">\phi</annotation></semantics></math>

@@ -87,8 +87,8 @@ prior(normal(0, 1.5), class = "b", nlpar = "shapexx")
 
 rather than the pre-0.10.0 `class = "Intercept", dpar = "shapex"`. Both
 fields change. A prior written the old way names no parameter in the new
-model and is dropped without a warning, which leaves the dispersion
-improper. See [Choosing
+model, so brms stops with the error that the prior does not correspond
+to any model parameter. See [Choosing
 priors](https://anhsmith.github.io/bicountbrms/articles/choosing-priors.md).
 
 ## `_cens` named the wrong mechanism
@@ -101,7 +101,7 @@ over its whole support rather than over a bounded set. A brms user
 meeting `_cens` had every reason to map one mechanism onto the other.
 
 `partialobs` names what is partial, which is the *pair*, and which is a
-property of the data rather than of the model. `unobs` and `unmatched`
+property of the data rather than of the model. `unobs` and `unpaired`
 name only the minority class of rows; `partial` alone collides with
 partial likelihood and partial pooling.
 

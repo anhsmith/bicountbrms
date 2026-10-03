@@ -19,6 +19,25 @@
   `mu + (lambdaone + lambdatwo)/2`, rather than the “overall level”. No
   change to the API: the argument `M`, the `_mfd_` functions and the
   dpar names are unchanged.
+- Documentation now calls a row with both counts recorded “paired” and a
+  row with only the second count “unpaired”, replacing “matched” and
+  “unmatched”. No change to the API.
+- The article on partially observed fits has a new section, “Tying the
+  excess and shared dispersions”. It gives the formulas and priors for
+  $`\phi_{x1} = \phi_{x2}`$ and for $`\phi_s = \phi_{x1} = \phi_{x2}`$,
+  for designs with few paired rows or a small `lambdaone`, in which
+  `shapexone` is weakly identified.
+- Corrected a false statement in three articles and in a test comment: a
+  prior written with the pre-0.10.0 spelling
+  `class = "Intercept", dpar = "shapex"` on a model that ties the excess
+  dispersions is not dropped silently. brms stops with an error that the
+  prior does not correspond to any model parameter.
+  `test-stancode-shape.R` now checks for that error.
+- The tied-dispersion formula in “Choosing priors” declared a non-linear
+  parameter `lamx` that no
+  [`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html)
+  term used, and brms rejects such a formula. The formula now gives
+  `lambdaone` and `lambdatwo` their own intercepts.
 
 ## bicountbrms 0.10.0
 

@@ -14,7 +14,7 @@ those rows – `0` is the conventional placeholder – because the
 likelihood does not read it. Do not use `NA`, which brms drops before
 fitting, taking the observed `y2` on that row with it.
 
-**Contribution of a matched row and of an unmatched row.** A matched row
+**Contribution of a paired row and of an unpaired row.** A paired row
 (`y1_obs == 1`) uses the full joint
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
 lpmf on `(y1, y2)`. A row whose first count was never recorded
@@ -33,21 +33,20 @@ someone wanted this.
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
 and
 [`posterior_epred()`](https://mc-stan.org/rstantools/reference/posterior_epred.html)
-return a `y1` draw and `E[y1 | y2]` for *every* row, matched and
-unmatched alike – `y1_obs` selects a likelihood branch, not a
-prediction.
+return a `y1` draw and `E[y1 | y2]` for *every* row, paired and unpaired
+alike – `y1_obs` selects a likelihood branch, not a prediction.
 
 **A design consequence, worth knowing before the data are collected.**
 `lambdatwo` appears on both branches, so every row informs it.
-`lambdaone` appears only on the matched branch and is identified by the
-matched rows *alone*. `mu` appears on both, but the unmatched branch
-sees it only through the sum `mu + lambdatwo` – those rows constrain the
+`lambdaone` appears only on the paired branch and is identified by the
+paired rows *alone*. `mu` appears on both, but the unpaired branch sees
+it only through the sum `mu + lambdatwo` – those rows constrain the
 total rate of the observed margin, not how it divides between the shared
 and source-2-only components. Separating `mu` from `lambdatwo`, and so
 estimating the congruence \\f\\, is therefore also informed by the
-matched rows. With few of them, `mu` and `lambdatwo` trade off along
+paired rows. With few of them, `mu` and `lambdatwo` trade off along
 their sum and the prior does correspondingly more of the work, however
-many unmatched rows the design contains.
+many unpaired rows the design contains.
 
 **This is not censoring in the brms sense.** The brms `cens()` addition
 term means a value known to lie in a set – `left`, `right`, `interval`.
@@ -105,8 +104,8 @@ so brms resolves both to one `bipois_lpmf` and one set of
 [`posterior_predict_bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
 /
 [`posterior_epred_bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
-methods. The matched branch is therefore not a second copy that can
-drift from the fully paired likelihood; it is the same code. See
+methods. The paired branch is therefore not a second copy that can drift
+from the fully paired likelihood; it is the same code. See
 [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
 for why `vars` declares a literal in the plain constructor rather than
 the two families declaring overloaded Stan functions.

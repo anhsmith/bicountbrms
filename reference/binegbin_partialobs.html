@@ -10,7 +10,7 @@ where the first was not. y1 may hold any non-negative integer on those
 rows – 0 is the conventional placeholder – because the likelihood does
 not read it. Do not use NA, which brms drops before fitting, taking the
 observed y2 on that row with it.
-Contribution of a matched row and of an unmatched row. A matched row (y1_obs == 1) uses the
+Contribution of a paired row and of an unpaired row. A paired row (y1_obs == 1) uses the
 full joint lpmf on (y1, y2). A row whose first count was never recorded
 (y1_obs == 0) contributes the marginal of the second count from the
 same model,
@@ -22,12 +22,12 @@ source (lambdatwo, shapextwo), and any group-level effects.
 Imputation after fitting. The fitted model can impute the unobserved
 first count conditional on the observed second one, which is usually why
 someone wanted this. posterior_predict() and posterior_epred() return a
-y1 draw and E[y1 | y2] for every row, matched and unmatched alike –
+y1 draw and E[y1 | y2] for every row, paired and unpaired alike –
 y1_obs selects a likelihood branch, not a prediction.
 A design consequence, worth knowing before the data are collected. The
 rate lambdaone and excess dispersion shapexone of the first source
-appear only on the matched branch, so they are identified by the matched
-rows alone. A design with 20 matched rows in 500 learns them weakly and
+appear only on the paired branch, so they are identified by the paired
+rows alone. A design with 20 paired rows in 500 learns them weakly and
 leans on their priors. mu, shapes, lambdatwo and shapextwo appear
 on both branches and are informed by every row.
 This is not censoring in the brms sense. The brms cens() addition term
@@ -58,7 +58,7 @@ where the first was not. y1 may hold any non-negative integer on those
 rows – 0 is the conventional placeholder – because the likelihood does
 not read it. Do not use NA, which brms drops before fitting, taking the
 observed y2 on that row with it.
-Contribution of a matched row and of an unmatched row. A matched row (y1_obs == 1) uses the
+Contribution of a paired row and of an unpaired row. A paired row (y1_obs == 1) uses the
 full joint lpmf on (y1, y2). A row whose first count was never recorded
 (y1_obs == 0) contributes the marginal of the second count from the
 same model,
@@ -70,12 +70,12 @@ source (lambdatwo, shapextwo), and any group-level effects.
 Imputation after fitting. The fitted model can impute the unobserved
 first count conditional on the observed second one, which is usually why
 someone wanted this. posterior_predict() and posterior_epred() return a
-y1 draw and E[y1 | y2] for every row, matched and unmatched alike –
+y1 draw and E[y1 | y2] for every row, paired and unpaired alike –
 y1_obs selects a likelihood branch, not a prediction.
 A design consequence, worth knowing before the data are collected. The
 rate lambdaone and excess dispersion shapexone of the first source
-appear only on the matched branch, so they are identified by the matched
-rows alone. A design with 20 matched rows in 500 learns them weakly and
+appear only on the paired branch, so they are identified by the paired
+rows alone. A design with 20 paired rows in 500 learns them weakly and
 leans on their priors. mu, shapes, lambdatwo and shapextwo appear
 on both branches and are informed by every row.
 This is not censoring in the brms sense. The brms cens() addition term
@@ -150,7 +150,7 @@ where the first was not. <code>y1</code> may hold any non-negative integer on th
 rows – <code>0</code> is the conventional placeholder – because the likelihood does
 not read it. Do not use <code>NA</code>, which brms drops before fitting, taking the
 observed <code>y2</code> on that row with it.</p>
-<p><strong>Contribution of a matched row and of an unmatched row.</strong> A matched row (<code>y1_obs == 1</code>) uses the
+<p><strong>Contribution of a paired row and of an unpaired row.</strong> A paired row (<code>y1_obs == 1</code>) uses the
 full joint lpmf on <code>(y1, y2)</code>. A row whose first count was never recorded
 (<code>y1_obs == 0</code>) contributes the marginal of the second count <em>from the
 same model</em>,
@@ -162,12 +162,12 @@ source (<code>lambdatwo</code>, <code>shapextwo</code>), and any group-level eff
 <p><strong>Imputation after fitting.</strong> The fitted model can impute the unobserved
 first count conditional on the observed second one, which is usually why
 someone wanted this. <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> and <code><a href="https://mc-stan.org/rstantools/reference/posterior_epred.html" class="external-link">posterior_epred()</a></code> return a
-<code>y1</code> draw and <code>E[y1 | y2]</code> for <em>every</em> row, matched and unmatched alike –
+<code>y1</code> draw and <code>E[y1 | y2]</code> for <em>every</em> row, paired and unpaired alike –
 <code>y1_obs</code> selects a likelihood branch, not a prediction.</p>
 <p><strong>A design consequence, worth knowing before the data are collected.</strong> The
 rate <code>lambdaone</code> and excess dispersion <code>shapexone</code> of the first source
-appear only on the matched branch, so they are identified by the matched
-rows <em>alone</em>. A design with 20 matched rows in 500 learns them weakly and
+appear only on the paired branch, so they are identified by the paired
+rows <em>alone</em>. A design with 20 paired rows in 500 learns them weakly and
 leans on their priors. <code>mu</code>, <code>shapes</code>, <code>lambdatwo</code> and <code>shapextwo</code> appear
 on both branches and are informed by every row.</p>
 <p><strong>This is not censoring in the brms sense.</strong> The brms <code>cens()</code> addition term
@@ -211,7 +211,7 @@ apply to a fit made with either constructor.</p>
 <code>custom_family</code> <code>name</code> as <code><a href="binegbin.html">binegbin()</a></code>, so brms resolves both to one
 <code>binegbin_lpmf</code> and one set of <code><a href="binegbin.html">log_lik_binegbin()</a></code> /
 <code><a href="binegbin.html">posterior_predict_binegbin()</a></code> / <code><a href="binegbin.html">posterior_epred_binegbin()</a></code> methods. The
-matched branch of the likelihood is therefore not a second copy that can
+paired branch of the likelihood is therefore not a second copy that can
 drift from the fully paired one; it is the same code.</p>
 <p>What differs is <code>vars</code>. <code><a href="binegbin.html">binegbin()</a></code> declares <code>c("vint1[n]", "1")</code> and this
 declares <code>c("vint1[n]", "vint2[n]")</code>. brms pastes those entries into the

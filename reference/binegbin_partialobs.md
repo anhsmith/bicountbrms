@@ -15,7 +15,7 @@ those rows – `0` is the conventional placeholder – because the
 likelihood does not read it. Do not use `NA`, which brms drops before
 fitting, taking the observed `y2` on that row with it.
 
-**Contribution of a matched row and of an unmatched row.** A matched row
+**Contribution of a paired row and of an unpaired row.** A paired row
 (`y1_obs == 1`) uses the full joint lpmf on `(y1, y2)`. A row whose
 first count was never recorded (`y1_obs == 0`) contributes the marginal
 of the second count *from the same model*,
@@ -31,14 +31,13 @@ someone wanted this.
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
 and
 [`posterior_epred()`](https://mc-stan.org/rstantools/reference/posterior_epred.html)
-return a `y1` draw and `E[y1 | y2]` for *every* row, matched and
-unmatched alike – `y1_obs` selects a likelihood branch, not a
-prediction.
+return a `y1` draw and `E[y1 | y2]` for *every* row, paired and unpaired
+alike – `y1_obs` selects a likelihood branch, not a prediction.
 
 **A design consequence, worth knowing before the data are collected.**
 The rate `lambdaone` and excess dispersion `shapexone` of the first
-source appear only on the matched branch, so they are identified by the
-matched rows *alone*. A design with 20 matched rows in 500 learns them
+source appear only on the paired branch, so they are identified by the
+paired rows *alone*. A design with 20 paired rows in 500 learns them
 weakly and leans on their priors. `mu`, `shapes`, `lambdatwo` and
 `shapextwo` appear on both branches and are informed by every row.
 
@@ -85,7 +84,7 @@ so brms resolves both to one `binegbin_lpmf` and one set of
 [`posterior_predict_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 /
 [`posterior_epred_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-methods. The matched branch of the likelihood is therefore not a second
+methods. The paired branch of the likelihood is therefore not a second
 copy that can drift from the fully paired one; it is the same code.
 
 What differs is `vars`.

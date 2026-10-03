@@ -179,14 +179,15 @@ quietly fit the six-parameter model the formula was meant to constrain.
 A prior on the tied parameter is written with `class = "b"` and
 `nlpar = "shapexx"`. Both fields differ from the pre-0.10.0 spelling,
 which was `class = "Intercept"` with `dpar = "shapex"`. A prior written
-the old way names no parameter in the tied model and is dropped without
-a warning, which leaves the dispersion improper; see [Choosing
+the old way names no parameter in the tied model, so brms stops with the
+error that the prior does not correspond to any model parameter; see
+[Choosing
 priors](https://anhsmith.github.io/bicountbrms/articles/choosing-priors.md).
 
 Under full pairing, every row informs both dispersions. Under partial
 observation, the two are not equally identified: `shapextwo` governs the
 always-observed margin and appears on both branches of the likelihood,
-while `shapexone` appears on the matched branch alone. [A worked
+while `shapexone` appears on the paired branch alone. [A worked
 partially observed
 fit](https://anhsmith.github.io/bicountbrms/articles/partially-observed-fit.md)
 shows what follows from that asymmetry.
@@ -366,7 +367,7 @@ par(op)
 ```
 
 Under partial observation, the same demonstration requires a majority of
-rows to be matched, because `shapexone` is then informed by those rows
+rows to be paired, because `shapexone` is then informed by those rows
 alone. `tests/testthat/test-binegbin-dispersions.R` runs both designs.
 
 ## Quantities returned by `posterior_epred()` and `posterior_predict()`
@@ -416,12 +417,12 @@ verifies:
 - the Stan implementation against an independent brute-force reference
   written in R, agreeing to about $`10^{-14}`$ across a grid of rates
   and dispersions and at edge cases;
-- normalisation to 1, over the pair on the matched branch and over
-  $`y_2`$ on the unmatched one;
+- normalisation to 1, over the pair on the paired branch and over
+  $`y_2`$ on the unpaired one;
 - the moment identities above, by exact summation over the joint
   probability mass function rather than by simulation;
-- the marginal identity, that summing the matched branch over $`y_1`$
-  reproduces the unmatched branch;
+- the marginal identity, that summing the paired branch over $`y_1`$
+  reproduces the unpaired branch;
 - the Poisson limit, checked as a limit — the discrepancy must shrink as
   $`\phi`$ grows — rather than at a single tolerance.
 

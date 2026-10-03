@@ -2,7 +2,7 @@
 
 ## Joint bivariate-count families
 
-Model the matched pair jointly via trivariate reduction, capturing its
+Model the pair of counts jointly via trivariate reduction, capturing its
 correlation, marginal overdispersion, and difference together rather
 than the difference alone. Each component distribution has one family
 name and two constructors: the plain one for a fully paired design, and

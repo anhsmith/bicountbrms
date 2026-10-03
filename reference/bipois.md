@@ -1,7 +1,7 @@
 # Joint bivariate-Poisson custom family for brms
 
-Returns a brms custom family for the joint distribution of a matched
-pair of counts, `(y1, y2)`, constructed via trivariate reduction:
+Returns a brms custom family for the joint distribution of a pair of
+counts, `(y1, y2)`, constructed via trivariate reduction:
 `y1 = N_shared + N1`, `y2 = N_shared + N2`, with
 `N_shared ~ Poisson(mu)`, `N1 ~ Poisson(lambdaone)`,
 `N2 ~ Poisson(lambdatwo)` mutually independent given their rates. All
@@ -80,7 +80,7 @@ for that gap, not a workaround. This does mean `y2` is *not* itself
 treated as brms-modelled response data (no missing-value handling, no
 resp\_\*() addition terms apply to it) – it is fixed, observed per-row
 data, consistent with the fact that every row this constructor is for
-comes from the matched (both-observed) subset.
+comes from the paired (both-observed) subset.
 
 **Order of dpars matters for the generated Stan call.** brms generates
 `target += bipois_lpmf(Y[n] | mu[n], lambdaone[n], lambdatwo[n], vint1[n], 1)`

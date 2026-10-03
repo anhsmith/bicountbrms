@@ -355,7 +355,7 @@ family method, as do
   so they still inform $`\mu`$, $`\phi_s`$, $`\lambda_2`$, $`\phi_{x2}`$
   and any group-level effects; afterwards the fit imputes the missing
   count conditional on the observed one. Note that $`\lambda_1`$ and
-  $`\phi_{x1}`$ are then identified by the matched rows alone. Despite
+  $`\phi_{x1}`$ are then identified by the paired rows alone. Despite
   its former name, this is unrelated to the brms `cens()` addition term,
   which means a value known to lie in a set.
 - The $`(M, f, \delta)`$**reparameterisation** — the midpoint $`M`$ of
