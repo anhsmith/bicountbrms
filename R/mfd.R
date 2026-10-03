@@ -27,14 +27,14 @@
 # binegbin()/bipois() are parameterised by three rates -- mu (shared),
 # lambdaone and lambdatwo (the two source-specific excesses) -- because that
 # is what the trivariate-reduction likelihood is written in terms of. Those three
-# are correlated in use: raising the overall catch level moves all three at
+# are correlated in use: increasing the size of the catch moves all three at
 # once, so none of them is individually interpretable as "how much was
 # caught", "how much did the two sources agree", or "which source ran high".
 #
 # The (M, f, delta) coordinates separate exactly those three questions:
 #
-#   M     = mu + (lambdaone + lambdatwo)/2  overall level (midpoint between the
-#                                           expectations of the two sources)
+#   M     = mu + (lambdaone + lambdatwo)/2  midpoint of the two expected
+#                                           counts, (E[y1] + E[y2])/2
 #   f     = mu / M                          congruence: the mean of the shared
 #                                           component as a proportion of M
 #   delta = 0.5 * log(lambdaone/lambdatwo)  source bias, on a log-ratio scale
@@ -76,10 +76,11 @@
 #' Convert (M, f, delta) coordinates to native binegbin/bipois dpars
 #'
 #' @description
-#' Maps the interpretable coordinates -- overall level `M`, congruence `f`, and
-#' source bias `delta` -- onto the rate dpars every family in this package takes
-#' (`mu`, `lambdaone`, `lambdatwo`), optionally converting SD-scale dispersions
-#' to the `shapes`/`shapexone`/`shapextwo` dpars.
+#' Maps the interpretable coordinates -- the midpoint `M` of the two expected
+#' counts, congruence `f`, and source bias `delta` -- onto the rate dpars every
+#' family in this package takes (`mu`, `lambdaone`, `lambdatwo`), optionally
+#' converting SD-scale dispersions to the `shapes`/`shapexone`/`shapextwo`
+#' dpars.
 #'
 #' The three rates are common to [bipois()], [bipois_partialobs()],
 #' [binegbin()] and [binegbin_partialobs()], so this direction serves all four
@@ -94,7 +95,9 @@
 #' [binegbin_dpars_to_mfd()] is the inverse. It still accepts `shapex`, because
 #' its input is a stored fit and pre-0.10.0 `binegbin` fits declare that name.
 #'
-#' @param M Overall level: `mu + (lambdaone + lambdatwo)/2`. Non-negative.
+#' @param M Midpoint of the two expected counts:
+#'   `mu + (lambdaone + lambdatwo)/2`, equal to `(E[y1] + E[y2])/2`.
+#'   Non-negative.
 #' @param f Congruence, the mean of the shared component as a proportion of
 #'   `M`: `mu / M`. In `[0, 1]`. `f = 1` means perfect agreement (both excesses
 #'   vanish); `f = 0` means no shared component at all.
@@ -224,9 +227,9 @@ binegbin_mfd_to_dpars <- function(M, f, delta = 0, kappas = NULL, kappax = NULL,
 #'
 #' @description
 #' Inverse of [binegbin_mfd_to_dpars()]. Reads the rate dpars `mu`,
-#' `lambdaone`, `lambdatwo` back into the interpretable overall level `M`,
-#' congruence `f`, and source bias `delta`, optionally converting NB2
-#' dispersions back to the SD scale.
+#' `lambdaone`, `lambdatwo` back into the interpretable coordinates: the
+#' midpoint `M` of the two expected counts, congruence `f`, and source bias
+#' `delta`, optionally converting NB2 dispersions back to the SD scale.
 #'
 #' As with the forward direction, the three rates are common to [bipois()],
 #' [bipois_partialobs()], [binegbin()] and [binegbin_partialobs()], so this

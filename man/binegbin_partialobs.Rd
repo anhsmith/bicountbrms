@@ -3,7 +3,7 @@
 \name{binegbin_partialobs}
 \alias{binegbin_partialobs}
 \alias{binegbin_partialobs_stanvars}
-\title{Joint bivariate-Negative-Binomial family for partially observed pairs}
+\title{Joint bivariate family with negative-binomial components for partially observed pairs}
 \usage{
 binegbin_partialobs()
 

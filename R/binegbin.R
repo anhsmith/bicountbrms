@@ -1,5 +1,5 @@
 # ==========================================================================
-# binegbin: joint bivariate Negative-Binomial via trivariate reduction
+# binegbin: joint bivariate counts with negative-binomial components, via trivariate reduction
 #
 # The overdispersed sibling of bipois (see bipois.R). Same trivariate-
 # reduction construction -- y1 = N_shared + N1, y2 = N_shared + N2,
@@ -129,7 +129,7 @@
 # brms custom family
 # --------------------------------------------------------------------------
 
-#' Joint bivariate-Negative-Binomial custom family for brms
+#' Joint bivariate custom family with negative-binomial components for brms
 #'
 #' @description
 #' Overdispersed sibling of [bipois()]. Returns a brms custom family for the
@@ -238,7 +238,7 @@ binegbin_stanvars <- function() {
   brms::stanvar(block = "functions", scode = binegbin_stan_funs)
 }
 
-#' Joint bivariate-Negative-Binomial family for partially observed pairs
+#' Joint bivariate family with negative-binomial components for partially observed pairs
 #'
 #' @description
 #' [binegbin()] for a design in which the first count is missing on some rows.

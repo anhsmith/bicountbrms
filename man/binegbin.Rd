@@ -6,7 +6,7 @@
 \alias{log_lik_binegbin}
 \alias{posterior_predict_binegbin}
 \alias{posterior_epred_binegbin}
-\title{Joint bivariate-Negative-Binomial custom family for brms}
+\title{Joint bivariate custom family with negative-binomial components for brms}
 \usage{
 binegbin()
 

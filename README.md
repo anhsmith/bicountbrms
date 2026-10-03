@@ -145,8 +145,9 @@ rates are spelled out (`one` or `two`).
   `class`, `dpar` and `nlpar` slots each prior belongs in.
 - [A worked partially observed fit][partial] — imputing a count that was never
   recorded, scored against values withheld from the model.
-- [Mapping native parameters to interpretable coordinates][anatomy] — overall
-  level, congruence and source bias, with shrinkage priors.
+- [Mapping native parameters to interpretable coordinates][anatomy] — the
+  midpoint of the two expected counts, congruence and source bias, with
+  shrinkage priors.
 - [Migration and errata][migration] — what each release changed, and two
   corrected results.
 

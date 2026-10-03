@@ -336,10 +336,10 @@ method, as do `fitted()` and `conditional_effects()`.
   observed one. Note that $\lambda_1$ and $\phi_{x1}$ are then identified by the
   matched rows alone. Despite its former name, this is unrelated to
   the brms `cens()` addition term, which means a value known to lie in a set.
-- The $(M, f, \delta)$  **reparameterisation** — overall level $M$, congruence
-  $f$, and source bias $\delta$, with the dispersions on an SD scale
-  $\kappa = 1/\sqrt{\phi}$ where $\kappa = 0$ is the Poisson limit. It is fitted
-  through `nlf()` rather than a separate family, and
+- The $(M, f, \delta)$  **reparameterisation** — the midpoint $M$ of the two
+  expected counts, congruence $f$, and source bias $\delta$, with the
+  dispersions on an SD scale $\kappa = 1/\sqrt{\phi}$ where $\kappa = 0$ is the
+  Poisson limit. It is fitted through `nlf()` rather than a separate family, and
   [`binegbin_mfd_to_dpars()`](../reference/binegbin_mfd_to_dpars.html) converts
   between the two. Because $\delta = 0$ and $\kappa = 0$ are finite,
   interpretable nulls, these coordinates admit shrinkage priors towards the
@@ -360,8 +360,8 @@ method, as do `fitted()` and `conditional_effects()`.
   $d$ directly. The difference of two independent Poisson counts is
   Skellam-distributed [@skellam1946]; for the Bayesian treatment of count
   differences generally, see @karlis2006. Note what that reduction discards:
-  the shared component cancels out of $d$, so the level and the congruence are
-  no longer estimable.
+  the shared component cancels out of $d$, so the midpoint and the congruence
+  are no longer estimable.
 
 ## References
 

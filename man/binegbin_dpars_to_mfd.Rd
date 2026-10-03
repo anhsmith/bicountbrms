@@ -38,9 +38,9 @@ A named list of \code{M}, \code{f}, \code{delta}, plus \code{beta} (the bounded 
 }
 \description{
 Inverse of \code{\link[=binegbin_mfd_to_dpars]{binegbin_mfd_to_dpars()}}. Reads the rate dpars \code{mu},
-\code{lambdaone}, \code{lambdatwo} back into the interpretable overall level \code{M},
-congruence \code{f}, and source bias \code{delta}, optionally converting NB2
-dispersions back to the SD scale.
+\code{lambdaone}, \code{lambdatwo} back into the interpretable coordinates: the
+midpoint \code{M} of the two expected counts, congruence \code{f}, and source bias
+\code{delta}, optionally converting NB2 dispersions back to the SD scale.
 
 As with the forward direction, the three rates are common to \code{\link[=bipois]{bipois()}},
 \code{\link[=bipois_partialobs]{bipois_partialobs()}}, \code{\link[=binegbin]{binegbin()}} and \code{\link[=binegbin_partialobs]{binegbin_partialobs()}}, so this

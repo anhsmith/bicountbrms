@@ -156,9 +156,10 @@ parameter in the tied model, is dropped silently, and leaves `shapexx` flat.
 
 ## Shrinkage priors in the (M, f, δ) coordinates
 
-The three rates can be reparameterised as overall level $M$, congruence
-$f$ and source bias $\delta$, with each dispersion on the standard
-deviation scale $\kappa = 1/\sqrt{\phi}$. In those coordinates, every
+The three rates can be reparameterised as the midpoint $M$ of the two
+expected counts, congruence $f$ and source bias $\delta$, with each
+dispersion on the standard deviation scale $\kappa = 1/\sqrt{\phi}$. In
+those coordinates, every
 parameter has a finite null: $\delta = 0$ is no bias between the two
 sources, and $\kappa = 0$ is the Poisson limit exactly, rather than the
 $\phi \to \infty$ of the native scale.

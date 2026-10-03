@@ -15,7 +15,9 @@ binegbin_mfd_to_dpars(
 )
 }
 \arguments{
-\item{M}{Overall level: \code{mu + (lambdaone + lambdatwo)/2}. Non-negative.}
+\item{M}{Midpoint of the two expected counts:
+\code{mu + (lambdaone + lambdatwo)/2}, equal to \code{(E[y1] + E[y2])/2}.
+Non-negative.}
 
 \item{f}{Congruence, the mean of the shared component as a proportion of
 \code{M}: \code{mu / M}. In \verb{[0, 1]}. \code{f = 1} means perfect agreement (both excesses
@@ -45,10 +47,11 @@ A named list of \code{mu}, \code{lambdaone}, \code{lambdatwo}, plus \code{shapes
 \code{kappaxone}/\code{kappaxtwo} are. Every name is a dpar of a shipping family.
 }
 \description{
-Maps the interpretable coordinates -- overall level \code{M}, congruence \code{f}, and
-source bias \code{delta} -- onto the rate dpars every family in this package takes
-(\code{mu}, \code{lambdaone}, \code{lambdatwo}), optionally converting SD-scale dispersions
-to the \code{shapes}/\code{shapexone}/\code{shapextwo} dpars.
+Maps the interpretable coordinates -- the midpoint \code{M} of the two expected
+counts, congruence \code{f}, and source bias \code{delta} -- onto the rate dpars every
+family in this package takes (\code{mu}, \code{lambdaone}, \code{lambdatwo}), optionally
+converting SD-scale dispersions to the \code{shapes}/\code{shapexone}/\code{shapextwo}
+dpars.
 
 The three rates are common to \code{\link[=bipois]{bipois()}}, \code{\link[=bipois_partialobs]{bipois_partialobs()}},
 \code{\link[=binegbin]{binegbin()}} and \code{\link[=binegbin_partialobs]{binegbin_partialobs()}}, so this direction serves all four

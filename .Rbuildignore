@@ -14,3 +14,4 @@
 ^vignettes/_.*\.Rmd$
 ^vignettes/precompile\.R$
 ^\.zenodo\.json$
+^data-raw$

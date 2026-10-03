@@ -53,8 +53,16 @@ reference:
 
 - title: Parameterisation helpers
   desc: >
-    Convert between the dpars a family takes and the interpretable coordinates
-    of overall level, congruence, and source bias.
+    Convert between the dpars a family takes and the interpretable coordinates:
+    the midpoint of the two expected counts, congruence, and source bias.
   contents:
   - binegbin_mfd_to_dpars
   - binegbin_dpars_to_mfd
+
+- title: Example data
+  desc: >
+    A simulated partially paired dataset with known generating values, and its
+    latent components.
+  contents:
+  - bicount_sim
+  - bicount_sim_latent

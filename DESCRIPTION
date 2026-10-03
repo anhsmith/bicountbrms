@@ -1,7 +1,7 @@
 Package: bicountbrms
 Title: Joint Bivariate-Count 'brms' Custom Families for Paired Counts
-Version: 0.10.0
-Date: 2026-09-01
+Version: 0.10.1
+Date: 2026-10-02
 Authors@R: c(
     person("Adam N. H.", "Smith", , "anhsmith@gmail.com",
            role = c("aut", "cre", "cph"),
@@ -13,8 +13,8 @@ Authors@R: c(
 Description: Provides custom 'brms' families for comparing two paired count
     sources, modelling the pair jointly via trivariate reduction rather than
     reducing it to a difference. Two families are supplied: a bivariate
-    Poisson (bipois) and its overdispersed bivariate Negative-Binomial sibling
-    (binegbin). Each has a second constructor (bipois_partialobs,
+    Poisson (bipois) and its overdispersed sibling with negative-binomial
+    components (binegbin). Each has a second constructor (bipois_partialobs,
     binegbin_partialobs) that admits rows on which the first count was never
     recorded, scoring them by the integrated-out marginal of the same joint
     model, so those rows still inform the shared component and the second
@@ -23,8 +23,8 @@ Description: Provides custom 'brms' families for comparing two paired count
     alongside the disagreement, and supports simulating one count conditional
     on the other, including on rows where it was never recorded. An
     interpretable reparameterisation separates overall level, congruence, and
-    source bias, giving each a finite null and so admitting
-    penalised-complexity priors. The Negative-Binomial family lets the two
+    source bias, giving each a finite null and so admitting priors that
+    shrink towards a simpler model. The Negative-Binomial family lets the two
     source-specific components differ in overdispersion.
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -45,3 +45,6 @@ URL: https://github.com/anhsmith/bicountbrms,
 BugReports: https://github.com/anhsmith/bicountbrms/issues
 Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.0.0
+Depends: 
+    R (>= 2.10)
+LazyData: true
