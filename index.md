@@ -160,7 +160,8 @@ are spelled out (`one` or `two`).
   withheld from the model.
 - [Mapping native parameters to interpretable
   coordinates](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html)
-  — overall level, congruence and source bias, with shrinkage priors.
+  — the midpoint of the two expected counts, congruence and source bias,
+  with shrinkage priors.
 - [Migration and
   errata](https://anhsmith.github.io/bicountbrms/articles/migration-and-errata.html)
   — what each release changed, and two corrected results.

@@ -358,10 +358,10 @@ family method, as do
   $`\phi_{x1}`$ are then identified by the matched rows alone. Despite
   its former name, this is unrelated to the brms `cens()` addition term,
   which means a value known to lie in a set.
-- The $`(M, f, \delta)`$**reparameterisation** — overall level $`M`$,
-  congruence $`f`$, and source bias $`\delta`$, with the dispersions on
-  an SD scale $`\kappa = 1/\sqrt{\phi}`$ where $`\kappa = 0`$ is the
-  Poisson limit. It is fitted through
+- The $`(M, f, \delta)`$**reparameterisation** — the midpoint $`M`$ of
+  the two expected counts, congruence $`f`$, and source bias $`\delta`$,
+  with the dispersions on an SD scale $`\kappa = 1/\sqrt{\phi}`$ where
+  $`\kappa = 0`$ is the Poisson limit. It is fitted through
   [`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html)
   rather than a separate family, and
   [`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_mfd_to_dpars.md)
@@ -392,8 +392,8 @@ family method, as do
   Skellam-distributed ([Skellam 1946](#ref-skellam1946)); for the
   Bayesian treatment of count differences generally, see Karlis and
   Ntzoufras ([2006](#ref-karlis2006)). Note what that reduction
-  discards: the shared component cancels out of $`d`$, so the level and
-  the congruence are no longer estimable.
+  discards: the shared component cancels out of $`d`$, so the midpoint
+  and the congruence are no longer estimable.
 
 ## References
 

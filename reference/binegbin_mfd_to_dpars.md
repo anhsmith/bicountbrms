@@ -1,9 +1,10 @@
 # Convert (M, f, delta) coordinates to native binegbin/bipois dpars
 
-Maps the interpretable coordinates – overall level `M`, congruence `f`,
-and source bias `delta` – onto the rate dpars every family in this
-package takes (`mu`, `lambdaone`, `lambdatwo`), optionally converting
-SD-scale dispersions to the `shapes`/`shapexone`/`shapextwo` dpars.
+Maps the interpretable coordinates – the midpoint `M` of the two
+expected counts, congruence `f`, and source bias `delta` – onto the rate
+dpars every family in this package takes (`mu`, `lambdaone`,
+`lambdatwo`), optionally converting SD-scale dispersions to the
+`shapes`/`shapexone`/`shapextwo` dpars.
 
 The three rates are common to
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md),
@@ -44,7 +45,8 @@ binegbin_mfd_to_dpars(
 
 - M:
 
-  Overall level: `mu + (lambdaone + lambdatwo)/2`. Non-negative.
+  Midpoint of the two expected counts: `mu + (lambdaone + lambdatwo)/2`,
+  equal to `(E[y1] + E[y2])/2`. Non-negative.
 
 - f:
 

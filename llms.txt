@@ -160,7 +160,8 @@ are spelled out (`one` or `two`).
   withheld from the model.
 - [Mapping native parameters to interpretable
   coordinates](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html)
-  — overall level, congruence and source bias, with shrinkage priors.
+  — the midpoint of the two expected counts, congruence and source bias,
+  with shrinkage priors.
 - [Migration and
   errata](https://anhsmith.github.io/bicountbrms/articles/migration-and-errata.html)
   — what each release changed, and two corrected results.
@@ -248,7 +249,8 @@ some rows. Both share a likelihood and a set of post-processing methods.
   [`log_lik_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
   [`posterior_predict_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
   [`posterior_epred_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-  : Joint bivariate-Negative-Binomial custom family for brms
+  : Joint bivariate custom family with negative-binomial components for
+  brms
 
 ## Partially observed pairs
 
@@ -265,18 +267,29 @@ known to lie in a set.
   : Joint bivariate-Poisson family for partially observed pairs
 - [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
   [`binegbin_partialobs_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
-  : Joint bivariate-Negative-Binomial family for partially observed
-  pairs
+  : Joint bivariate family with negative-binomial components for
+  partially observed pairs
 
 ## Parameterisation helpers
 
 Convert between the dpars a family takes and the interpretable
-coordinates of overall level, congruence, and source bias.
+coordinates: the midpoint of the two expected counts, congruence, and
+source bias.
 
 - [`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_mfd_to_dpars.md)
   : Convert (M, f, delta) coordinates to native binegbin/bipois dpars
 - [`binegbin_dpars_to_mfd()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_dpars_to_mfd.md)
   : Convert native binegbin/bipois dpars to (M, f, delta) coordinates
+
+## Example data
+
+A simulated partially paired dataset with known generating values, and
+its latent components.
+
+- [`bicount_sim`](https://anhsmith.github.io/bicountbrms/reference/bicount_sim.md)
+  : Simulated partially paired counts from three sites
+- [`bicount_sim_latent`](https://anhsmith.github.io/bicountbrms/reference/bicount_sim_latent.md)
+  : Latent components of the simulated partially paired counts
 
 # Articles
 

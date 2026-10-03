@@ -1,4 +1,4 @@
-# Joint bivariate-Negative-Binomial custom family for brms
+# Joint bivariate custom family with negative-binomial components for brms
 
 Overdispersed sibling of
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md).

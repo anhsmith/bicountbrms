@@ -3,8 +3,9 @@
 Inverse of
 [`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_mfd_to_dpars.md).
 Reads the rate dpars `mu`, `lambdaone`, `lambdatwo` back into the
-interpretable overall level `M`, congruence `f`, and source bias
-`delta`, optionally converting NB2 dispersions back to the SD scale.
+interpretable coordinates: the midpoint `M` of the two expected counts,
+congruence `f`, and source bias `delta`, optionally converting NB2
+dispersions back to the SD scale.
 
 As with the forward direction, the three rates are common to
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md),

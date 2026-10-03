@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bicountbrms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -102,10 +102,10 @@ an expected decomposition and ten simulated pairs.</p>
 <p>The dpars a family actually takes are three rates: <code>mu</code>
 for the shared component, <code>lambdaone</code> and
 <code>lambdatwo</code> for the two excesses. That is what the likelihood
-takes, but it is awkward to reason in: raise the overall level of
-counting and all three move together, so no single one of them answers
-“how much was there”, “how much did the two sources agree”, or “which
-source ran high”.</p>
+takes, but it is awkward to reason in: increase the size of the counts
+and all three move together, so no single one of them answers “how much
+was there”, “how much did the two sources agree”, or “which source ran
+high”.</p>
 <p>Those three questions have their own coordinates:</p>
 <table class="table">
 <colgroup>
@@ -116,7 +116,7 @@ source ran high”.</p>
 <tbody>
 <tr class="odd">
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math></td>
-<td>overall level</td>
+<td>midpoint of the two expected counts</td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi><mo>+</mo><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">\mu + (\lambda_1 + \lambda_2)/2</annotation></semantics></math></td>
 </tr>
 <tr class="even">
@@ -135,6 +135,16 @@ source ran high”.</p>
 </tr>
 </tbody>
 </table>
+<p>Since
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>y</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\mathrm{E}[y_1] = \mu + \lambda_1</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\mathrm{E}[y_2] = \mu + \lambda_2</annotation></semantics></math>,
+the midpoint is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>y</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>+</mo><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">M = (\mathrm{E}[y_1] + \mathrm{E}[y_2])/2</annotation></semantics></math>,
+the expected value of the average
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>+</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">(y_1 + y_2)/2</annotation></semantics></math>
+against which <span class="citation">Altman and Bland (<a href="#ref-altman1983">1983</a>)</span> plot the difference between two
+methods of measurement.</p>
 <p>The map between them is a bijection, so neither set is more “real”:
 they are two descriptions of one object. Drag anything below and watch
 the other five respond.</p>
@@ -287,7 +297,7 @@ the other five respond.</p>
   var LOG_MIN = -1, LOG_MAX = 3;
 
   var MFD = [
-    {k:"M",  lab:"Level <b>M</b>",             min:0.5, max:30, step:0.5,  dp:1},
+    {k:"M",  lab:"Midpoint <b>M</b>",          min:0.5, max:30, step:0.5,  dp:1},
     {k:"f",  lab:"Congruence <b>f</b>",        min:0,   max:1,  step:0.01, dp:2},
     {k:"b",  lab:"Bias <b>&beta;</b>",         min:-1,  max:1,  step:0.02, dp:2},
     {k:"kA", lab:"<b>&kappa;<sub>A</sub></b> shared",  min:0, max:3, step:0.05, dp:2},
@@ -524,10 +534,10 @@ methods are unbiased) that the state cannot support.</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
-all move, because changing one excess rate changes the overall level,
-the shared share, <em>and</em> the imbalance simultaneously. This is
-exactly why the native coordinates are awkward to reason in, and it is
-much easier to see than to describe.</p>
+all move, because changing one excess rate changes the midpoint, the
+shared share, <em>and</em> the imbalance simultaneously. This is exactly
+why the native coordinates are awkward to reason in, and it is much
+easier to see than to describe.</p>
 <p><strong>Turn
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
 up and watch
@@ -856,7 +866,7 @@ the fractional imbalance of excess between the two sources:</p>
 <span><span class="co"># eta ~ normal(4, 1.5) on log M  =&gt;  M is lognormal</span></span>
 <span><span class="va">M</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">250</span>, length.out <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">M</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Lognormal.html" class="external-link">dlnorm</a></span><span class="op">(</span><span class="va">M</span>, <span class="fl">4</span>, <span class="fl">1.5</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"l"</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="st">"#2D6A7F"</span>,</span>
-<span>     xlab <span class="op">=</span> <span class="st">"M  (overall level)"</span>, ylab <span class="op">=</span> <span class="st">"density"</span>,</span>
+<span>     xlab <span class="op">=</span> <span class="st">"M  (midpoint)"</span>, ylab <span class="op">=</span> <span class="st">"density"</span>,</span>
 <span>     main <span class="op">=</span> <span class="st">"log M ~ normal(4, 1.5)"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># con ~ normal(0, 1.5) on logit f  =&gt;  Jacobian 1 / (f (1 - f))</span></span>
@@ -886,7 +896,7 @@ the fractional imbalance of excess between the two sources:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/mtext.html" class="external-link">mtext</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="va">kappa</span> <span class="op">==</span> <span class="fl">0</span> <span class="op">~</span> <span class="st">"is Poisson"</span><span class="op">)</span>, side <span class="op">=</span> <span class="fl">3</span>, line <span class="op">=</span> <span class="op">-</span><span class="fl">1.1</span>,</span>
 <span>      cex <span class="op">=</span> <span class="fl">0.7</span>, adj <span class="op">=</span> <span class="fl">0.97</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="figure/prior-pushforward-1.svg" alt="Four panels showing the implied prior density on the interpretable scale: overall level M, congruence f, bounded bias beta, and dispersion kappa."><p class="caption">
+<img src="figure/prior-pushforward-1.svg" alt="Four panels showing the implied prior density on the interpretable scale: midpoint M, congruence f, bounded bias beta, and dispersion kappa."><p class="caption">
 plot of chunk prior-pushforward
 </p>
 </div>
@@ -1077,10 +1087,10 @@ native dpars without refitting: push the draws back through <a href="../referenc
 </tbody>
 </table>
 <p>A random effect on <code>eta</code> estimates how much groups differ
-in overall level, and a random effect on <code>con</code> estimates how
-much they differ in congruence. Those are separable in these coordinates
-and entangled in the native dpars, where a group effect on
-<code>mu</code> alone changes the level and the congruence at once.</p>
+in midpoint, and a random effect on <code>con</code> estimates how much
+they differ in congruence. Those are separable in these coordinates and
+entangled in the native dpars, where a group effect on <code>mu</code>
+alone changes the midpoint and the congruence at once.</p>
 </div>
 </div>
 <div class="section level2">
@@ -1104,6 +1114,12 @@ the two margins were allowed to differ.</p>
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-altman1983" class="csl-entry">
+Altman, Douglas G., and J. Martin Bland. 1983. <span>“Measurement in
+Medicine: The Analysis of Method Comparison Studies.”</span> <em>Journal
+of the Royal Statistical Society. Series D (The Statistician)</em> 32
+(3): 307–17. <a href="https://doi.org/10.2307/2987937" class="external-link">https://doi.org/10.2307/2987937</a>.
+</div>
 <div id="ref-mcelreath2020" class="csl-entry">
 McElreath, Richard. 2020. <em>Statistical Rethinking: A
 <span>Bayesian</span> Course with Examples in <span>R</span> and

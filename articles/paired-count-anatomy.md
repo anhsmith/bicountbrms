@@ -29,18 +29,25 @@ expected decomposition and ten simulated pairs.
 
 The dpars a family actually takes are three rates: `mu` for the shared
 component, `lambdaone` and `lambdatwo` for the two excesses. That is
-what the likelihood takes, but it is awkward to reason in: raise the
-overall level of counting and all three move together, so no single one
-of them answers “how much was there”, “how much did the two sources
-agree”, or “which source ran high”.
+what the likelihood takes, but it is awkward to reason in: increase the
+size of the counts and all three move together, so no single one of them
+answers “how much was there”, “how much did the two sources agree”, or
+“which source ran high”.
 
 Those three questions have their own coordinates:
 
 |  |  |  |
 |----|----|----|
-| $`M`$ | overall level | $`\mu + (\lambda_1 + \lambda_2)/2`$ |
+| $`M`$ | midpoint of the two expected counts | $`\mu + (\lambda_1 + \lambda_2)/2`$ |
 | $`f`$ | congruence, the mean of the shared component as a proportion of $`M`$ | $`\mu / M`$ |
 | $`\beta`$ | source bias, bounded on $`[-1,1]`$ | $`(\lambda_1 - \lambda_2)/(\lambda_1 + \lambda_2)`$ |
+
+Since $`\mathrm{E}[y_1] = \mu + \lambda_1`$ and
+$`\mathrm{E}[y_2] = \mu + \lambda_2`$, the midpoint is
+$`M = (\mathrm{E}[y_1] + \mathrm{E}[y_2])/2`$, the expected value of the
+average $`(y_1 + y_2)/2`$ against which Altman and Bland
+([1983](#ref-altman1983)) plot the difference between two methods of
+measurement.
 
 The map between them is a bijection, so neither set is more “real”: they
 are two descriptions of one object. Drag anything below and watch the
@@ -66,10 +73,9 @@ the last value rather than snapping to zero. Zero would be a claim (the
 methods are unbiased) that the state cannot support.
 
 **Drag `lambdaone` alone.** $`M`$, $`f`$ and $`\beta`$ all move, because
-changing one excess rate changes the overall level, the shared share,
-*and* the imbalance simultaneously. This is exactly why the native
-coordinates are awkward to reason in, and it is much easier to see than
-to describe.
+changing one excess rate changes the midpoint, the shared share, *and*
+the imbalance simultaneously. This is exactly why the native coordinates
+are awkward to reason in, and it is much easier to see than to describe.
 
 **Turn $`\beta`$ up and watch $`M`$.** The two bars separate, but the
 $`M`$ rule does not move: it stays at their *average*, touching neither.
@@ -306,7 +312,7 @@ op <- par(mfrow = c(2, 2), mar = c(4.1, 4.1, 2.6, 1.1), bty = "n")
 # eta ~ normal(4, 1.5) on log M  =>  M is lognormal
 M <- seq(0.5, 250, length.out = 200)
 plot(M, dlnorm(M, 4, 1.5), type = "l", lwd = 2, col = "#2D6A7F",
-     xlab = "M  (overall level)", ylab = "density",
+     xlab = "M  (midpoint)", ylab = "density",
      main = "log M ~ normal(4, 1.5)")
 
 # con ~ normal(0, 1.5) on logit f  =>  Jacobian 1 / (f (1 - f))
@@ -338,7 +344,7 @@ mtext(expression(kappa == 0 ~ "is Poisson"), side = 3, line = -1.1,
 ```
 
 ![Four panels showing the implied prior density on the interpretable
-scale: overall level M, congruence f, bounded bias beta, and dispersion
+scale: midpoint M, congruence f, bounded bias beta, and dispersion
 kappa.](figure/prior-pushforward-1.svg)
 
 plot of chunk prior-pushforward
@@ -486,11 +492,11 @@ knitr::kable(
 | lambdaone | 5.114 |  5.258 |
 | lambdatwo | 2.806 |  2.978 |
 
-A random effect on `eta` estimates how much groups differ in overall
-level, and a random effect on `con` estimates how much they differ in
+A random effect on `eta` estimates how much groups differ in midpoint,
+and a random effect on `con` estimates how much they differ in
 congruence. Those are separable in these coordinates and entangled in
-the native dpars, where a group effect on `mu` alone changes the level
-and the congruence at once.
+the native dpars, where a group effect on `mu` alone changes the
+midpoint and the congruence at once.
 
 ## A caveat about the widget
 
@@ -511,6 +517,11 @@ Freeing them means giving each its own
 line, as the fit above would if the two margins were allowed to differ.
 
 ## References
+
+Altman, Douglas G., and J. Martin Bland. 1983. “Measurement in Medicine:
+The Analysis of Method Comparison Studies.” *Journal of the Royal
+Statistical Society. Series D (The Statistician)* 32 (3): 307–17.
+<https://doi.org/10.2307/2987937>.
 
 McElreath, Richard. 2020. *Statistical Rethinking: A Bayesian Course
 with Examples in R and Stan*. 2nd ed. Chapman; Hall/CRC.

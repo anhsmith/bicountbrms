@@ -1,4 +1,4 @@
-# Joint bivariate-Negative-Binomial family for partially observed pairs
+# Joint bivariate family with negative-binomial components for partially observed pairs
 
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 for a design in which the first count is missing on some rows. Same
