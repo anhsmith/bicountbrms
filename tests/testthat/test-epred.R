@@ -133,7 +133,7 @@ test_that("the binegbin epred equals the mean of its draws on a two-vint prep", 
 })
 
 test_that("the observation flag does not change the epred of either family", {
-  # posterior_predict imputes y1 on every row, unmatched included; epred must
+  # posterior_predict imputes y1 on every row, unpaired included; epred must
   # match that convention, or the two become incomparable row by row exactly
   # where imputation matters.
   expect_equal(posterior_epred_binegbin(nb_prep(vint2 = 1L)),
@@ -142,8 +142,8 @@ test_that("the observation flag does not change the epred of either family", {
                posterior_epred_bipois(pois_prep(0L)))
 })
 
-test_that("the binegbin epred is the same with and without the flag on a matched row", {
-  # The families share a matched-branch likelihood, so they must share a
+test_that("the binegbin epred is the same with and without the flag on a paired row", {
+  # The families share a paired-branch likelihood, so they must share a
   # conditional expectation. binegbin_partialobs resolves its second-margin
   # dispersion through .SHAPEXTWO_NAMES, whose `shapex` fallback is what lets
   # the five-dpar prep here serve both.

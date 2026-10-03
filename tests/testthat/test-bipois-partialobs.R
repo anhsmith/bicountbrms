@@ -4,7 +4,7 @@
 # R-side tests -- no Stan compilation required
 # -----------------------------------------------------------------------
 
-test_that("matched (y1_obs==1) joint PMF normalises to 1 across parameter sets", {
+test_that("paired (y1_obs==1) joint PMF normalises to 1 across parameter sets", {
   norm_check <- function(mu, lone, ltwo, K = 100) {
     ys <- 0:K
     yg <- expand.grid(y1 = ys, y2 = ys)
@@ -42,7 +42,7 @@ test_that("y2-only (y1_obs==0) branch normalises to 1 over y2", {
                  1, tolerance = 1e-8, label = paste(p, collapse = ","))
   }
 
-  # The unmatched branch must not depend on y1 or on lambdaone: neither is
+  # The unpaired branch must not depend on y1 or on lambdaone: neither is
   # observed on those rows, and a dependence on either would mean the branch is
   # not the y1-integrated marginal.
   base <- bipois_lpmf_r(0L, 7L, y1_obs = 0L, mu = 5, lambdaone = 3, lambdatwo = 4)
@@ -50,7 +50,7 @@ test_that("y2-only (y1_obs==0) branch normalises to 1 over y2", {
   expect_equal(bipois_lpmf_r(0L,  7L, y1_obs = 0L, 5, 40, 4), base)
 })
 
-test_that("the closed form of the unmatched branch equals the brute-force convolution", {
+test_that("the closed form of the unpaired branch equals the brute-force convolution", {
   # THE IDENTITY THAT LICENSES THE ONE-LINE STAN BRANCH. binegbin_partialobs must
   # evaluate P(y2) = sum_k f_s(k) f_2(y2 - k) as a sum because NB2 + NB2 is not
   # NB2. For Poisson components the same convolution collapses exactly to
@@ -79,8 +79,8 @@ test_that("the closed form of the unmatched branch equals the brute-force convol
   }
 })
 
-test_that("marginal identity: sum over y1 of the matched branch == y2-only branch", {
-  # Integrating the matched (y1_obs==1) joint over all y1 must reproduce the
+test_that("marginal identity: sum over y1 of the paired branch == y2-only branch", {
+  # Integrating the paired (y1_obs==1) joint over all y1 must reproduce the
   # y2-only (y1_obs==0) value at that y2. This identity is what makes the two branches
   # one model rather than two, and here it also confirms that the closed form
   # is the marginal OF THIS JOINT and not merely a Poisson that happens to sum
@@ -97,14 +97,14 @@ test_that("marginal identity: sum over y1 of the matched branch == y2-only branc
   }
 })
 
-# Up to 0.9.1 a block here checked that the matched branch of bipois_partialobs
+# Up to 0.9.1 a block here checked that the paired branch of bipois_partialobs
 # equalled the bipois lpmf. There is now one lpmf, so that would compare a
 # function to itself. What is still a choice rather than a structural fact is
 # which branch an UNFLAGGED call takes -- and getting it wrong would score every
 # fully paired row against the marginal, which is a strictly larger number and
 # so would not announce itself as an error.
 
-test_that("an unflagged call is the matched branch, not the marginal", {
+test_that("an unflagged call is the paired branch, not the marginal", {
   grid <- expand.grid(
     mu   = c(0.5, 3, 12),
     lone = c(0.5, 2, 6),
@@ -127,13 +127,13 @@ test_that("an unflagged call is the matched branch, not the marginal", {
 })
 
 test_that("binegbin reduces to bipois in the Poisson limit, on both branches", {
-  # THE CROSS-FAMILY CHECK THIS FAMILY MAKES POSSIBLE. The unmatched branch of
+  # THE CROSS-FAMILY CHECK THIS FAMILY MAKES POSSIBLE. The unpaired branch of
   # binegbin_partialobs is a numerical convolution whose only other test -- the
-  # marginal identity -- compares it against the matched branch of the same
+  # marginal identity -- compares it against the paired branch of the same
   # code, so an error shared by both sums would pass. Driving its three
   # dispersions to their Poisson limit gives an INDEPENDENT analytic target:
   # NB2(m, phi) -> Poisson(m) as phi -> Inf, so binegbin_partialobs -> bipois_partialobs,
-  # whose unmatched branch is closed form.
+  # whose unpaired branch is closed form.
   #
   # The approach is O(1/phi) -- measured at 2.53e-3 for phi = 1e5 and 2.53e-5
   # for phi = 1e7 on the grid below, a clean factor of 100 for a factor of 100
@@ -206,26 +206,26 @@ test_that("posterior_predict draws reproduce the joint/marginal conditional y1 |
   expect_equal(unique(as.vector(ep)), sum(xs * p_cond), tolerance = 1e-10)
 })
 
-test_that("the unmatched branch ignores y1_obs only where it should", {
-  # posterior_predict and posterior_epred impute y1 on EVERY row, unmatched
+test_that("the unpaired branch ignores y1_obs only where it should", {
+  # posterior_predict and posterior_epred impute y1 on EVERY row, unpaired
   # included; the likelihood does not. Pin both directions so a later change
   # cannot quietly align them.
   prep <- make_synthetic_prep(
     dpars = list(mu = 5, lambdaone = 3, lambdatwo = 4),
     Y     = 9L,
     vint1 = 6L,
-    vint2 = 0L        # unmatched row
+    vint2 = 0L        # unpaired row
   )
-  # Likelihood: branches on y1_obs, so it must NOT equal the matched value.
+  # Likelihood: branches on y1_obs, so it must NOT equal the paired value.
   expect_equal(
     log_lik_bipois(1, prep),
     stats::dpois(6L, 5 + 4, log = TRUE)
   )
-  # epred: same value whether the row is unmatched or matched.
-  prep_matched <- prep
-  prep_matched$data$vint2 <- 1L
+  # epred: same value whether the row is unpaired or paired.
+  prep_paired <- prep
+  prep_paired$data$vint2 <- 1L
   expect_equal(posterior_epred_bipois(prep),
-               posterior_epred_bipois(prep_matched))
+               posterior_epred_bipois(prep_paired))
 })
 
 # -----------------------------------------------------------------------
@@ -306,9 +306,9 @@ test_that("the Stan flag selects the branch that the flag in the R reference sel
 
   # Not vacuous: the two branches are materially different numbers, so a flag
   # that reached the wrong one could not pass both loops above.
-  matched <- bipois_lpmf(5L, 5, 3, 4, 6L, 1L)
+  paired <- bipois_lpmf(5L, 5, 3, 4, 6L, 1L)
   marg    <- bipois_lpmf(5L, 5, 3, 4, 6L, 0L)
-  expect_gt(abs(matched - marg), 0.5)
+  expect_gt(abs(paired - marg), 0.5)
 })
 
 test_that("Stan bipois_lpmf is numerically stable at extreme rates", {
@@ -361,8 +361,8 @@ test_that("bipois_partialobs fits a partially observed design, dispatches, and r
   n2       <- rpois(n, true_lone)
 
   # Half the rows are y2-only (y1 unobserved) -- the partial observation the family
-  # exists to handle. mu and lambdatwo are separated only by the matched rows
-  # (the unmatched branch sees them only through their sum), so the matched
+  # exists to handle. mu and lambdatwo are separated only by the paired rows
+  # (the unpaired branch sees them only through their sum), so the paired
   # half is what makes lambdaone recoverable; see ?bipois_partialobs.
   y1_obs <- rep(c(1L, 0L), length.out = n)
 
@@ -422,7 +422,7 @@ test_that("bipois_partialobs fits a partially observed design, dispatches, and r
 
   draws <- as.data.frame(fit)
   # Smoke gate at a wide interval, not a calibration claim. See
-  # helper-coverage.R; the matched branch is bipois term for term, whose
+  # helper-coverage.R; the paired branch is bipois term for term, whose
   # calibration is assessed in test-bipois.R.
   expect_true(recovery_ok(draws, true_log_mu_int, "b_Intercept"))
   expect_true(recovery_ok(draws, log(true_lone),  "b_lamx_Intercept"))

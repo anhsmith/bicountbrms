@@ -30,7 +30,7 @@ posterior draws in rows and observations in columns.
 }
 \description{
 Overdispersed sibling of \code{\link[=bipois]{bipois()}}. Returns a brms custom family for the
-joint distribution of a matched count pair \verb{(y1, y2)} via trivariate
+joint distribution of a pair of counts \verb{(y1, y2)} via trivariate
 reduction with Negative-Binomial (rather than Poisson) latent components:
 \code{y1 = N_shared + N1}, \code{y2 = N_shared + N2}, with
 \code{N_shared ~ NB2(mu, shapes)}, \code{N1 ~ NB2(lambdaone, shapexone)},

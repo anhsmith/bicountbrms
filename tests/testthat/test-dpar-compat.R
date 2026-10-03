@@ -141,7 +141,7 @@ test_that("a prep with neither rate-dpar spelling errors informatively", {
 #   1. .get_rate() resolves lambdaem/lambdalb to the one/two positions;
 #   2. .SHAPEXONE_NAMES and .SHAPEXTWO_NAMES both list `shapex` last, so both
 #      per-margin dispersions resolve to the one the fit has;
-#   3. an absent vint2 selects the matched branch.
+#   3. an absent vint2 selects the paired branch.
 #
 # mk(OLD) is that prep exactly. The blocks above already pin (1); these pin
 # (2) and (3), and pin the composition -- which is the part that holds only

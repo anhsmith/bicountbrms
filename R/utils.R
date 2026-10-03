@@ -143,7 +143,7 @@
 # family name. The fully paired one declares vars = c("vint1[n]", "1"), so the
 # flag reaches Stan as a literal and never enters the data block; a prep built
 # from such a fit therefore has no vint2 at all, and every one of its rows is
-# matched. The partially observed constructor declares
+# paired. The partially observed constructor declares
 # vars = c("vint1[n]", "vint2[n]") and the flag is there to read.
 #
 # Only log_lik_* calls this. posterior_predict_* and posterior_epred_* do not

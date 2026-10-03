@@ -1,14 +1,14 @@
 # tests/testthat/test-partialobs-predict.R
 #
-# PREDICTION ON UNMATCHED ROWS, AND THE ASYMMETRIC DISPERSIONS.
+# PREDICTION ON UNPAIRED ROWS, AND THE ASYMMETRIC DISPERSIONS.
 #
 # Two gaps this file closes, both in the prediction path
 # rather than in their likelihood.
 #
-# 1. THE UNMATCHED ROW WAS NEVER CHECKED FOR CORRECTNESS. The Monte Carlo test
+# 1. THE UNPAIRED ROW WAS NEVER CHECKED FOR CORRECTNESS. The Monte Carlo test
 #    that validates posterior_predict against the exact conditional
 #    P(y1 | y2) = joint / marginal runs at `vint2 = 1L` in both
-#    test-binegbin-partialobs.R and test-bipois-partialobs.R. Unmatched rows take the same
+#    test-binegbin-partialobs.R and test-bipois-partialobs.R. Unpaired rows take the same
 #    code path only because posterior_predict_binegbin() ignores y1_obs --
 #    true by reading R/binegbin.R, but asserted nowhere, so a later edit
 #    that made the function branch on the flag would pass the suite.
@@ -30,7 +30,7 @@
 #    test-dpar-compat.R, test-deprecated.R and test-bipois-partialobs.R passing, with
 #    zero failures. The tests below fail on it four times.
 #
-# Every check is therefore run on a UNMATCHED row with the two excess
+# Every check is therefore run on an UNPAIRED row with the two excess
 # dispersions an order of magnitude apart, and each is paired with a
 # non-vacuity assertion showing it discriminates.
 #
@@ -65,10 +65,10 @@ cond_pmf <- function(xs, y2, sx1, sx2) {
 }
 
 # ---------------------------------------------------------------------------
-# The unmatched row, with the dispersions genuinely different
+# The unpaired row, with the dispersions genuinely different
 # ---------------------------------------------------------------------------
 
-test_that("posterior_predict on a UNMATCHED row reproduces the exact conditional", {
+test_that("posterior_predict on an UNPAIRED row reproduces the exact conditional", {
   # The row class the existing MC test never exercises, at shapexone far from
   # shapextwo so the two cannot stand in for each other.
   set.seed(20260805)
@@ -97,7 +97,7 @@ test_that("the conditional the draws match is NOT the dispersion-swapped one", {
   expect_gt(abs(sum(xs * p_true) - sum(xs * p_swapped)), 0.5)
 })
 
-test_that("y1_obs does not change the draws, matched vs unmatched", {
+test_that("y1_obs does not change the draws, paired vs unpaired", {
   # posterior_predict imputes y1 on EVERY row; the flag selects a likelihood
   # branch, not a prediction. test-epred.R pins this for the expectation only.
   # Same seed, so this is an identity rather than a distributional claim.
@@ -114,9 +114,9 @@ test_that("y1_obs does not change the draws, matched vs unmatched", {
   expect_identical(pa, pb)
 })
 
-test_that("epred equals the mean of its own draws on a unmatched asymmetric row", {
+test_that("epred equals the mean of its own draws on an unpaired asymmetric row", {
   # The epred convention (see test-epred.R) applied where it has not been
-  # checked: unmatched row, shapexone != shapextwo. posterior_epred reads only
+  # checked: unpaired row, shapexone != shapextwo. posterior_epred reads only
   # shapextwo, so this also pins that it is the dispersion of the SECOND margin
   # that enters -- reading .SHAPEXONE_NAMES there would pass every other test.
   set.seed(20260805)
@@ -179,13 +179,13 @@ test_that("y2 = 0 makes posterior_predict draw the private component alone", {
 #   equals the two-vint answer at y1_obs = 1, is tested in test-unified-vint.R.
 
 # The same fixture with no vint2, which is what vint(y2) alone produces.
-asym_prep_matched <- function(y2 = Y2, sx1 = SX1, sx2 = SX2, ndraws = ND) {
+asym_prep_paired <- function(y2 = Y2, sx1 = SX1, sx2 = SX2, ndraws = ND) {
   asym_prep(vint2 = NULL, y2 = y2, sx1 = sx1, sx2 = sx2, ndraws = ndraws)
 }
 
 test_that("posterior_predict on a ONE-VINT row reproduces the exact conditional", {
   set.seed(20260805)
-  draws <- posterior_predict_binegbin(1, asym_prep_matched())
+  draws <- posterior_predict_binegbin(1, asym_prep_paired())
   expect_length(draws, ND)
 
   K  <- 100
@@ -203,20 +203,20 @@ test_that("epred equals the mean of its own draws on a one-vint asymmetric row",
   # split, exactly as its two-vint counterpart does. Before 0.10.0 there was
   # one dispersion here and nothing to get wrong; there are now two.
   set.seed(20260805)
-  draws <- posterior_predict_binegbin(1, asym_prep_matched())
-  ep    <- unique(as.vector(posterior_epred_binegbin(asym_prep_matched(ndraws = 2L))))
+  draws <- posterior_predict_binegbin(1, asym_prep_paired())
+  ep    <- unique(as.vector(posterior_epred_binegbin(asym_prep_paired(ndraws = 2L))))
   expect_length(ep, 1L)
   expect_equal(mean(draws), ep, tolerance = 0.1)
 
   # Not vacuous: the shapexone-weighted answer is materially different.
   wrong <- unique(as.vector(posterior_epred_binegbin(
-    asym_prep_matched(sx1 = SX2, sx2 = SX1, ndraws = 2L))))
+    asym_prep_paired(sx1 = SX2, sx2 = SX1, ndraws = 2L))))
   expect_gt(abs(wrong - ep), 0.1)
 })
 
 test_that("y2 = 0 on the one-vint path draws the private component alone", {
   set.seed(20260805)
-  draws <- posterior_predict_binegbin(1, asym_prep_matched(y2 = 0L))
+  draws <- posterior_predict_binegbin(1, asym_prep_paired(y2 = 0L))
   expect_length(draws, ND)
   expect_true(all(draws >= 0))
 
@@ -224,7 +224,7 @@ test_that("y2 = 0 on the one-vint path draws the private component alone", {
   expect_equal(var(draws), LONE + LONE^2 / SX1, tolerance = 0.5)
 
   ep <- unique(as.vector(posterior_epred_binegbin(
-    asym_prep_matched(y2 = 0L, ndraws = 2L))))
+    asym_prep_paired(y2 = 0L, ndraws = 2L))))
   expect_equal(ep, LONE, tolerance = 1e-12)
 })
 
@@ -233,7 +233,7 @@ test_that("log_lik on the one-vint path routes the two dispersions correctly", {
   # y1 term and shapextwo on the y2 term; exchanging them changes the value
   # whenever y1 != y2, which is the case here.
   Y1 <- 9L
-  prep <- asym_prep_matched(ndraws = 2L)
+  prep <- asym_prep_paired(ndraws = 2L)
   prep$data$Y <- Y1
 
   got <- unique(as.vector(log_lik_binegbin(1, prep)))
@@ -273,21 +273,21 @@ test_that("bipois predicts and expects the same on one-vint and two-vint preps",
 #    a brute-force conditional expectation over a whole parameter grid in
 #    seconds -- no Monte Carlo, no sampler. test-epred.R checks it against the
 #    mean of posterior_predict draws at ONE setting plus the Poisson limit, and
-#    this file adds one unmatched asymmetric setting and y2 = 0. Neither is a
+#    this file adds one unpaired asymmetric setting and y2 = 0. Neither is a
 #    grid. The reference to compare against is the definition of
 #    .e_shared_given_y2_nb() in R/utils.R, re-implemented independently rather
 #    than called. Cheap; the natural next addition to this file.
 #
-# 2. NO FIT-LEVEL TEST THAT UNMATCHED ROWS DO NOT SHARPEN `shapexone`.
+# 2. NO FIT-LEVEL TEST THAT UNPAIRED ROWS DO NOT SHARPEN `shapexone`.
 #    test-binegbin-dispersions.R pins at the LIKELIHOOD level that shapexone is
 #    absent from the y2-only branch. The predictive counterpart is a property of
-#    a fit: as the matched fraction falls, the posteriors for lambdaone and
+#    a fit: as the paired fraction falls, the posteriors for lambdaone and
 #    shapexone must WIDEN, and the imputation intervals with them. If adding
-#    y2-only rows tightened shapexone, the unmatched branch would be leaking
+#    y2-only rows tightened shapexone, the unpaired branch would be leaking
 #    information it cannot have. Needs Stan and several fits, so it belongs
 #    behind BICOUNTBRMS_COVERAGE, reusing the compile-once /
 #    update(recompile = FALSE) pattern from coverage_recovery() in
-#    helper-coverage.R. Still needs a concrete spec: which matched fractions,
+#    helper-coverage.R. Still needs a concrete spec: which paired fractions,
 #    how many replicates, and what counts as a failure.
 #
 # 3. PREDICTIVE COVERAGE UNDER CORRECT SPECIFICATION IS DELIBERATELY NOT HERE.
@@ -296,6 +296,6 @@ test_that("bipois predicts and expects the same on one-vint and two-vint preps",
 #    CONSTRUCTION when the model is correctly specified, so it can only catch
 #    implementation bugs that the exact-conditional checks above already catch,
 #    far more sharply and about a thousand times faster. Its real value is
-#    quantifying how imputation degrades as the matched fraction falls -- which
+#    quantifying how imputation degrades as the paired fraction falls -- which
 #    is guidance for a user, not a pass/fail gate, and belongs in a vignette.
 #    See the identifiability caveat in README.md.

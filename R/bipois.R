@@ -47,7 +47,7 @@
 #
 # WHAT THE FLAG SELECTS.
 #
-#   y1_obs == 1 (matched row):  full joint bipois lpmf on (y1, y2).
+#   y1_obs == 1 (paired row):  full joint bipois lpmf on (y1, y2).
 #   y1_obs == 0 (y2-only row):  the y2 MARGINAL of the SAME bivariate model.
 #
 # This is not censoring in the brms sense: the cens() addition term in brms
@@ -55,7 +55,7 @@
 # and the likelihood marginalises over its whole support. The partially
 # observed family was called bipois_cens() up to 0.9.1 and renamed at 0.10.0.
 #
-# THE UNMATCHED BRANCH IS ANALYTIC. For binegbin the
+# THE UNPAIRED BRANCH IS ANALYTIC. For binegbin the
 # y1-integrated marginal is a convolution that must be evaluated as a sum,
 #
 #   P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo),
@@ -70,10 +70,10 @@
 # one closed-form line with no sum, no cutoff and no accumulated rounding. Two
 # consequences beyond the branch being cheap to evaluate:
 #
-#   * It supplies an ANALYTIC REFERENCE for the unmatched branch of binegbin,
+#   * It supplies an ANALYTIC REFERENCE for the unpaired branch of binegbin,
 #     which the package otherwise lacks. The marginal-identity test for that
-#     branch checks the NB sum against itself -- summing the matched branch
-#     over y1 and comparing to the unmatched branch -- so both sides share any
+#     branch checks the NB sum against itself -- summing the paired branch
+#     over y1 and comparing to the unpaired branch -- so both sides share any
 #     error in the convolution. Taking the NB family to its Poisson limit and
 #     comparing against this closed form is an independent check of the same
 #     code path. See test-bipois-partialobs.R.
@@ -84,20 +84,20 @@
 #
 # WHY A DEDICATED FAMILY AND NOT TWO SEPARATE FITS, under partial observation.
 # Unchanged from binegbin, and the argument does not depend on the component
-# distribution: the unmatched rows never observe y1, so a matched-only fit
-# could use the matched rows alone, yet y2 on those rows is a draw from the
+# distribution: the unpaired rows never observe y1, so a paired-only fit
+# could use the paired rows alone, yet y2 on those rows is a draw from the
 # same bivariate model and still informs mu, lambdatwo and any group-level
 # structure. Integrating the unobserved margin out pools every row under one
 # coherent likelihood. See binegbin.R for the full statement.
 #
 # WHAT EACH RATE IS IDENTIFIED FROM, under partial observation. lambdatwo
 # enters both branches, so every row sharpens it. lambdaone enters only the
-# matched branch and is identified solely by the matched rows. mu enters both,
-# but on the unmatched branch only through the sum mu + lambdatwo: those rows
+# paired branch and is identified solely by the paired rows. mu enters both,
+# but on the unpaired branch only through the sum mu + lambdatwo: those rows
 # constrain the total, not the split between shared and source-2-only.
-# Separating mu from lambdatwo is therefore informed by the matched rows as
+# Separating mu from lambdatwo is therefore informed by the paired rows as
 # well, so a design with few of them will learn the congruence f weakly however
-# many unmatched rows it has. That statement is sharper here than for binegbin,
+# many unpaired rows it has. That statement is sharper here than for binegbin,
 # where the two dispersions overlap in what they inform. The closed form above
 # shows it directly. Under full pairing none of this applies.
 #
@@ -111,7 +111,7 @@
 #' Joint bivariate-Poisson custom family for brms
 #'
 #' @description
-#' Returns a brms custom family for the joint distribution of a matched pair
+#' Returns a brms custom family for the joint distribution of a pair
 #' of counts, `(y1, y2)`, constructed via trivariate reduction: `y1 =
 #' N_shared + N1`, `y2 = N_shared + N2`, with `N_shared ~
 #' Poisson(mu)`, `N1 ~ Poisson(lambdaone)`, `N2 ~ Poisson(lambdatwo)`
@@ -166,7 +166,7 @@
 #' brms-modelled response data (no missing-value handling, no
 #' resp_*() addition terms apply to it) -- it is fixed, observed
 #' per-row data, consistent with the fact that every row this constructor is
-#' for comes from the matched (both-observed) subset.
+#' for comes from the paired (both-observed) subset.
 #'
 #' **Order of dpars matters for the generated Stan call.** brms generates
 #' `target += bipois_lpmf(Y[n] | mu[n], lambdaone[n], lambdatwo[n],
@@ -226,7 +226,7 @@ bipois_stanvars <- function() {
 #' not read it. Do not use `NA`, which brms drops before fitting, taking the
 #' observed `y2` on that row with it.
 #'
-#' **Contribution of a matched row and of an unmatched row.** A matched row (`y1_obs == 1`) uses the
+#' **Contribution of a paired row and of an unpaired row.** A paired row (`y1_obs == 1`) uses the
 #' full joint [bipois()] lpmf on `(y1, y2)`. A row whose first count was never
 #' recorded (`y1_obs == 0`) contributes the marginal of the second count *from
 #' the same model*. For Poisson components that marginal is closed form -- a
@@ -239,19 +239,19 @@ bipois_stanvars <- function() {
 #' **Imputation after fitting.** The fitted model can impute the unobserved
 #' first count conditional on the observed second one, which is usually why
 #' someone wanted this. `posterior_predict()` and `posterior_epred()` return a
-#' `y1` draw and `E[y1 | y2]` for *every* row, matched and unmatched alike --
+#' `y1` draw and `E[y1 | y2]` for *every* row, paired and unpaired alike --
 #' `y1_obs` selects a likelihood branch, not a prediction.
 #'
 #' **A design consequence, worth knowing before the data are collected.**
 #' `lambdatwo` appears on both branches, so every row informs it. `lambdaone`
-#' appears only on the matched branch and is identified by the matched rows
-#' *alone*. `mu` appears on both, but the unmatched branch sees it only through
+#' appears only on the paired branch and is identified by the paired rows
+#' *alone*. `mu` appears on both, but the unpaired branch sees it only through
 #' the sum `mu + lambdatwo` -- those rows constrain the total rate of the
 #' observed margin, not how it divides between the shared and source-2-only
 #' components. Separating `mu` from `lambdatwo`, and so estimating the
-#' congruence \eqn{f}, is therefore also informed by the matched rows. With few of
+#' congruence \eqn{f}, is therefore also informed by the paired rows. With few of
 #' them, `mu` and `lambdatwo` trade off along their sum and the prior does
-#' correspondingly more of the work, however many unmatched rows the design
+#' correspondingly more of the work, however many unpaired rows the design
 #' contains.
 #'
 #' **This is not censoring in the brms sense.** The brms `cens()` addition term
@@ -287,7 +287,7 @@ bipois_stanvars <- function() {
 #' **One likelihood, two constructors.** This returns the same
 #' `custom_family` `name` as [bipois()], so brms resolves both to one `bipois_lpmf` and
 #' one set of `log_lik_bipois()` / `posterior_predict_bipois()` /
-#' `posterior_epred_bipois()` methods. The matched branch is therefore not a
+#' `posterior_epred_bipois()` methods. The paired branch is therefore not a
 #' second copy that can drift from the fully paired likelihood; it is the same
 #' code. See [binegbin_partialobs()] for why `vars` declares a literal in the
 #' plain constructor rather than the two families declaring overloaded Stan
@@ -426,20 +426,20 @@ bipois_stan_funs <- "
 # lpmf. Internal reference only, exactly the role binegbin_lpmf_r plays for
 # its own family.
 #
-# The matched branch is computed term-by-term from the original
+# The paired branch is computed term-by-term from the original
 # P(N_shared=k) P(N1=x-k) P(N2=y-k) definition rather than via the recurrence
 # -- an independent route to the same quantity, so it verifies the Stan
 # implementation rather than restating it. It is evaluated post-hoc, not inside
 # the hot loop of the sampler, so there is no reason to use the algebraic
 # shortcuts of the recurrence here.
 #
-# The unmatched branch uses the closed form, as Stan does. The independent
+# The unpaired branch uses the closed form, as Stan does. The independent
 # route -- brute-force convolution over k = 0..y2 -- is in
 # test-bipois-partialobs.R rather than here, so log_lik() does not pay for a
 # sum that has an exact one-line answer. Keeping it in the test is what checks
 # the closed form rather than assuming it.
 #
-# `y1_obs` defaults to 1, so a call that names no flag is the matched branch.
+# `y1_obs` defaults to 1, so a call that names no flag is the paired branch.
 bipois_lpmf_r <- function(y1, y2, mu, lambdaone, lambdatwo, y1_obs = 1L) {
   n <- max(length(y1), length(y2), length(y1_obs), length(mu),
            length(lambdaone), length(lambdatwo))
@@ -497,7 +497,7 @@ posterior_predict_bipois <- function(i, prep, ...) {
   # its own marginal; y1 = N_shared + N1.
   #
   # y1_obs is deliberately NOT read: every row gets a y1 draw conditional on
-  # its observed y2, matched and y2-only alike, which is what imputing the
+  # its observed y2, paired and y2-only alike, which is what imputing the
   # unobserved margin across every row requires.
   p_shared <- mu / (mu + lambdatwo)
   n_shared <- stats::rbinom(length(mu), size = y2, prob = p_shared)

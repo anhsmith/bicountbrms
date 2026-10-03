@@ -31,7 +31,7 @@ rows -- \code{0} is the conventional placeholder -- because the likelihood does
 not read it. Do not use \code{NA}, which brms drops before fitting, taking the
 observed \code{y2} on that row with it.
 
-\strong{Contribution of a matched row and of an unmatched row.} A matched row (\code{y1_obs == 1}) uses the
+\strong{Contribution of a paired row and of an unpaired row.} A paired row (\code{y1_obs == 1}) uses the
 full joint lpmf on \verb{(y1, y2)}. A row whose first count was never recorded
 (\code{y1_obs == 0}) contributes the marginal of the second count \emph{from the
 same model},
@@ -44,13 +44,13 @@ source (\code{lambdatwo}, \code{shapextwo}), and any group-level effects.
 \strong{Imputation after fitting.} The fitted model can impute the unobserved
 first count conditional on the observed second one, which is usually why
 someone wanted this. \code{posterior_predict()} and \code{posterior_epred()} return a
-\code{y1} draw and \code{E[y1 | y2]} for \emph{every} row, matched and unmatched alike --
+\code{y1} draw and \code{E[y1 | y2]} for \emph{every} row, paired and unpaired alike --
 \code{y1_obs} selects a likelihood branch, not a prediction.
 
 \strong{A design consequence, worth knowing before the data are collected.} The
 rate \code{lambdaone} and excess dispersion \code{shapexone} of the first source
-appear only on the matched branch, so they are identified by the matched
-rows \emph{alone}. A design with 20 matched rows in 500 learns them weakly and
+appear only on the paired branch, so they are identified by the paired
+rows \emph{alone}. A design with 20 paired rows in 500 learns them weakly and
 leans on their priors. \code{mu}, \code{shapes}, \code{lambdatwo} and \code{shapextwo} appear
 on both branches and are informed by every row.
 
@@ -79,7 +79,7 @@ data     = dat
 \code{custom_family} \code{name} as \code{\link[=binegbin]{binegbin()}}, so brms resolves both to one
 \code{binegbin_lpmf} and one set of \code{log_lik_binegbin()} /
 \code{posterior_predict_binegbin()} / \code{posterior_epred_binegbin()} methods. The
-matched branch of the likelihood is therefore not a second copy that can
+paired branch of the likelihood is therefore not a second copy that can
 drift from the fully paired one; it is the same code.
 
 What differs is \code{vars}. \code{\link[=binegbin]{binegbin()}} declares \code{c("vint1[n]", "1")} and this

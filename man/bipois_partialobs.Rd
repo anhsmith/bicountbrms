@@ -32,7 +32,7 @@ rows -- \code{0} is the conventional placeholder -- because the likelihood does
 not read it. Do not use \code{NA}, which brms drops before fitting, taking the
 observed \code{y2} on that row with it.
 
-\strong{Contribution of a matched row and of an unmatched row.} A matched row (\code{y1_obs == 1}) uses the
+\strong{Contribution of a paired row and of an unpaired row.} A paired row (\code{y1_obs == 1}) uses the
 full joint \code{\link[=bipois]{bipois()}} lpmf on \verb{(y1, y2)}. A row whose first count was never
 recorded (\code{y1_obs == 0}) contributes the marginal of the second count \emph{from
 the same model}. For Poisson components that marginal is closed form -- a
@@ -45,19 +45,19 @@ is not dropped and is not given a different model: it still informs \code{mu},
 \strong{Imputation after fitting.} The fitted model can impute the unobserved
 first count conditional on the observed second one, which is usually why
 someone wanted this. \code{posterior_predict()} and \code{posterior_epred()} return a
-\code{y1} draw and \code{E[y1 | y2]} for \emph{every} row, matched and unmatched alike --
+\code{y1} draw and \code{E[y1 | y2]} for \emph{every} row, paired and unpaired alike --
 \code{y1_obs} selects a likelihood branch, not a prediction.
 
 \strong{A design consequence, worth knowing before the data are collected.}
 \code{lambdatwo} appears on both branches, so every row informs it. \code{lambdaone}
-appears only on the matched branch and is identified by the matched rows
-\emph{alone}. \code{mu} appears on both, but the unmatched branch sees it only through
+appears only on the paired branch and is identified by the paired rows
+\emph{alone}. \code{mu} appears on both, but the unpaired branch sees it only through
 the sum \code{mu + lambdatwo} -- those rows constrain the total rate of the
 observed margin, not how it divides between the shared and source-2-only
 components. Separating \code{mu} from \code{lambdatwo}, and so estimating the
-congruence \eqn{f}, is therefore also informed by the matched rows. With few of
+congruence \eqn{f}, is therefore also informed by the paired rows. With few of
 them, \code{mu} and \code{lambdatwo} trade off along their sum and the prior does
-correspondingly more of the work, however many unmatched rows the design
+correspondingly more of the work, however many unpaired rows the design
 contains.
 
 \strong{This is not censoring in the brms sense.} The brms \code{cens()} addition term
@@ -93,7 +93,7 @@ it. Compare the two with \code{loo()}.
 \strong{One likelihood, two constructors.} This returns the same
 \code{custom_family} \code{name} as \code{\link[=bipois]{bipois()}}, so brms resolves both to one \code{bipois_lpmf} and
 one set of \code{log_lik_bipois()} / \code{posterior_predict_bipois()} /
-\code{posterior_epred_bipois()} methods. The matched branch is therefore not a
+\code{posterior_epred_bipois()} methods. The paired branch is therefore not a
 second copy that can drift from the fully paired likelihood; it is the same
 code. See \code{\link[=binegbin_partialobs]{binegbin_partialobs()}} for why \code{vars} declares a literal in the
 plain constructor rather than the two families declaring overloaded Stan

@@ -42,10 +42,10 @@ six-dpar `binegbin()` model, `get_prior()` returns
 An empty `prior` column means an improper uniform on the whole real line.
 This is the standard default for parameters other than `mu` in custom brms families.
 
-## Every parameter identified by the matched rows alone is left improper
+## Every parameter identified by the paired rows alone is left improper
 
 Under partial observation, the two constructors do not identify every parameter
-equally well. `lambdaone` and `shapexone` appear only on the matched branch of
+equally well. `lambdaone` and `shapexone` appear only on the paired branch of
 the likelihood, as does any between-source bias, so the rows on which the first
 count was recorded are the only rows that inform them. `mu`, `shapes`,
 `lambdatwo` and `shapextwo` appear on both branches, and every row informs them.
@@ -54,16 +54,16 @@ Set that division beside the `get_prior()` output above. Every parameter in the
 first group is left without a prior. `shapes` and `shapextwo` are left without
 one as well, although every row informs them, so the containment runs one way
 only. The one parameter brms does supply a prior for, `mu`, is informed by
-every row. Under a design in which few rows are matched, the parameters whose
+every row. Under a design in which few rows are paired, the parameters whose
 posteriors depend most on their priors are all parameters for which no prior
 has been set.
 
 For `bipois_partialobs()`, the statement needs one qualification. On an
-unmatched row, the likelihood of that family involves `mu` only through the
+unpaired row, the likelihood of that family involves `mu` only through the
 sum `mu + lambdatwo`, so those rows constrain the total rate of the observed
 margin without dividing it between the shared and the source-specific
 component. Separating `mu` from `lambdatwo`, and so estimating the congruence
-$f$, is also informed by the matched rows alone.
+$f$, is also informed by the paired rows alone.
 
 ## The symptom is divergent transitions
 
@@ -132,11 +132,11 @@ prior = c(
 ```
 
 `get_prior()` on the formula returns the combination each parameter requires,
-and is the reliable way to find it. A prior naming a slot the model does not
-contain is dropped without a warning, which leaves the parameter improper and
-the symptom above unexplained.
+and is the reliable way to find it. When a prior names a slot the model does not
+contain, brms stops with the error that the prior does not correspond to any
+model parameter.
 
-That failure mode has one especially easy instance. To impose
+That error has one especially easy instance. To impose
 $\phi_{x1} = \phi_{x2}$, the two excess dispersions are routed through a
 single non-linear parameter, described in
 [The families and their parameters](families-and-parameters.html):
@@ -145,14 +145,14 @@ single non-linear parameter, described in
 #| label: tied
 bf(y1 | vint(y2) ~ 1, mu ~ 1,
    nlf(shapexone ~ shapexx), nlf(shapextwo ~ shapexx),
-   lamx ~ 1, shapes ~ 1, shapexx ~ 1, nl = TRUE)
+   lambdaone ~ 1, lambdatwo ~ 1, shapes ~ 1, shapexx ~ 1, nl = TRUE)
 
 prior(normal(0, 1.5), class = "b", nlpar = "shapexx")
 ```
 
 Both fields differ from the pre-0.10.0 spelling, which was
 `class = "Intercept", dpar = "shapex"`. A prior written the old way names no
-parameter in the tied model, is dropped silently, and leaves `shapexx` flat.
+parameter in the tied model, so brms stops with that error rather than fitting.
 
 ## Shrinkage priors in the (M, f, δ) coordinates
 

@@ -10,12 +10,12 @@
 #
 # The contract this file pins is the one the 0.10.0 work order states as a
 # release criterion: for each of log_lik, posterior_predict and
-# posterior_epred, the one-vint path on matched data equals the two-vint path
+# posterior_epred, the one-vint path on paired data equals the two-vint path
 # on the same data with the flag set to 1.
 #
 # WHY IT NEEDS NON-VACUITY ASSERTIONS. Two of the three methods ignore y1_obs
 # by design -- posterior_predict and posterior_epred impute y1 on every row,
-# matched or not (see the convention in CLAUDE.md). For those two, "one-vint
+# paired or not (see the convention in CLAUDE.md). For those two, "one-vint
 # equals two-vint at flag 1" would hold even if vint2 were never read at all,
 # so it is asserted alongside the fact that flag 0 gives the same answer too,
 # which is the actual specification. log_lik is the method that must branch,
@@ -66,7 +66,7 @@ test_that("binegbin log_lik: one-vint equals two-vint at y1_obs = 1", {
   expect_length(one, 1L)
   expect_equal(one, two, tolerance = 1e-12)
 
-  # Not vacuous: an absent vint2 must select the MATCHED branch, so the
+  # Not vacuous: an absent vint2 must select the PAIRED branch, so the
   # y1_obs = 0 answer has to be a different number. If it were not, the
   # equality above would hold for a method that never read the flag.
   cens <- unique(as.vector(log_lik_binegbin(1, nb_prep(0L, ndraws = 2L))))

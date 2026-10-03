@@ -29,7 +29,7 @@ one per posterior draw, for observation \code{i}.
 posterior draws in rows and observations in columns.
 }
 \description{
-Returns a brms custom family for the joint distribution of a matched pair
+Returns a brms custom family for the joint distribution of a pair
 of counts, \verb{(y1, y2)}, constructed via trivariate reduction: \code{y1 = N_shared + N1}, \code{y2 = N_shared + N2}, with \code{N_shared ~ Poisson(mu)}, \code{N1 ~ Poisson(lambdaone)}, \code{N2 ~ Poisson(lambdatwo)}
 mutually independent given their rates. All three rates are link = "log".
 Modelling the pair jointly avoids regressing the difference on one of its
@@ -82,7 +82,7 @@ workaround. This does mean \code{y2} is \emph{not} itself treated as
 brms-modelled response data (no missing-value handling, no
 resp_*() addition terms apply to it) -- it is fixed, observed
 per-row data, consistent with the fact that every row this constructor is
-for comes from the matched (both-observed) subset.
+for comes from the paired (both-observed) subset.
 
 \strong{Order of dpars matters for the generated Stan call.} brms generates
 \verb{target += bipois_lpmf(Y[n] | mu[n], lambdaone[n], lambdatwo[n], vint1[n], 1)} -- dpars in the order declared here, then the two \code{vars}

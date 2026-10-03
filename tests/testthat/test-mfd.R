@@ -281,7 +281,7 @@ test_that("the map agrees with the trivariate-reduction moment identities", {
 test_that("the rate half of the map serves bipois unchanged", {
   # bipois_partialobs takes the same three rates and no dispersion, so only the rate
   # half of the converters applies to it -- there is no kappa to supply. Rather
-  # than assert that in prose, feed the converted rates to the unmatched bipois
+  # than assert that in prose, feed the converted rates to the unpaired bipois
   # branch and check the resulting distribution has the mean the map predicts:
   # that branch is Poisson(mu + lambdatwo), so its mean must be E[y2] = mu +
   # lambdatwo, which by the identity above is M(1 - (1 - f) * tanh(delta)).

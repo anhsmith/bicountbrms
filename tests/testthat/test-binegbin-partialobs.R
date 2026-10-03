@@ -4,7 +4,7 @@
 # R-side tests -- no Stan compilation required
 # -----------------------------------------------------------------------
 
-test_that("matched (y1_obs==1) joint PMF normalises to 1 across parameter sets", {
+test_that("paired (y1_obs==1) joint PMF normalises to 1 across parameter sets", {
   norm_check <- function(mu, lone, ltwo, ss, sx, K = 120) {
     ys <- 0:K
     yg <- expand.grid(y1 = ys, y2 = ys)
@@ -41,8 +41,8 @@ test_that("LB-only (y1_obs==0) branch normalises to 1 over y2", {
   }
 })
 
-test_that("marginal identity: sum over y1 of the matched branch == LB-only branch", {
-  # Integrating the matched (y1_obs==1) joint over all y1 must reproduce the
+test_that("marginal identity: sum over y1 of the paired branch == LB-only branch", {
+  # Integrating the paired (y1_obs==1) joint over all y1 must reproduce the
   # LB-only (y1_obs==0) branch value for that y2, exactly (both are the
   # y1-integrated marginal of the same bivariate model).
   mu <- 6; lone <- 3; ltwo <- 4; ss <- 2; sx <- 1.5
@@ -58,7 +58,7 @@ test_that("marginal identity: sum over y1 of the matched branch == LB-only branc
   }
 })
 
-# Up to 0.9.1 a block here checked that the matched branch of
+# Up to 0.9.1 a block here checked that the paired branch of
 # binegbin_partialobs was byte-for-byte the binegbin lpmf, because they were two
 # separate implementations that could drift. Since 0.10.0 there is one lpmf and
 # the identity is structural, so that check would compare a function to itself.
@@ -66,7 +66,7 @@ test_that("marginal identity: sum over y1 of the matched branch == LB-only branc
 # that is a default, not a structural fact, and getting it wrong would silently
 # score every fully paired row against the marginal.
 
-test_that("an unflagged call is the matched branch, not the marginal", {
+test_that("an unflagged call is the paired branch, not the marginal", {
   grid <- expand.grid(
     mu   = c(0.5, 3, 12),
     lone = c(0.5, 2, 6),
@@ -135,7 +135,7 @@ test_that("posterior_predict draws reproduce the joint/marginal conditional y1 |
 # -----------------------------------------------------------------------
 
 # One lpmf, so one function to compile. Up to 0.9.1 this compiled binegbin and
-# binegbin_partialobs together, because the matched branch of the second was a second
+# binegbin_partialobs together, because the paired branch of the second was a second
 # copy of the first and the two could drift; the Stan-level equivalence check
 # existed to stop that. Since 0.10.0 both constructors call this one function,
 # so the equivalence holds by construction and there is nothing to compare.
@@ -183,7 +183,7 @@ test_that("Stan binegbin_lpmf matches R brute-force reference (both branches)", 
   expect_true(max(diffs) < 1e-8, label = paste("max diff =", max(diffs)))
 })
 
-test_that("the Stan matched branch routes the two dispersions the way R does", {
+test_that("the Stan paired branch routes the two dispersions the way R does", {
   # The Stan-vs-Stan equivalence check this replaces compared binegbin_lpmf
   # with the 0.9.1 binegbin_partialobs_lpmf; there is now one function, so it would compare a
   # function to itself. The hazard it guarded against -- the two
@@ -333,7 +333,7 @@ test_that("binegbin_partialobs fits the SYMMETRIC model via nlf, dispatches, and
   draws <- as.data.frame(fit)
   # Smoke gate at a wide interval, not a calibration claim. See
   # helper-coverage.R; the calibration assessment is in test-binegbin.R and
-  # applies to the matched branch of this family, which is binegbin
+  # applies to the paired branch of this family, which is binegbin
   # term for term.
   check_recovery <- function(true_val, draws_col) {
     recovery_ok(draws, true_val, draws_col)

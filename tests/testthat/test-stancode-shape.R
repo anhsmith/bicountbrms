@@ -152,16 +152,15 @@ test_that("both negative-binomial constructors declare the full six dpars", {
 #   nlf(shapexone ~ shapexx), nlf(shapextwo ~ shapexx), shapexx ~ 1
 #
 # That recipe is documented in ?binegbin, in NEWS, in the get-started vignette
-# and in two articles, so it is worth a guard. Two things can silently go
-# wrong and neither shows up as an error:
+# and in two articles, so it is worth a guard. Two things can go wrong:
 #
 #   * the tie not actually tying -- if brms generated two independent
 #     parameters the model would still compile, still sample, and quietly fit
 #     the six-dpar model the user was trying to constrain;
 #   * the prior spelling -- routing a dpar through a non-linear parameter moves
 #     its prior from class = "Intercept", dpar = "shapex" to class = "b",
-#     nlpar = "shapexx". BOTH fields change. A prior written the old way is
-#     silently dropped, leaving the parameter flat and improper.
+#     nlpar = "shapexx". BOTH fields change. A prior written the old way
+#     names no parameter, and brms stops with an error rather than fitting.
 #
 # Needs brms but no Stan toolchain, so this runs in the fast suite.
 
@@ -208,8 +207,16 @@ test_that("the prior in the tied model is class 'b' / nlpar, not dpar", {
   expect_identical(row$class, "b")
   expect_identical(row$dpar,  "")
 
-  # The pre-0.10.0 spelling names nothing in this model, which is exactly why
-  # a prior written that way is dropped without complaint.
+  # The pre-0.10.0 spelling names nothing in this model, so brms rejects a
+  # prior written that way. The articles state that it errors rather than
+  # fitting with the parameter flat; this pins the claim.
   expect_equal(sum(p$dpar == "shapex"), 0L)
   expect_equal(sum(p$dpar == "shapexone"), 0L)
+  expect_error(
+    brms::stancode(tied_formula(), data = sd, family = binegbin(),
+                   stanvars = binegbin_stanvars(),
+                   prior = brms::prior(normal(0, 1.5), class = "Intercept",
+                                       dpar = "shapex")),
+    "do not correspond to any model parameter"
+  )
 })

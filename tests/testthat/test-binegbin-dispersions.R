@@ -6,7 +6,7 @@
 # family only. 0.10.0 gives the pair to `binegbin()` as well -- which is the
 # right way round, and the reason that release exists. Under partial
 # observation `shapexone` is integrated out of the y2-only branch and so rests
-# on the matched rows alone; under full pairing every row informs both, so that
+# on the paired rows alone; under full pairing every row informs both, so that
 # is the case in which they are easiest to identify. It was the case that
 # lacked the capability.
 #
@@ -47,7 +47,7 @@ expect_normalises <- function(mass, tol = 1e-4, label = NULL) {
   testthat::expect_gt(mass, 1 - tol, label = label)
 }
 
-test_that("matched branch normalises to 1 with shapexone != shapextwo", {
+test_that("paired branch normalises to 1 with shapexone != shapextwo", {
   norm_check <- function(mu, lone, ltwo, ss, sx1, sx2, K = 150) {
     ys <- 0:K
     yg <- expand.grid(y1 = ys, y2 = ys)
@@ -122,9 +122,9 @@ test_that("moment identities hold with shapexone != shapextwo", {
 })
 
 test_that("marginal identity holds under asymmetry", {
-  # Integrating the matched branch over all y1 must reproduce the y2-only
-  # branch. This is the identity that makes the unmatched rows coherent with
-  # the matched ones, and it must survive the dispersions being freed.
+  # Integrating the paired branch over all y1 must reproduce the y2-only
+  # branch. This is the identity that makes the unpaired rows coherent with
+  # the paired ones, and it must survive the dispersions being freed.
   mu <- 6; lone <- 3; ltwo <- 4; ss <- 2; sx1 <- 0.6; sx2 <- 7
   K <- 400
   for (yl in c(0L, 1L, 3L, 7L, 15L)) {
@@ -147,7 +147,7 @@ test_that("shapexone does not enter the y2-only branch", {
   # The y1 margin is integrated out on y1_obs == 0 rows, taking its
   # dispersion with it. If shapexone leaked into that branch the two calls
   # below would differ -- and shapexone would be spuriously informed by the
-  # unmatched rows, which is exactly the identifiability claim the docs make.
+  # unpaired rows, which is exactly the identifiability claim the docs make.
   base <- binegbin_lpmf_r(0L, 0:20, y1_obs = 0L, 6, 3, 4, 2, sx1 <- 0.5, 7)
   for (alt in c(0.01, 1, 100, 1e4)) {
     expect_identical(
@@ -155,14 +155,14 @@ test_that("shapexone does not enter the y2-only branch", {
       base, label = paste("shapexone =", alt)
     )
   }
-  # ...and it DOES enter the matched branch, so the test above is not vacuous.
+  # ...and it DOES enter the paired branch, so the test above is not vacuous.
   m0 <- binegbin_lpmf_r(3L, 5L, 6, 3, 4, 2, 0.5, 7)
   m1 <- binegbin_lpmf_r(3L, 5L, 6, 3, 4, 2, 100, 7)
   expect_false(isTRUE(all.equal(m0, m1)))
 })
 
 test_that("swapping both rates and both dispersions transposes the joint", {
-  # On the matched branch the two margins enter symmetrically, so
+  # On the paired branch the two margins enter symmetrically, so
   # p(y1, y2 | lone, ltwo, sx1, sx2) == p(y2, y1 | ltwo, lone, sx2, sx1).
   # This pins that shapexone is bound to the y1 term and shapextwo to the y2
   # term, and not the reverse -- a swap the Stan signature could make
@@ -181,7 +181,7 @@ test_that("swapping both rates and both dispersions transposes the joint", {
 test_that("shapexone == shapextwo reproduces the five-dpar likelihood exactly", {
   # The pre-0.8.0 family is this one under the constraint. Checked against
   # binegbin_lpmf_r (the single-dispersion reference, untouched by 0.8.0) on
-  # the matched branch, and against the defaulted eight-argument call on
+  # the paired branch, and against the defaulted eight-argument call on
   # both.
   grid <- expand.grid(mu = c(0.5, 3, 12), lone = c(0.5, 2, 6),
                       ltwo = c(0.5, 2, 6), ss = c(0.8, 3), sx = c(0.8, 3))
@@ -348,8 +348,8 @@ test_that("binegbin_partialobs recovers shapexone and shapextwo when they differ
   n1       <- rnbinom(n, size = true_shapexone, mu = true_lone)
   n2       <- rnbinom(n, size = true_shapextwo, mu = true_ltwo)
 
-  # shapexone is identified ONLY by the matched rows (it is integrated out of
-  # the y2-only branch), so the design keeps a clear majority matched --
+  # shapexone is identified ONLY by the paired rows (it is integrated out of
+  # the y2-only branch), so the design keeps a clear majority paired --
   # otherwise this test would measure the prior, not recovery.
   y1_obs <- rep(c(1L, 1L, 1L, 0L), length.out = n)
 
@@ -360,7 +360,7 @@ test_that("binegbin_partialobs recovers shapexone and shapextwo when they differ
   # likelihood for a Negative-Binomial shape is flat towards large values (a
   # big shape is nearly Poisson, so the data cannot distinguish 30 from 300).
   # With one excess dispersion that is survivable; with two -- one of them,
-  # shapexone, informed only by the matched rows -- it is not: run
+  # shapexone, informed only by the paired rows -- it is not: run
   # unregularised this model produced 680 divergent transitions and a max Rhat
   # of 1.54, i.e. chains that never mixed. The "Set priors on the dispersions"
   # section of the README says exactly this.
@@ -441,9 +441,9 @@ test_that("binegbin_partialobs recovers shapexone and shapextwo when they differ
 # 5. The same recovery under FULL pairing -- the capability 0.10.0 adds
 # -----------------------------------------------------------------------
 #
-# The test above fits binegbin_partialobs() on a majority-matched design,
-# because shapexone is identified only by the matched rows there. Under full
-# pairing that constraint is gone: every row enters the matched branch and so
+# The test above fits binegbin_partialobs() on a majority-paired design,
+# because shapexone is identified only by the paired rows there. Under full
+# pairing that constraint is gone: every row enters the paired branch and so
 # informs both dispersions. This is the case the release exists to serve, and
 # before 0.10.0 it could not be expressed at all -- binegbin() had one shapex,
 # so there was nothing to recover separately.
@@ -559,7 +559,7 @@ test_that("binegbin recovers shapexone and shapextwo from a fully paired design"
 # NOT COVERED, deliberately. The design argument above says a fully paired
 # design identifies shapexone MORE sharply than a partially paired one of the
 # same size. That is a directional claim about two posterior SDs, and testing
-# it would mean fitting both at matched n and comparing -- two Stan fits to
+# it would mean fitting both at paired n and comparing -- two Stan fits to
 # assert an inequality whose margin is not known in advance. The claim is
 # documented in ?binegbin_partialobs and in the README; what is pinned here is
 # the weaker and more useful fact that both designs recover both dispersions.

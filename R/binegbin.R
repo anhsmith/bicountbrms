@@ -32,7 +32,7 @@
 #
 # WHAT THE FLAG SELECTS.
 #
-#   y1_obs == 1 (matched row):  full joint lpmf on (y1, y2).
+#   y1_obs == 1 (paired row):  full joint lpmf on (y1, y2).
 #   y1_obs == 0 (y2-only row):  the y2 MARGINAL of the SAME bivariate model --
 #       P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo),
 #       i.e. the joint with the y1 (N1) term integrated out over all y1.
@@ -60,8 +60,8 @@
 # Note the asymmetry in what the two dispersions can be identified from under
 # PARTIAL observation. shapextwo appears on both branches (it governs the
 # always-observed margin), so the y2-only rows sharpen it. shapexone appears
-# only on the matched branch, so it is identified SOLELY by the matched rows
-# -- the same way lambdaone is. A design with few matched rows will therefore
+# only on the paired branch, so it is identified SOLELY by the paired rows
+# -- the same way lambdaone is. A design with few paired rows will therefore
 # learn shapexone far less sharply than shapextwo, and the prior on it does
 # correspondingly more of the work. Under full pairing the asymmetry vanishes.
 #
@@ -105,20 +105,20 @@
 # large-argument branch is needed.
 #
 # WHY A DEDICATED FAMILY AND NOT TWO SEPARATE FITS, under partial observation.
-# The unmatched (y2-only) rows never observe y1, so a matched-only fit could
-# use the matched rows alone. But the y2-only rows are still informative
+# The unpaired (y2-only) rows never observe y1, so a paired-only fit could
+# use the paired rows alone. But the y2-only rows are still informative
 # about the SHARED structure (mu, shapes, lambdatwo, shapextwo) and the
 # vessel/trip random effects: their y2 is a draw from the same bivariate
 # model, merely with its y1 margin unobserved. Integrating y1 out (rather than
 # dropping those rows, or -- worse -- giving them their own single-dispersion
 # neg_binomial_2 on y2, which is a DIFFERENT model inconsistent with the
-# matched decomposition) lets one brm() call pool all rows under one coherent
+# paired decomposition) lets one brm() call pool all rows under one coherent
 # likelihood. This is the standard partially-observed-margin construction, not
 # a heuristic.
 #
 # Validation -- grid cross-check of the Stan lpmf against the independent R
 # brute-force reference to ~1e-14, normalisation to 1 on both branches, the
-# moment identities, the marginal identity (summing the matched branch over y1
+# moment identities, the marginal identity (summing the paired branch over y1
 # gives the y2-only branch), the Poisson-limit reduction to bipois, the
 # conditional-prediction identity (posterior_predict draws == joint /
 # marginal), and end-to-end parameter recovery with a coverage assessment --
@@ -133,7 +133,7 @@
 #'
 #' @description
 #' Overdispersed sibling of [bipois()]. Returns a brms custom family for the
-#' joint distribution of a matched count pair `(y1, y2)` via trivariate
+#' joint distribution of a pair of counts `(y1, y2)` via trivariate
 #' reduction with Negative-Binomial (rather than Poisson) latent components:
 #' `y1 = N_shared + N1`, `y2 = N_shared + N2`, with
 #' `N_shared ~ NB2(mu, shapes)`, `N1 ~ NB2(lambdaone, shapexone)`,
@@ -256,7 +256,7 @@ binegbin_stanvars <- function() {
 #' not read it. Do not use `NA`, which brms drops before fitting, taking the
 #' observed `y2` on that row with it.
 #'
-#' **Contribution of a matched row and of an unmatched row.** A matched row (`y1_obs == 1`) uses the
+#' **Contribution of a paired row and of an unpaired row.** A paired row (`y1_obs == 1`) uses the
 #' full joint lpmf on `(y1, y2)`. A row whose first count was never recorded
 #' (`y1_obs == 0`) contributes the marginal of the second count *from the
 #' same model*,
@@ -269,13 +269,13 @@ binegbin_stanvars <- function() {
 #' **Imputation after fitting.** The fitted model can impute the unobserved
 #' first count conditional on the observed second one, which is usually why
 #' someone wanted this. `posterior_predict()` and `posterior_epred()` return a
-#' `y1` draw and `E[y1 | y2]` for *every* row, matched and unmatched alike --
+#' `y1` draw and `E[y1 | y2]` for *every* row, paired and unpaired alike --
 #' `y1_obs` selects a likelihood branch, not a prediction.
 #'
 #' **A design consequence, worth knowing before the data are collected.** The
 #' rate `lambdaone` and excess dispersion `shapexone` of the first source
-#' appear only on the matched branch, so they are identified by the matched
-#' rows *alone*. A design with 20 matched rows in 500 learns them weakly and
+#' appear only on the paired branch, so they are identified by the paired
+#' rows *alone*. A design with 20 paired rows in 500 learns them weakly and
 #' leans on their priors. `mu`, `shapes`, `lambdatwo` and `shapextwo` appear
 #' on both branches and are informed by every row.
 #'
@@ -304,7 +304,7 @@ binegbin_stanvars <- function() {
 #' `custom_family` `name` as [binegbin()], so brms resolves both to one
 #' `binegbin_lpmf` and one set of `log_lik_binegbin()` /
 #' `posterior_predict_binegbin()` / `posterior_epred_binegbin()` methods. The
-#' matched branch of the likelihood is therefore not a second copy that can
+#' paired branch of the likelihood is therefore not a second copy that can
 #' drift from the fully paired one; it is the same code.
 #'
 #' What differs is `vars`. [binegbin()] declares `c("vint1[n]", "1")` and this
@@ -375,7 +375,7 @@ binegbin_partialobs_stanvars <- function() {
 #
 # binegbin() reaches this function with y1_obs supplied as the literal 1, so a
 # fully paired model always takes the first branch. There is one lpmf rather
-# than two because the matched branch of a partially observed model IS the
+# than two because the paired branch of a partially observed model IS the
 # fully paired likelihood, and keeping a second copy is how the two drift.
 binegbin_stan_funs <- "
   real binegbin_lpmf(int y1, real mu, real lambdaone, real lambdatwo,
@@ -414,7 +414,7 @@ binegbin_stan_funs <- "
 # Two defaults keep the common calls short and are load-bearing for the test
 # suite: `shapextwo` defaults to `shapexone`, so a seven-argument call is the
 # symmetric (pre-0.8.0) model, and `y1_obs` defaults to 1, so a call that
-# names no flag is the matched branch.
+# names no flag is the paired branch.
 binegbin_lpmf_r <- function(y1, y2, mu, lambdaone, lambdatwo, shapes,
                             shapexone, shapextwo = shapexone, y1_obs = 1L) {
   n <- max(length(y1), length(y2), length(y1_obs), length(mu),
@@ -489,7 +489,7 @@ posterior_predict_binegbin <- function(i, prep, ...) {
   shapextwo <- .get_dpar_any(prep, .SHAPEXTWO_NAMES, i = i)
   y2 <- prep$data$vint1[i]
   # y1_obs is deliberately NOT read here: every row gets a y1 draw conditional
-  # on its observed y2, matched and y2-only alike, which is what imputing the
+  # on its observed y2, paired and y2-only alike, which is what imputing the
   # unobserved margin across every row requires. The conditional split
   # N_shared | y2 is NOT Binomial (a NegBin sum condition is not Binomial); it
   # is P(N_shared = k | y2) proportional to
@@ -532,7 +532,7 @@ posterior_epred_binegbin <- function(prep) {
   # weights.
   #
   # y1_obs is not read, as it is not in posterior_predict_binegbin(): the
-  # conditional expectation of the first margin is defined on unmatched rows
+  # conditional expectation of the first margin is defined on unpaired rows
   # too, and imputing it there is what the family is for. Returning it
   # for every row keeps epred and posterior_predict comparable row by row.
   #
