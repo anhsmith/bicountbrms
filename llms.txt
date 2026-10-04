@@ -198,12 +198,10 @@ components.
 
 ## Funding
 
-This package was developed by [Sea Through
-Science](https://www.seathrough.science) for a fisheries
-electronic-monitoring project led by Johanna Pierre of [JPEC
-Consulting](https://jpec.co.nz/), with support from The Nature
-Conservancy, the Belize Blue Bonds for Ocean Conservation and the Belize
-Fund for a Sustainable Future.
+This package was developed by Sea Through Science for a fisheries
+electronic-monitoring project led by Johanna Pierre of JPEC Consulting,
+with support from The Nature Conservancy, the Belize Blue Bonds for
+Ocean Conservation and the Belize Fund for a Sustainable Future.
 
 ## References
 
