@@ -3,7 +3,7 @@
 #
 # DOI. The concept DOI below resolves to whichever version is latest, so it does
 # not change when a new release is archived and needs no edit at each release.
-# The DOI of one particular release is on that release's own Zenodo record, and
+# The DOI of one particular release is on the Zenodo record for that release, and
 # belongs in a reproducibility statement rather than here.
 year <- if (!is.null(meta$Date)) {
   format(as.Date(meta$Date), "%Y")

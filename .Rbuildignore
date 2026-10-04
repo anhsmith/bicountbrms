@@ -16,3 +16,4 @@
 ^\.zenodo\.json$
 ^data-raw$
 ^ROADMAP\.md$
+^cran-comments\.md$

@@ -13,10 +13,10 @@ Authors@R: c(
 Description: Provides custom 'brms' families for comparing two paired count
     sources, modelling the pair jointly via trivariate reduction rather than
     reducing it to a difference. Two families are supplied: a bivariate
-    Poisson (bipois) and its overdispersed sibling with negative-binomial
-    components (binegbin). Each has a second constructor (bipois_partialobs,
-    binegbin_partialobs) that admits rows on which the first count was never
-    recorded, scoring them by the integrated-out marginal of the same joint
+    Poisson (bipois()) and its overdispersed sibling with negative-binomial
+    components (binegbin()). Each has a second constructor
+    (bipois_partialobs(), binegbin_partialobs()) that admits rows on which
+    the first count was never recorded, scoring them by the integrated-out marginal of the same joint
     model, so those rows still inform the shared component and the second
     source. Modelling the pair rather than its difference captures the overall
     level, the correlation between sources, and marginal overdispersion
@@ -28,8 +28,11 @@ Description: Provides custom 'brms' families for comparing two paired count
     source-specific components differ in overdispersion.
 License: MIT + file LICENSE
 Encoding: UTF-8
+Language: en-GB
+Depends:
+    R (>= 4.1.0)
 Imports:
-    brms
+    brms (>= 2.21.0)
 Suggests:
     cmdstanr,
     knitr,
@@ -37,6 +40,10 @@ Suggests:
     rstan,
     skellam,
     testthat (>= 3.0.0)
+SystemRequirements: A C++17 compiler and GNU make, with which 'rstan'
+    or CmdStan compiles each model when it is fitted; CmdStan
+    (<https://mc-stan.org/users/interfaces/cmdstan>) when 'brms' uses the
+    'cmdstanr' backend.
 VignetteBuilder: knitr
 Additional_repositories: https://stan-dev.r-universe.dev
 Config/testthat/edition: 3
@@ -45,6 +52,4 @@ URL: https://github.com/anhsmith/bicountbrms,
 BugReports: https://github.com/anhsmith/bicountbrms/issues
 Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.0.0
-Depends: 
-    R (>= 2.10)
 LazyData: true
