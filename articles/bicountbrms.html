@@ -95,22 +95,23 @@ recorded and one that only that source recorded. This construction is
 and <span class="citation">Kirkpatrick (<a href="#ref-kirkpatrickRMKdiscreteSundryDiscrete2022">2022</a>)</span>
 with negative-binomial components. <code><a href="../reference/binegbin.html">binegbin()</a></code> takes all
 three latent counts to be independent and negative binomial:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mi>s</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>N</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo><mspace width="2.0em"></mspace><msub><mi>N</mi><mn>2</mn></msub><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mn>2</mn></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>y</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>+</mo><msub><mi>N</mi><mn>1</mn></msub><mspace width="2.0em"></mspace><msub><mi>y</mi><mn>2</mn></msub><mo>=</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>+</mo><msub><mi>N</mi><mn>2</mn></msub></mtd></mtr></mtable><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>N</mi><mi>s</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mi>s</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>N</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo><mspace width="2.0em"></mspace><msub><mi>N</mi><mn>2</mn></msub><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mn>2</mn></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>y</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msub><mi>N</mi><mi>s</mi></msub><mo>+</mo><msub><mi>N</mi><mn>1</mn></msub><mspace width="2.0em"></mspace><msub><mi>y</mi><mn>2</mn></msub><mo>=</mo><msub><mi>N</mi><mi>s</mi></msub><mo>+</mo><msub><mi>N</mi><mn>2</mn></msub></mtd></mtr></mtable><annotation encoding="application/x-tex">
 \begin{aligned}
-N_{\text{shared}} &amp;\sim \mathrm{NB2}(\mu,\ \phi_s) \\
+N_s &amp;\sim \mathrm{NB2}(\mu,\ \phi_s) \\
 N_1 &amp;\sim \mathrm{NB2}(\lambda_1,\ \phi_{x1}) \qquad
 N_2 \sim \mathrm{NB2}(\lambda_2,\ \phi_{x2}) \\[4pt]
-y_1 &amp;= N_{\text{shared}} + N_1 \qquad
-y_2 = N_{\text{shared}} + N_2
+y_1 &amp;= N_s + N_1 \qquad
+y_2 = N_s + N_2
 \end{aligned}
 </annotation></semantics></math></p>
-<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><annotation encoding="application/x-tex">N_{\text{shared}}</annotation></semantics></math>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>s</mi></msub><annotation encoding="application/x-tex">N_s</annotation></semantics></math>
 is the latent count recorded by both sources;
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mn>1</mn></msub><annotation encoding="application/x-tex">N_1</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mn>2</mn></msub><annotation encoding="application/x-tex">N_2</annotation></semantics></math>
-are the two excesses, each recorded by one source only.
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><annotation encoding="application/x-tex">N_{\text{shared}}</annotation></semantics></math>
+are the two source-exclusive components, the counts recorded by one
+source only.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>s</mi></msub><annotation encoding="application/x-tex">N_s</annotation></semantics></math>
 induces the correlation between the pair. It is never observed, and is
 marginalised out analytically in the likelihood.</p>
 <p><code>NB2(m, phi)</code> is <code>neg_binomial_2</code> in Stan and
@@ -136,13 +137,13 @@ variance <code>m + m^2/phi</code>. Larger <code>phi</code> means
 </tr>
 <tr class="even">
 <td><code>lambdaone</code></td>
-<td>rate of the excess for the first source,
+<td>rate of the exclusive component of the first source,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>
 </td>
 </tr>
 <tr class="odd">
 <td><code>lambdatwo</code></td>
-<td>rate of the excess for the second source,
+<td>rate of the exclusive component of the second source,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>
 </td>
 </tr>
@@ -156,13 +157,13 @@ of the shared component</td>
 <td><code>shapexone</code></td>
 <td>dispersion
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>
-of the excess for the first source</td>
+of the exclusive component of the first source</td>
 </tr>
 <tr class="even">
 <td><code>shapextwo</code></td>
 <td>dispersion
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x2}</annotation></semantics></math>
-of the excess for the second source</td>
+of the exclusive component of the second source</td>
 </tr>
 </tbody>
 </table>
@@ -263,9 +264,9 @@ the natural scale <code>normal(2, 1)</code> is lognormal, with 95% of
 its mass between 1 and 52.</p>
 <p>The six truths span 0.69 to 2.08 on the log scale, so no single prior
 sits away from all of them: the true shared rate falls near the prior
-mean, the true second excess rate 1.3 prior SDs below it. Recovery here
-is therefore not on its own evidence that the prior is uninfluential.
-The article <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html"><em>Mapping
+mean, the true second exclusive rate 1.3 prior SDs below it. Recovery
+here is therefore not on its own evidence that the prior is
+uninfluential. The article <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html"><em>Mapping
 native parameters to interpretable coordinates</em></a> tests that
 directly, shifting a prior median sevenfold and moving the corresponding
 posterior median by 0.005.</p>
@@ -369,10 +370,10 @@ exponentiates back onto the natural scale.</p>
 <p>The three rates should land tightly on their true values. The three
 dispersions are estimated from an aggregate mean–variance mismatch
 rather than from any directly observed quantity, so their intervals are
-wider; the two excess dispersions especially, since they are identified
-only through the part of the spread in the pair that the shared
-component cannot explain. Wide but covering is the expected result here,
-not a warning sign.</p>
+wider; the dispersions of the two exclusive components especially, since
+they are identified only through the part of the spread in the pair that
+the shared component cannot explain. Wide but covering is the expected
+result here, not a warning sign.</p>
 </div>
 <div class="section level2">
 <h2 id="predict-and-score">Predict and score<a class="anchor" aria-label="anchor" href="#predict-and-score"></a>
@@ -380,9 +381,9 @@ not a warning sign.</p>
 <p><code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> draws new <code>y1</code>
 <strong>conditional on the observed <code>y2</code> in each
 row</strong>. It samples the discrete conditional distribution of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><annotation encoding="application/x-tex">N_{\text{shared}}</annotation></semantics></math>
-given <code>y2</code>, then adds a fresh excess draw — the exact
-conditional, not an approximation.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>s</mi></msub><annotation encoding="application/x-tex">N_s</annotation></semantics></math>
+given <code>y2</code>, then adds a fresh draw of the exclusive component
+— the exact conditional, not an approximation.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">yrep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict</a></span><span class="op">(</span><span class="va">fit</span>, ndraws <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">yrep</span><span class="op">)</span></span>
@@ -450,14 +451,14 @@ importance weights are unreliable <span class="citation">(<a href="#ref-vehtari2
 <h2 id="quantities-returned-by-posterior_epred">Quantities returned by <code>posterior_epred()</code><a class="anchor" aria-label="anchor" href="#quantities-returned-by-posterior_epred"></a>
 </h2>
 <p>Both families return the same quantity:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>y</mi><mn>1</mn></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>+</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_{\text{shared}} \mid y_2] + \lambda_1,
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>y</mi><mn>1</mn></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>N</mi><mi>s</mi></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>+</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_s \mid y_2] + \lambda_1,
 </annotation></semantics></math></p>
-<p>the expected first count <em>given the second one that was actually
-observed</em>, not a marginal expectation. It is what the second source
-implies about the first.</p>
+<p>the expected first count conditional on the observed second count,
+not the marginal expectation
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>y</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\mathrm{E}[y_1]</annotation></semantics></math>.</p>
 <p>For <code><a href="../reference/bipois.html">bipois()</a></code>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\mathrm{E}[N_{\text{shared}} \mid y_2]</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>N</mi><mi>s</mi></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\mathrm{E}[N_s \mid y_2]</annotation></semantics></math>
 is closed form, because conditioning a sum of independent Poissons on
 its total gives a Binomial split. For <code><a href="../reference/binegbin.html">binegbin()</a></code> there is
 no such shortcut, so the conditional is evaluated over its support
@@ -468,8 +469,10 @@ and summed. Both are exact, and each agrees with the mean of its own
 under <code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code> and
 <code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code> — those where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math>
-was never observed. Imputing the unobserved margin is what those two
-constructors are for.</p>
+was never observed. Those two constructors exist so that the fitted
+model can impute
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math>
+on those rows.</p>
 <p><code>posterior_epred(fit)</code> needs no special handling: it
 dispatches to the family method, as do <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code> and
 <code><a href="https://paulbuerkner.com/brms/reference/conditional_effects.brmsfit.html" class="external-link">conditional_effects()</a></code>.</p>
@@ -483,8 +486,8 @@ dispatches to the family method, as do <code><a href="https://rdrr.io/r/stats/fi
 construction, three dpars instead of six. Use it when the margins are
 not overdispersed; compare the two with <code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code>.</li>
 <li>
-<strong>The symmetric model.</strong> The fit above let the two
-excess dispersions differ. To impose
+<strong>The symmetric model.</strong> The fit above let the
+dispersions of the two exclusive components differ. To impose
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">\phi_{x1} = \phi_{x2}</annotation></semantics></math>
 instead, route both through one non-linear parameter —
 <code>nlf(shapexone ~ shapexx)</code>,
@@ -520,8 +523,8 @@ of the two expected counts, congruence
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>,
 and source bias
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>,
-with the dispersions on an SD scale
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>1</mn><mi>/</mi><msqrt><mi>ϕ</mi></msqrt></mrow><annotation encoding="application/x-tex">\kappa = 1/\sqrt{\phi}</annotation></semantics></math>
+with the inverse dispersions converted to overdispersions
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>1</mn><mi>/</mi><msqrt><mi>ϕ</mi></msqrt></mrow><annotation encoding="application/x-tex">\kappa = 1/\sqrt{\phi}</annotation></semantics></math>,
 where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\kappa = 0</annotation></semantics></math>
 is the Poisson limit. It is fitted through <code><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf()</a></code> rather

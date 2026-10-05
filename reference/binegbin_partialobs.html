@@ -17,32 +17,32 @@ same model,
 P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo) –
 the joint with the y1 term integrated out over its whole support. It is
 not dropped, and it is not given a different model: it still informs the
-shared component (mu, shapes), the rate and dispersion of the second
-source (lambdatwo, shapextwo), and any group-level effects.
+shared component (mu, shapes), the rate and dispersion of the
+second source (lambdatwo, shapextwo), and any group-level effects.
 Imputation after fitting. The fitted model can impute the unobserved
-first count conditional on the observed second one, which is usually why
-someone wanted this. posterior_predict() and posterior_epred() return a
-y1 draw and E[y1 | y2] for every row, paired and unpaired alike –
-y1_obs selects a likelihood branch, not a prediction.
-A design consequence, worth knowing before the data are collected. The
-rate lambdaone and excess dispersion shapexone of the first source
-appear only on the paired branch, so they are identified by the paired
-rows alone. A design with 20 paired rows in 500 learns them weakly and
-leans on their priors. mu, shapes, lambdatwo and shapextwo appear
-on both branches and are informed by every row.
-This is not censoring in the brms sense. The brms cens() addition term
-means a value known to lie in a set – left, right, interval. Here the
-first count is not observed at all and the likelihood marginalises over its
-whole support. This family was called binegbin_cens() up to 0.9.1; the
-name was wrong and was changed at 0.10.0. Do not combine this family with
-cens().
+first count conditional on the observed second count. posterior_predict()
+and posterior_epred() return a y1 draw and E[y1 | y2] for every row,
+paired and unpaired alike – y1_obs selects a likelihood branch, not a
+prediction.
+Parameters identified only by the paired rows. The rate lambdaone and
+dispersion shapexone of the first source appear only on the paired
+branch, so lambdaone and shapexone are identified by the paired rows
+alone. With 20 paired rows in 500, the posteriors of lambdaone and
+shapexone are wide and depend strongly on their priors. mu, shapes,
+lambdatwo and shapextwo appear on both branches and are informed by
+every row.
+Relation to censoring in brms. brms uses the cens() addition term for a
+value known to lie in a set (left, right or interval). On an unpaired
+row, the first count is not observed at all, and the likelihood marginalises
+over its whole support. binegbin_partialobs() was called binegbin_cens()
+up to 0.9.1. Do not combine binegbin_partialobs() with cens().
 Use in a brm() call as:
 brm(
 bf(y1 | vint(y2, y1_obs) ~ 1,
 mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
-nlf(lambdaone ~ lamx + methd),
-nlf(lambdatwo ~ lamx - methd),
-lamx ~ 1, methd ~ 1,
+nlf(lambdaone ~ lamx + delta),
+nlf(lambdatwo ~ lamx - delta),
+lamx ~ 1, delta ~ 1,
 shapes ~ 1, shapexone ~ 1, shapextwo ~ 1, nl = TRUE),
 family   = binegbin_partialobs(),
 stanvars = binegbin_partialobs_stanvars(),
@@ -65,32 +65,32 @@ same model,
 P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo) –
 the joint with the y1 term integrated out over its whole support. It is
 not dropped, and it is not given a different model: it still informs the
-shared component (mu, shapes), the rate and dispersion of the second
-source (lambdatwo, shapextwo), and any group-level effects.
+shared component (mu, shapes), the rate and dispersion of the
+second source (lambdatwo, shapextwo), and any group-level effects.
 Imputation after fitting. The fitted model can impute the unobserved
-first count conditional on the observed second one, which is usually why
-someone wanted this. posterior_predict() and posterior_epred() return a
-y1 draw and E[y1 | y2] for every row, paired and unpaired alike –
-y1_obs selects a likelihood branch, not a prediction.
-A design consequence, worth knowing before the data are collected. The
-rate lambdaone and excess dispersion shapexone of the first source
-appear only on the paired branch, so they are identified by the paired
-rows alone. A design with 20 paired rows in 500 learns them weakly and
-leans on their priors. mu, shapes, lambdatwo and shapextwo appear
-on both branches and are informed by every row.
-This is not censoring in the brms sense. The brms cens() addition term
-means a value known to lie in a set – left, right, interval. Here the
-first count is not observed at all and the likelihood marginalises over its
-whole support. This family was called binegbin_cens() up to 0.9.1; the
-name was wrong and was changed at 0.10.0. Do not combine this family with
-cens().
+first count conditional on the observed second count. posterior_predict()
+and posterior_epred() return a y1 draw and E[y1 | y2] for every row,
+paired and unpaired alike – y1_obs selects a likelihood branch, not a
+prediction.
+Parameters identified only by the paired rows. The rate lambdaone and
+dispersion shapexone of the first source appear only on the paired
+branch, so lambdaone and shapexone are identified by the paired rows
+alone. With 20 paired rows in 500, the posteriors of lambdaone and
+shapexone are wide and depend strongly on their priors. mu, shapes,
+lambdatwo and shapextwo appear on both branches and are informed by
+every row.
+Relation to censoring in brms. brms uses the cens() addition term for a
+value known to lie in a set (left, right or interval). On an unpaired
+row, the first count is not observed at all, and the likelihood marginalises
+over its whole support. binegbin_partialobs() was called binegbin_cens()
+up to 0.9.1. Do not combine binegbin_partialobs() with cens().
 Use in a brm() call as:
 brm(
 bf(y1 | vint(y2, y1_obs) ~ 1,
 mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
-nlf(lambdaone ~ lamx + methd),
-nlf(lambdatwo ~ lamx - methd),
-lamx ~ 1, methd ~ 1,
+nlf(lambdaone ~ lamx + delta),
+nlf(lambdatwo ~ lamx - delta),
+lamx ~ 1, delta ~ 1,
 shapes ~ 1, shapexone ~ 1, shapextwo ~ 1, nl = TRUE),
 family   = binegbin_partialobs(),
 stanvars = binegbin_partialobs_stanvars(),
@@ -157,32 +157,32 @@ same model</em>,
 <code>P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo)</code> –
 the joint with the <code>y1</code> term integrated out over its whole support. It is
 not dropped, and it is not given a different model: it still informs the
-shared component (<code>mu</code>, <code>shapes</code>), the rate and dispersion of the second
-source (<code>lambdatwo</code>, <code>shapextwo</code>), and any group-level effects.</p>
+shared component (<code>mu</code>, <code>shapes</code>), the rate and dispersion of the
+second source (<code>lambdatwo</code>, <code>shapextwo</code>), and any group-level effects.</p>
 <p><strong>Imputation after fitting.</strong> The fitted model can impute the unobserved
-first count conditional on the observed second one, which is usually why
-someone wanted this. <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> and <code><a href="https://mc-stan.org/rstantools/reference/posterior_epred.html" class="external-link">posterior_epred()</a></code> return a
-<code>y1</code> draw and <code>E[y1 | y2]</code> for <em>every</em> row, paired and unpaired alike –
-<code>y1_obs</code> selects a likelihood branch, not a prediction.</p>
-<p><strong>A design consequence, worth knowing before the data are collected.</strong> The
-rate <code>lambdaone</code> and excess dispersion <code>shapexone</code> of the first source
-appear only on the paired branch, so they are identified by the paired
-rows <em>alone</em>. A design with 20 paired rows in 500 learns them weakly and
-leans on their priors. <code>mu</code>, <code>shapes</code>, <code>lambdatwo</code> and <code>shapextwo</code> appear
-on both branches and are informed by every row.</p>
-<p><strong>This is not censoring in the brms sense.</strong> The brms <code>cens()</code> addition term
-means a value known to lie in a set – <code>left</code>, <code>right</code>, <code>interval</code>. Here the
-first count is not observed at all and the likelihood marginalises over its
-whole support. This family was called <code>binegbin_cens()</code> up to 0.9.1; the
-name was wrong and was changed at 0.10.0. Do not combine this family with
-<code>cens()</code>.</p>
+first count conditional on the observed second count. <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code>
+and <code><a href="https://mc-stan.org/rstantools/reference/posterior_epred.html" class="external-link">posterior_epred()</a></code> return a <code>y1</code> draw and <code>E[y1 | y2]</code> for <em>every</em> row,
+paired and unpaired alike – <code>y1_obs</code> selects a likelihood branch, not a
+prediction.</p>
+<p><strong>Parameters identified only by the paired rows.</strong> The rate <code>lambdaone</code> and
+dispersion <code>shapexone</code> of the first source appear only on the paired
+branch, so <code>lambdaone</code> and <code>shapexone</code> are identified by the paired rows
+alone. With 20 paired rows in 500, the posteriors of <code>lambdaone</code> and
+<code>shapexone</code> are wide and depend strongly on their priors. <code>mu</code>, <code>shapes</code>,
+<code>lambdatwo</code> and <code>shapextwo</code> appear on both branches and are informed by
+every row.</p>
+<p><strong>Relation to censoring in brms.</strong> brms uses the <code>cens()</code> addition term for a
+value known to lie in a set (<code>left</code>, <code>right</code> or <code>interval</code>). On an unpaired
+row, the first count is not observed at all, and the likelihood marginalises
+over its whole support. <code>binegbin_partialobs()</code> was called <code>binegbin_cens()</code>
+up to 0.9.1. Do not combine <code>binegbin_partialobs()</code> with <code>cens()</code>.</p>
 <p>Use in a brm() call as:
 brm(
 bf(y1 | vint(y2, y1_obs) ~ 1,
 mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
-nlf(lambdaone ~ lamx + methd),
-nlf(lambdatwo ~ lamx - methd),
-lamx ~ 1, methd ~ 1,
+nlf(lambdaone ~ lamx + delta),
+nlf(lambdatwo ~ lamx - delta),
+lamx ~ 1, delta ~ 1,
 shapes ~ 1, shapexone ~ 1, shapextwo ~ 1, nl = TRUE),
 family   = binegbin_partialobs(),
 stanvars = binegbin_partialobs_stanvars(),
@@ -207,19 +207,20 @@ apply to a fit made with either constructor.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p><strong>One likelihood, two constructors.</strong> This returns the same
-<code>custom_family</code> <code>name</code> as <code><a href="binegbin.html">binegbin()</a></code>, so brms resolves both to one
-<code>binegbin_lpmf</code> and one set of <code><a href="binegbin.html">log_lik_binegbin()</a></code> /
-<code><a href="binegbin.html">posterior_predict_binegbin()</a></code> / <code><a href="binegbin.html">posterior_epred_binegbin()</a></code> methods. The
-paired branch of the likelihood is therefore not a second copy that can
-drift from the fully paired one; it is the same code.</p>
-<p>What differs is <code>vars</code>. <code><a href="binegbin.html">binegbin()</a></code> declares <code>c("vint1[n]", "1")</code> and this
-declares <code>c("vint1[n]", "vint2[n]")</code>. brms pastes those entries into the
-generated call, so the fully paired model reaches the same Stan function
-with the flag fixed at <code>1</code>. The alternative – two Stan functions of the
-same name and different arity – would need user-defined function
-overloading, which arrived in Stan 2.29 (February 2022) and would oblige
-this package to declare a floor on the Stan version. It does not.</p>
+    <p><strong>Shared Stan function and post-processing methods.</strong>
+<code>binegbin_partialobs()</code> returns the same <code>custom_family</code> <code>name</code> as
+<code><a href="binegbin.html">binegbin()</a></code>, so brms resolves both constructors to one <code>binegbin_lpmf</code> and
+one set of <code><a href="binegbin.html">log_lik_binegbin()</a></code> / <code><a href="binegbin.html">posterior_predict_binegbin()</a></code> /
+<code><a href="binegbin.html">posterior_epred_binegbin()</a></code> methods. The paired branch of
+<code>binegbin_partialobs()</code> therefore runs the same code as <code><a href="binegbin.html">binegbin()</a></code>.</p>
+<p>What differs is <code>vars</code>. <code><a href="binegbin.html">binegbin()</a></code> declares <code>c("vint1[n]", "1")</code> and
+<code>binegbin_partialobs()</code> declares <code>c("vint1[n]", "vint2[n]")</code>. brms pastes
+those entries into the generated call, so the fully paired model reaches
+the same Stan function with the flag fixed at <code>1</code>. The alternative – two
+Stan functions of the same name and different arity – would need
+user-defined function overloading, which arrived in Stan 2.29 (February
+2022) and would oblige this package to declare a minimum Stan version.
+<code>DESCRIPTION</code> sets no minimum version of rstan or cmdstanr.</p>
 <p><strong>Two <code>vint()</code> arguments, in declared order.</strong> brms appends <code>vint()</code>
 integers to the generated lpmf call in the order they are listed in the
 <code>vint()</code> term of the formula, matching the <code>vars</code> declared here: so

@@ -50,7 +50,7 @@ For
 the statement needs one qualification. On an unpaired row, the
 likelihood of that family involves `mu` only through the sum
 `mu + lambdatwo`, so those rows constrain the total rate of the observed
-margin without dividing it between the shared and the source-specific
+margin without dividing it between the shared and the source-exclusive
 component. Separating `mu` from `lambdatwo`, and so estimating the
 congruence $`f`$, is also informed by the paired rows alone.
 
@@ -58,12 +58,11 @@ congruence $`f`$, is also informed by the paired rows alone.
 
 Left unregularised, the chains explore the flat tail of an improper
 prior on a log-linked positive parameter, where the likelihood is nearly
-level and the posterior therefore follows the prior. The
-asymmetric-dispersion fit in
-`tests/testthat/test-binegbin-dispersions.R` required priors on the two
-rates and the three dispersions: run without them it produced divergent
-transitions and some high $`\hat{R}`$ values, which is to say chains
-that never mixed.
+level and the posterior therefore follows the prior. The fit with
+asymmetric dispersions in `tests/testthat/test-binegbin-dispersions.R`
+required priors on the two rates and the three dispersions: run without
+them it produced divergent transitions and some high $`\hat{R}`$ values,
+which is to say chains that never mixed.
 
 Divergences are the diagnostic to watch here rather than $`\hat{R}`$
 alone. This package applies an $`\hat{R}`$ gate of 1.02.
@@ -135,8 +134,9 @@ not contain, brms stops with the error that the prior does not
 correspond to any model parameter.
 
 That error has one especially easy instance. To impose
-$`\phi_{x1} = \phi_{x2}`$, the two excess dispersions are routed through
-a single non-linear parameter, described in [The families and their
+$`\phi_{x1} = \phi_{x2}`$, the dispersions of the two exclusive
+components are routed through a single non-linear parameter, described
+in [The families and their
 parameters](https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.md):
 
 ``` r
@@ -157,10 +157,11 @@ rather than fitting.
 
 The three rates can be reparameterised as the midpoint $`M`$ of the two
 expected counts, congruence $`f`$ and source bias $`\delta`$, with each
-dispersion on the standard deviation scale $`\kappa = 1/\sqrt{\phi}`$.
-In those coordinates, every parameter has a finite null: $`\delta = 0`$
-is no bias between the two sources, and $`\kappa = 0`$ is the Poisson
-limit exactly, rather than the $`\phi \to \infty`$ of the native scale.
+inverse dispersion converted to an overdispersion
+$`\kappa = 1/\sqrt{\phi}`$. In those coordinates, every parameter has a
+finite null: $`\delta = 0`$ is no bias between the two sources, and
+$`\kappa = 0`$ is the Poisson limit exactly, rather than the
+$`\phi \to \infty`$ of the native scale.
 
 A shrinkage prior requires a finite null. A half-normal on $`\kappa`$
 and a normal on $`\delta`$ place their maximum at the simpler model and

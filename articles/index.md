@@ -9,9 +9,9 @@
   parameters](https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.md):
 
   How the two families are constructed, what each distributional
-  parameter means, how to constrain the two excess dispersions to be
-  equal, and a fitted demonstration that they can be told apart when
-  they are not.
+  parameter means, how to constrain the dispersions of the two exclusive
+  components to be equal, and a fit to simulated data in which two
+  unequal dispersions are recovered separately.
 
 - [Choosing
   priors](https://anhsmith.github.io/bicountbrms/articles/choosing-priors.md):

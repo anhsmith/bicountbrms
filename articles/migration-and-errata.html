@@ -96,8 +96,8 @@ according to which suite was in use.
 <div class="section level2">
 <h2 id="changes-by-release">Changes by release<a class="anchor" aria-label="anchor" href="#changes-by-release"></a>
 </h2>
-<p><strong>0.8.0</strong> replaced the single excess dispersion
-<code>shapex</code> with the per-margin pair
+<p><strong>0.8.0</strong> replaced the single dispersion
+<code>shapex</code> of the exclusive components with the per-margin pair
 <code>shapexone</code>/<code>shapextwo</code>, for the partially
 observed family alone.</p>
 <p><strong>0.9.0</strong> renamed <code>binegbin_joint()</code> to
@@ -107,12 +107,13 @@ distinguished nothing. The same release added
 <code>bipois_cens()</code>.</p>
 <p><strong>0.10.0</strong> replaces four families with two. Each of
 <code>bipois</code> and <code>binegbin</code> now has two constructors:
-a plain one for a fully paired design, and a <code>_partialobs()</code>
-one for a design in which the first count is missing on some rows. Both
-constructors of a pair return the same <code>custom_family</code> name,
-so one Stan function and one set of post-processing methods serve both.
-The same release gives <code><a href="../reference/binegbin.html">binegbin()</a></code> the six distributional
-parameters previously held by <code>binegbin_cens()</code> alone.</p>
+a plain constructor for a fully paired design, and a
+<code>_partialobs()</code> constructor for a design in which the first
+count is missing on some rows. Both constructors of a pair return the
+same <code>custom_family</code> name, so one Stan function and one set
+of post-processing methods serve both. The same release gives
+<code><a href="../reference/binegbin.html">binegbin()</a></code> the six distributional parameters previously
+held by <code>binegbin_cens()</code> alone.</p>
 </div>
 <div class="section level2">
 <h2 id="substitutions-for-existing-code">Substitutions for existing code<a class="anchor" aria-label="anchor" href="#substitutions-for-existing-code"></a>
@@ -234,8 +235,8 @@ before 0.9.1<a class="anchor" aria-label="anchor" href="#erratum-the-dispersion-
 since superseded by <code>test-partialobs-predict.R</code>, after a
 discrimination check on the test suite. In
 <code>posterior_predict_binegbin_cens()</code>, the conditional split of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">N_{\text{shared}} \mid y_2</annotation></semantics></math>
-is weighted by <code>shapextwo</code>, while the fresh source-specific
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mi>s</mi></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">N_s \mid y_2</annotation></semantics></math>
+is weighted by <code>shapextwo</code>, while the fresh source-exclusive
 count added on top takes <code>shapexone</code>. Exchanging those two
 passed 412 assertions across six test files without a single failure,
 because every prediction test then in the suite built its fixture from a

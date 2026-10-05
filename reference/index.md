@@ -5,9 +5,10 @@
 Model the pair of counts jointly via trivariate reduction, capturing its
 correlation, marginal overdispersion, and difference together rather
 than the difference alone. Each component distribution has one family
-name and two constructors: the plain one for a fully paired design, and
-the \_partialobs one for a design in which the first count is missing on
-some rows. Both share a likelihood and a set of post-processing methods.
+name and two constructors: the plain constructor for a fully paired
+design, and the \_partialobs constructor for a design in which the first
+count is missing on some rows. The two constructors of a family share a
+likelihood and a set of post-processing methods.
 
 - [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
   [`bipois_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)

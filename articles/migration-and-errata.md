@@ -20,9 +20,9 @@ redirects here.
 
 ## Changes by release
 
-**0.8.0** replaced the single excess dispersion `shapex` with the
-per-margin pair `shapexone`/`shapextwo`, for the partially observed
-family alone.
+**0.8.0** replaced the single dispersion `shapex` of the exclusive
+components with the per-margin pair `shapexone`/`shapextwo`, for the
+partially observed family alone.
 
 **0.9.0** renamed `binegbin_joint()` to `binegbin_cens()`, on the
 grounds that every family in the package modelled the pair jointly and
@@ -30,11 +30,11 @@ grounds that every family in the package modelled the pair jointly and
 `bipois_cens()`.
 
 **0.10.0** replaces four families with two. Each of `bipois` and
-`binegbin` now has two constructors: a plain one for a fully paired
-design, and a `_partialobs()` one for a design in which the first count
-is missing on some rows. Both constructors of a pair return the same
-`custom_family` name, so one Stan function and one set of
-post-processing methods serve both. The same release gives
+`binegbin` now has two constructors: a plain constructor for a fully
+paired design, and a `_partialobs()` constructor for a design in which
+the first count is missing on some rows. Both constructors of a pair
+return the same `custom_family` name, so one Stan function and one set
+of post-processing methods serve both. The same release gives
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 the six distributional parameters previously held by `binegbin_cens()`
 alone.
@@ -134,12 +134,12 @@ should be recomputed.
 Release 0.9.1 added `tests/testthat/test-cens-predict.R`, since
 superseded by `test-partialobs-predict.R`, after a discrimination check
 on the test suite. In `posterior_predict_binegbin_cens()`, the
-conditional split of $`N_{\text{shared}} \mid y_2`$ is weighted by
-`shapextwo`, while the fresh source-specific count added on top takes
-`shapexone`. Exchanging those two passed 412 assertions across six test
-files without a single failure, because every prediction test then in
-the suite built its fixture from a single five-dpar `shapex`, which both
-name vectors resolve to identically.
+conditional split of $`N_s \mid y_2`$ is weighted by `shapextwo`, while
+the fresh source-exclusive count added on top takes `shapexone`.
+Exchanging those two passed 412 assertions across six test files without
+a single failure, because every prediction test then in the suite built
+its fixture from a single five-dpar `shapex`, which both name vectors
+resolve to identically.
 
 No released version computed the exchanged quantity. The defect was in
 the power of the test suite to detect an error, not in the shipped code.

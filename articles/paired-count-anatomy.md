@@ -10,16 +10,16 @@ independent counts are drawn, and one of the three enters both observed
 counts:
 
 ``` math
-y_1 = N_{\text{shared}} + N_1
+y_1 = N_s + N_1
 \qquad
-y_2 = N_{\text{shared}} + N_2
+y_2 = N_s + N_2
 ```
 
 The shared term induces the correlation between the pair. It is never
 observed, and is marginalised out analytically in the likelihood.
-$`N_1`$ and $`N_2`$ are the excess counts, each recorded by one source
-only. The construction and its sources are set out in [The families and
-their
+$`N_1`$ and $`N_2`$ are the source-exclusive counts, each recorded by
+one source only. The construction and its sources are set out in [The
+families and their
 parameters](https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.md).
 
 The widget below shows the same model in both parameterisations, over an
@@ -28,11 +28,12 @@ expected decomposition and ten simulated pairs.
 ## Two coordinate systems
 
 The dpars a family actually takes are three rates: `mu` for the shared
-component, `lambdaone` and `lambdatwo` for the two excesses. That is
-what the likelihood takes, but it is awkward to reason in: increase the
-size of the counts and all three move together, so no single one of them
-answers “how much was there”, “how much did the two sources agree”, or
-“which source ran high”.
+component, `lambdaone` and `lambdatwo` for the two exclusive components.
+The likelihood is written in terms of these three rates. Increasing the
+size of the counts moves all three together, so no single rate answers
+“what is the midpoint of the two expected counts”, “what proportion of
+the midpoint did both sources record”, or “which source recorded more of
+the unshared events”.
 
 Those three questions have their own coordinates:
 
@@ -65,23 +66,24 @@ reset
 
 ## Things to try
 
-**Turn `f` up towards 1.** Both excess rates fall to zero and the two
+**Turn `f` up towards 1.** Both exclusive rates fall to zero and the two
 bars converge: the sources agree completely. Now notice what happens to
-$`\beta`$: it stops meaning anything. There is no excess left to be
-biased, so the bias is *unidentified*, and the widget flags it and holds
-the last value rather than snapping to zero. Zero would be a claim (the
-methods are unbiased) that the state cannot support.
+$`\beta`$: it stops meaning anything. There are no exclusive events left
+to be biased, so the bias is *unidentified*, and the widget flags it and
+holds the last value rather than snapping to zero. Zero would be a claim
+(the sources are unbiased) that the state cannot support.
 
 **Drag `lambdaone` alone.** $`M`$, $`f`$ and $`\beta`$ all move, because
-changing one excess rate changes the midpoint, the shared share, *and*
+changing one exclusive rate changes the midpoint, the congruence, *and*
 the imbalance simultaneously. This is exactly why the native coordinates
 are awkward to reason in, and it is much easier to see than to describe.
 
 **Turn $`\beta`$ up and watch $`M`$.** The two bars separate, but the
 $`M`$ rule does not move: it stays at their *average*, touching neither.
-The average of the two excess rates is $`M(1-f)`$ for any $`\beta`$, so
-$`M`$ is pinned to the midpoint whatever the bias. $`M`$ is a midpoint
-of what the sources *report*, not a property of the underlying process.
+The average of the two exclusive rates is $`M(1-f)`$ for any $`\beta`$,
+so $`M`$ is pinned to the midpoint whatever the bias. $`M`$ is a
+midpoint of what the sources *report*, not a property of the underlying
+process.
 
 **Compare $`\kappa_A`$ against $`\kappa_X`$.** They are near-orthogonal
 channels. $`\kappa_A`$ moves the pair up and down *together*, and cannot
@@ -163,7 +165,7 @@ And the degenerate case the widget flags:
 
 ``` r
 
-# Perfect congruence: no excess, so no bias to identify
+# Perfect congruence: no exclusive events, so no bias to identify
 binegbin_dpars_to_mfd(
   mu        = 12,
   lambdaone = 0,
@@ -176,21 +178,18 @@ binegbin_dpars_to_mfd(
 
 Nothing above fits a model: the map and its inverse are coordinate
 transforms. To *fit* in $`(M, f, \delta)`$ you do not need a different
-family: the reparameterisation is reachable through a non-linear
-formula, with
-
-``` math
-\eta = \log M, \qquad \mathrm{con} = \operatorname{logit} f,
-\qquad \mathrm{methd} = \delta.
-```
+family: the reparameterisation is reachable through a non-linear formula
+with the non-linear parameters `logM` $`= \log M`$, `logitf`
+$`= \operatorname{logit} f`$ and `delta`
+$`= \delta = \operatorname{artanh} \beta`$.
 
 Every dpar is log-linked, so each formula below is written on the log
 scale and the link supplies the
-[`exp()`](https://rdrr.io/r/base/Log.html). That includes the two
+[`exp()`](https://rdrr.io/r/base/Log.html). That includes the inverse
 dispersions: writing `shapes` as $`-2\log\kappa_s`$ gives
 $`\text{shapes} = e^{-2\log\kappa_s} =
-1/\kappa_s^2`$, so the model is estimated in $`\kappa`$, the SD-scale
-dispersion the widget above uses, rather than in $`\phi`$.
+1/\kappa_s^2`$, so the model is estimated in $`\kappa`$, the
+overdispersion the widget above uses, rather than in $`\phi`$.
 
 $`\kappa = 0`$ is the Poisson limit, so a prior on $`\kappa`$ can shrink
 towards Poisson. The same reparameterisation was used by Smith et al.
@@ -225,10 +224,10 @@ constant-rate assumption on that distance. Neither is established here.
 
 | coordinate | base model | prior |
 |----|----|----|
-| $`\delta`$ (`methd`) | $`0`$ — no method bias, $`\lambda_1 = \lambda_2`$ | `normal(0, 0.5)` |
+| $`\delta`$ (`delta`) | $`0`$ — no source bias, $`\lambda_1 = \lambda_2`$ | `normal(0, 0.5)` |
 | $`\kappa_s`$ (`kappas`) | $`0`$ — Poisson shared component | `normal(0, 1)`, $`\kappa \ge 0`$ |
-| $`\kappa_x`$ (`kappax`) | $`0`$ — Poisson private components | `normal(0, 1)`, $`\kappa \ge 0`$ |
-| $`\operatorname{logit} f`$ (`con`) | none — deliberately, see below | `normal(0, 1.5)` |
+| $`\kappa_x`$ (`kappax`) | $`0`$ — Poisson exclusive components | `normal(0, 1)`, $`\kappa \ge 0`$ |
+| $`\operatorname{logit} f`$ (`logitf`) | none — deliberately, see below | `normal(0, 1.5)` |
 
 Note what changes on the $`\kappa`$ scale. In $`\phi`$ the Poisson limit
 is $`\phi \to \infty`$, so there is no finite point to shrink towards,
@@ -263,16 +262,16 @@ prior permits before the data are consulted. Simpson et al.
 tails and their numerical behaviour.
 
 **Congruence is deliberately not shrunk either way.** Both ends of $`f`$
-are degenerate — at $`f = 1`$ there is no excess left, so $`\delta`$
-becomes unidentified; at $`f = 0`$ there is no shared component at all —
-and neither is a natural null for a method comparison. `normal(0, 1.5)`
-on $`\operatorname{logit}
-f`$ is close to flat over the interior (implied density within 10% of
-uniform across $`f \in [0.1, 0.9]`$) while falling away at both
-boundaries, so it declines to take a side. McElreath
-([2020](#ref-mcelreath2020)) makes the same case for that prior on a
-logit-scale parameter, against the wider normals, which place nearly all
-their mass near $`f = 0`$ and $`f = 1`$. Fig. S2-1 of Smith et al.
+are degenerate — at $`f = 1`$ there are no exclusive events left, so
+$`\delta`$ becomes unidentified; at $`f = 0`$ there is no shared
+component at all — and neither is a natural null for a method
+comparison. `normal(0, 1.5)` on $`\operatorname{logit} f`$ is close to
+flat over the interior (implied density within 10% of uniform across
+$`f \in [0.1, 0.9]`$) while falling away at both boundaries, so it
+declines to take a side. McElreath ([2020](#ref-mcelreath2020)) makes
+the same case for that prior on a logit-scale parameter, against the
+wider normals, which place nearly all their mass near $`f = 0`$ and
+$`f = 1`$. Fig. S2-1 of Smith et al.
 ([2020](#ref-smithInstantaneousVsNoninstantaneous2020)) plots the
 implied densities on the probability scale for normal priors between
 $`\mathrm{N}(0, 1)`$ and $`\mathrm{N}(0, 3)`$, `normal(0, 1.5)` among
@@ -288,34 +287,34 @@ prior chosen from the counts being modelled.
 per sampling unit and suits the simulated data. For sparser data, lower
 the mean: `normal(0, 2)` covers about 0.04 to 27 at 90%.
 
-Move the **mean** to match your scale rather than raising the SD. `eta`
+Move the **mean** to match your scale rather than raising the SD. `logM`
 is $`\log M`$, so a normal prior on it is a lognormal on $`M`$, and
 widening that prior pushes mass out to implausible values instead of
 making it neutral ([Smith et al.
 2020](#ref-smithInstantaneousVsNoninstantaneous2020), Supplement 3, Fig.
 S3-1).
 
-A prior written on one scale induces a different density on any other.
-Being weakly informative on the first does not make it so on the second.
-These are written on the linear-predictor scale — $`\log M`$,
-$`\operatorname{logit} f`$ — so what matters is the density they induce
-after the change of variables, on the scale being interpreted
-([McElreath 2020](#ref-mcelreath2020)). Those induced densities are
-plotted below, with $`\delta`$ shown as the bounded bias
-$`\beta = \tanh\delta`$, the fractional imbalance of excess between the
-two sources:
+A prior written on one scale induces a different density on any other. A
+prior that is weakly informative on one scale need not be weakly
+informative on another. These priors are written on the linear-predictor
+scale ($`\log M`$, $`\operatorname{logit} f`$). Check the quantiles of
+the density each prior induces on the natural scale of $`M`$, $`f`$ and
+$`\beta`$, where those parameters are interpreted ([McElreath
+2020](#ref-mcelreath2020)). Those induced densities are plotted below,
+with $`\delta`$ shown as the bounded bias $`\beta = \tanh\delta`$, the
+fractional imbalance between the two exclusive rates:
 
 ``` r
 
 op <- par(mfrow = c(2, 2), mar = c(4.1, 4.1, 2.6, 1.1), bty = "n")
 
-# eta ~ normal(4, 1.5) on log M  =>  M is lognormal
+# logM ~ normal(4, 1.5) on log M  =>  M is lognormal
 M <- seq(0.5, 250, length.out = 200)
 plot(M, dlnorm(M, 4, 1.5), type = "l", lwd = 2, col = "#2D6A7F",
      xlab = "M  (midpoint)", ylab = "density",
      main = "log M ~ normal(4, 1.5)")
 
-# con ~ normal(0, 1.5) on logit f  =>  Jacobian 1 / (f (1 - f))
+# logitf ~ normal(0, 1.5) on logit f  =>  Jacobian 1 / (f (1 - f))
 f <- seq(0.001, 0.999, length.out = 200)
 plot(f, dnorm(qlogis(f), 0, 1.5) / (f * (1 - f)), type = "l", lwd = 2,
      col = "#8A8072", ylim = c(0, 1.4),
@@ -324,11 +323,11 @@ plot(f, dnorm(qlogis(f), 0, 1.5) / (f * (1 - f)), type = "l", lwd = 2,
 abline(h = 1, lty = 3)                      # uniform, for comparison
 mtext("dotted line = uniform", side = 3, line = -1.1, cex = 0.7, adj = 0.97)
 
-# methd ~ normal(0, 0.5) on delta; beta = tanh(delta)
+# delta ~ normal(0, 0.5); beta = tanh(delta)
 beta <- seq(-0.985, 0.985, length.out = 200)
 plot(beta, dnorm(atanh(beta), 0, 0.5) / (1 - beta^2), type = "l", lwd = 2,
      col = "#C4622D",
-     xlab = expression(beta == tanh(delta) ~ "  (method bias)"),
+     xlab = expression(beta == tanh(delta) ~ "  (source bias)"),
      ylab = "density", main = "shrinks to no bias")
 abline(v = 0, lty = 3)
 
@@ -336,7 +335,7 @@ abline(v = 0, lty = 3)
 # kappa = 0 IS the Poisson limit
 k <- seq(0, 4, length.out = 200)
 plot(k, 2 * dnorm(k, 0, 1), type = "l", lwd = 2, col = "#6B5D4F",
-     xlab = expression(kappa ~ "  (dispersion, SD scale)"),
+     xlab = expression(kappa ~ "  (overdispersion)"),
      ylab = "density", main = "shrinks to Poisson")
 abline(v = 0, lty = 3)
 mtext(expression(kappa == 0 ~ "is Poisson"), side = 3, line = -1.1,
@@ -344,7 +343,7 @@ mtext(expression(kappa == 0 ~ "is Poisson"), side = 3, line = -1.1,
 ```
 
 ![Four panels showing the implied prior density on the interpretable
-scale: midpoint M, congruence f, bounded bias beta, and dispersion
+scale: midpoint M, congruence f, bounded bias beta, and overdispersion
 kappa.](figure/prior-pushforward-1.svg)
 
 plot of chunk prior-pushforward
@@ -404,20 +403,22 @@ the prior:
 
 fit <- brm(
   bf(y1 | vint(y2) ~ 1, nl = TRUE) +
-    nlf(mu        ~ eta + log_inv_logit(con)) +
-    nlf(lambdaone ~ log(2) + eta + log_inv_logit(-con) + log_inv_logit( 2 * methd)) +
-    nlf(lambdatwo ~ log(2) + eta + log_inv_logit(-con) + log_inv_logit(-2 * methd)) +
+    nlf(mu        ~ logM + log_inv_logit(logitf)) +
+    nlf(lambdaone ~ log(2) + logM + log_inv_logit(-logitf) +
+                    log_inv_logit( 2 * delta)) +
+    nlf(lambdatwo ~ log(2) + logM + log_inv_logit(-logitf) +
+                    log_inv_logit(-2 * delta)) +
     nlf(shapes    ~ -2 * log(kappas)) +
     nlf(shapexone ~ -2 * log(kappax)) +
     nlf(shapextwo ~ -2 * log(kappax)) +
-    lf(eta ~ 1, con ~ 1, methd ~ 1, kappas ~ 1, kappax ~ 1),
+    lf(logM ~ 1, logitf ~ 1, delta ~ 1, kappas ~ 1, kappax ~ 1),
   family   = binegbin(),
   stanvars = binegbin_stanvars(),
   data     = dat,
   prior    = c(
-    prior(normal(4, 1.5), class = "b", nlpar = "eta"),
-    prior(normal(0, 1.5), class = "b", nlpar = "con"),
-    prior(normal(0, 0.5), class = "b", nlpar = "methd"),
+    prior(normal(4, 1.5), class = "b", nlpar = "logM"),
+    prior(normal(0, 1.5), class = "b", nlpar = "logitf"),
+    prior(normal(0, 0.5), class = "b", nlpar = "delta"),
     prior(normal(0, 1),   class = "b", nlpar = "kappas", lb = 0),
     prior(normal(0, 1),   class = "b", nlpar = "kappax", lb = 0)
   ),
@@ -429,10 +430,10 @@ fit <- brm(
 )
 ```
 
-The coordinates are read off the posterior directly: `eta` exponentiates
-to $`M`$, `con` inverse-logits to $`f`$, and `methd` and the two
-`kappa`s *are* the coordinates themselves, with no transformation
-needed:
+The coordinates are read off the posterior directly: `logM`
+exponentiates to $`M`$, `logitf` inverse-logits to $`f`$, and `delta`
+and the two `kappa`s *are* the coordinates themselves, with no
+transformation needed:
 
 ``` r
 
@@ -441,9 +442,9 @@ post <- as_draws_df(fit)
 qi <- function(x) c(median(x), quantile(x, c(0.05, 0.95)))
 
 recovered <- rbind(
-  M      = qi(exp(post$b_eta_Intercept)),
-  f      = qi(plogis(post$b_con_Intercept)),
-  delta  = qi(post$b_methd_Intercept),
+  M      = qi(exp(post$b_logM_Intercept)),
+  f      = qi(plogis(post$b_logitf_Intercept)),
+  delta  = qi(post$b_delta_Intercept),
   kappas = qi(post$b_kappas_Intercept),
   kappax = qi(post$b_kappax_Intercept)
 )
@@ -470,9 +471,9 @@ dpars without refitting: push the draws back through
 ``` r
 
 back <- binegbin_mfd_to_dpars(
-  M     = exp(post$b_eta_Intercept),
-  f     = plogis(post$b_con_Intercept),
-  delta = post$b_methd_Intercept
+  M     = exp(post$b_logM_Intercept),
+  f     = plogis(post$b_logitf_Intercept),
+  delta = post$b_delta_Intercept
 )
 
 knitr::kable(
@@ -492,8 +493,8 @@ knitr::kable(
 | lambdaone | 5.114 |  5.258 |
 | lambdatwo | 2.806 |  2.978 |
 
-A random effect on `eta` estimates how much groups differ in midpoint,
-and a random effect on `con` estimates how much they differ in
+A random effect on `logM` estimates how much groups differ in midpoint,
+and a random effect on `logitf` estimates how much they differ in
 congruence. Those are separable in these coordinates and entangled in
 the native dpars, where a group effect on `mu` alone changes the
 midpoint and the congruence at once.
@@ -507,7 +508,8 @@ in your browser. It uses the rate map tested in `test-mfd.R`; the
 sampler is illustrative. Treat the picture as intuition, and the R above
 as the specification.
 
-The widget also shows ONE excess-dispersion dial.
+The widget also shows ONE overdispersion dial for the exclusive
+components.
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 estimates two, `shapexone` and `shapextwo`, and the (M, f, delta)
 coordinates this article is about use one `kappax` for both – so the

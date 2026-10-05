@@ -118,7 +118,7 @@ qualification. On an unpaired row, the likelihood of that family
 involves <code>mu</code> only through the sum
 <code>mu + lambdatwo</code>, so those rows constrain the total rate of
 the observed margin without dividing it between the shared and the
-source-specific component. Separating <code>mu</code> from
+source-exclusive component. Separating <code>mu</code> from
 <code>lambdatwo</code>, and so estimating the congruence
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>,
 is also informed by the paired rows alone.</p>
@@ -128,8 +128,8 @@ is also informed by the paired rows alone.</p>
 </h2>
 <p>Left unregularised, the chains explore the flat tail of an improper
 prior on a log-linked positive parameter, where the likelihood is nearly
-level and the posterior therefore follows the prior. The
-asymmetric-dispersion fit in
+level and the posterior therefore follows the prior. The fit with
+asymmetric dispersions in
 <code>tests/testthat/test-binegbin-dispersions.R</code> required priors
 on the two rates and the three dispersions: run without them it produced
 divergent transitions and some high
@@ -197,9 +197,9 @@ names a slot the model does not contain, brms stops with the error that
 the prior does not correspond to any model parameter.</p>
 <p>That error has one especially easy instance. To impose
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">\phi_{x1} = \phi_{x2}</annotation></semantics></math>,
-the two excess dispersions are routed through a single non-linear
-parameter, described in <a href="families-and-parameters.html">The
-families and their parameters</a>:</p>
+the dispersions of the two exclusive components are routed through a
+single non-linear parameter, described in <a href="families-and-parameters.html">The families and their
+parameters</a>:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula.html" class="external-link">bf</a></span><span class="op">(</span><span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">mu</span> <span class="op">~</span> <span class="fl">1</span>,</span>
 <span>   <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapexone</span> <span class="op">~</span> <span class="va">shapexx</span><span class="op">)</span>, <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapextwo</span> <span class="op">~</span> <span class="va">shapexx</span><span class="op">)</span>,</span>
@@ -220,7 +220,7 @@ of the two expected counts, congruence
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>
 and source bias
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>,
-with each dispersion on the standard deviation scale
+with each inverse dispersion converted to an overdispersion
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>1</mn><mi>/</mi><msqrt><mi>ϕ</mi></msqrt></mrow><annotation encoding="application/x-tex">\kappa = 1/\sqrt{\phi}</annotation></semantics></math>.
 In those coordinates, every parameter has a finite null:
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\delta = 0</annotation></semantics></math>

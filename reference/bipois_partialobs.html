@@ -16,39 +16,39 @@ full joint bipois() lpmf on (y1, y2). A row whose first count was never
 recorded (y1_obs == 0) contributes the marginal of the second count from
 the same model. For Poisson components that marginal is closed form – a
 sum of independent Poissons is Poisson – so it is exactly
-y2 ~ Poisson(mu + lambdatwo). binegbin_partialobs() must evaluate the
-corresponding convolution as a sum; this family does not. Either way the row
-is not dropped and is not given a different model: it still informs mu,
-lambdatwo and any group-level effects.
+y2 ~ Poisson(mu + lambdatwo). binegbin_partialobs() evaluates the
+marginal of y2, the convolution of the shared and source-2-exclusive
+negative-binomial components, as a finite sum over k = 0..y2. In both
+families, an unpaired row is not dropped and is not given a different model:
+it still informs mu, lambdatwo and any group-level effects.
 Imputation after fitting. The fitted model can impute the unobserved
-first count conditional on the observed second one, which is usually why
-someone wanted this. posterior_predict() and posterior_epred() return a
-y1 draw and E[y1 | y2] for every row, paired and unpaired alike –
-y1_obs selects a likelihood branch, not a prediction.
-A design consequence, worth knowing before the data are collected.
-lambdatwo appears on both branches, so every row informs it. lambdaone
-appears only on the paired branch and is identified by the paired rows
-alone. mu appears on both, but the unpaired branch sees it only through
-the sum mu + lambdatwo – those rows constrain the total rate of the
-observed margin, not how it divides between the shared and source-2-only
-components. Separating mu from lambdatwo, and so estimating the
-congruence \(f\), is therefore also informed by the paired rows. With few of
-them, mu and lambdatwo trade off along their sum and the prior does
-correspondingly more of the work, however many unpaired rows the design
-contains.
-This is not censoring in the brms sense. The brms cens() addition term
-means a value known to lie in a set – left, right, interval. Here the
-first count is not observed at all and the likelihood marginalises over its
-whole support. This family was called bipois_cens() up to 0.9.1; the name
-was wrong and was changed at 0.10.0. Do not combine this family with
-cens().
+first count conditional on the observed second count. posterior_predict()
+and posterior_epred() return a y1 draw and E[y1 | y2] for every row,
+paired and unpaired alike – y1_obs selects a likelihood branch, not a
+prediction.
+Parameters identified only by the paired rows. lambdatwo appears on
+both branches, so every row informs lambdatwo. lambdaone appears only
+on the paired branch and is identified by the paired rows alone. The
+likelihood term for an unpaired row depends on mu and lambdatwo only
+through mu + lambdatwo. Unpaired rows therefore constrain the expected
+count of the second source, but not how mu + lambdatwo divides between
+the shared and source-2-exclusive components. The separation of mu from
+lambdatwo, and so the estimate of the congruence \(f\), is informed by
+the paired rows alone. With few paired rows, the likelihood is nearly flat
+along mu + lambdatwo = constant, so in that direction the posterior
+follows the prior, however many unpaired rows the design contains.
+Relation to censoring in brms. brms uses the cens() addition term for a
+value known to lie in a set (left, right or interval). On an unpaired
+row, the first count is not observed at all, and the likelihood marginalises
+over its whole support. bipois_partialobs() was called bipois_cens() up
+to 0.9.1. Do not combine bipois_partialobs() with cens().
 Use in a brm() call as:
 brm(
 bf(y1 | vint(y2, y1_obs) ~ 1,
 mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
-nlf(lambdaone ~ lamx + methd),
-nlf(lambdatwo ~ lamx - methd),
-lamx ~ 1, methd ~ 1, nl = TRUE),
+nlf(lambdaone ~ lamx + delta),
+nlf(lambdatwo ~ lamx - delta),
+lamx ~ 1, delta ~ 1, nl = TRUE),
 family   = bipois_partialobs(),
 stanvars = bipois_partialobs_stanvars(),
 data     = dat
@@ -69,39 +69,39 @@ full joint bipois() lpmf on (y1, y2). A row whose first count was never
 recorded (y1_obs == 0) contributes the marginal of the second count from
 the same model. For Poisson components that marginal is closed form – a
 sum of independent Poissons is Poisson – so it is exactly
-y2 ~ Poisson(mu + lambdatwo). binegbin_partialobs() must evaluate the
-corresponding convolution as a sum; this family does not. Either way the row
-is not dropped and is not given a different model: it still informs mu,
-lambdatwo and any group-level effects.
+y2 ~ Poisson(mu + lambdatwo). binegbin_partialobs() evaluates the
+marginal of y2, the convolution of the shared and source-2-exclusive
+negative-binomial components, as a finite sum over k = 0..y2. In both
+families, an unpaired row is not dropped and is not given a different model:
+it still informs mu, lambdatwo and any group-level effects.
 Imputation after fitting. The fitted model can impute the unobserved
-first count conditional on the observed second one, which is usually why
-someone wanted this. posterior_predict() and posterior_epred() return a
-y1 draw and E[y1 | y2] for every row, paired and unpaired alike –
-y1_obs selects a likelihood branch, not a prediction.
-A design consequence, worth knowing before the data are collected.
-lambdatwo appears on both branches, so every row informs it. lambdaone
-appears only on the paired branch and is identified by the paired rows
-alone. mu appears on both, but the unpaired branch sees it only through
-the sum mu + lambdatwo – those rows constrain the total rate of the
-observed margin, not how it divides between the shared and source-2-only
-components. Separating mu from lambdatwo, and so estimating the
-congruence \(f\), is therefore also informed by the paired rows. With few of
-them, mu and lambdatwo trade off along their sum and the prior does
-correspondingly more of the work, however many unpaired rows the design
-contains.
-This is not censoring in the brms sense. The brms cens() addition term
-means a value known to lie in a set – left, right, interval. Here the
-first count is not observed at all and the likelihood marginalises over its
-whole support. This family was called bipois_cens() up to 0.9.1; the name
-was wrong and was changed at 0.10.0. Do not combine this family with
-cens().
+first count conditional on the observed second count. posterior_predict()
+and posterior_epred() return a y1 draw and E[y1 | y2] for every row,
+paired and unpaired alike – y1_obs selects a likelihood branch, not a
+prediction.
+Parameters identified only by the paired rows. lambdatwo appears on
+both branches, so every row informs lambdatwo. lambdaone appears only
+on the paired branch and is identified by the paired rows alone. The
+likelihood term for an unpaired row depends on mu and lambdatwo only
+through mu + lambdatwo. Unpaired rows therefore constrain the expected
+count of the second source, but not how mu + lambdatwo divides between
+the shared and source-2-exclusive components. The separation of mu from
+lambdatwo, and so the estimate of the congruence \(f\), is informed by
+the paired rows alone. With few paired rows, the likelihood is nearly flat
+along mu + lambdatwo = constant, so in that direction the posterior
+follows the prior, however many unpaired rows the design contains.
+Relation to censoring in brms. brms uses the cens() addition term for a
+value known to lie in a set (left, right or interval). On an unpaired
+row, the first count is not observed at all, and the likelihood marginalises
+over its whole support. bipois_partialobs() was called bipois_cens() up
+to 0.9.1. Do not combine bipois_partialobs() with cens().
 Use in a brm() call as:
 brm(
 bf(y1 | vint(y2, y1_obs) ~ 1,
 mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
-nlf(lambdaone ~ lamx + methd),
-nlf(lambdatwo ~ lamx - methd),
-lamx ~ 1, methd ~ 1, nl = TRUE),
+nlf(lambdaone ~ lamx + delta),
+nlf(lambdatwo ~ lamx - delta),
+lamx ~ 1, delta ~ 1, nl = TRUE),
 family   = bipois_partialobs(),
 stanvars = bipois_partialobs_stanvars(),
 data     = dat
@@ -166,39 +166,39 @@ full joint <code><a href="bipois.html">bipois()</a></code> lpmf on <code>(y1, y2
 recorded (<code>y1_obs == 0</code>) contributes the marginal of the second count <em>from
 the same model</em>. For Poisson components that marginal is closed form – a
 sum of independent Poissons is Poisson – so it is exactly
-<code>y2 ~ Poisson(mu + lambdatwo)</code>. <code><a href="binegbin_partialobs.html">binegbin_partialobs()</a></code> must evaluate the
-corresponding convolution as a sum; this family does not. Either way the row
-is not dropped and is not given a different model: it still informs <code>mu</code>,
-<code>lambdatwo</code> and any group-level effects.</p>
+<code>y2 ~ Poisson(mu + lambdatwo)</code>. <code><a href="binegbin_partialobs.html">binegbin_partialobs()</a></code> evaluates the
+marginal of <code>y2</code>, the convolution of the shared and source-2-exclusive
+negative-binomial components, as a finite sum over <code>k = 0..y2</code>. In both
+families, an unpaired row is not dropped and is not given a different model:
+it still informs <code>mu</code>, <code>lambdatwo</code> and any group-level effects.</p>
 <p><strong>Imputation after fitting.</strong> The fitted model can impute the unobserved
-first count conditional on the observed second one, which is usually why
-someone wanted this. <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> and <code><a href="https://mc-stan.org/rstantools/reference/posterior_epred.html" class="external-link">posterior_epred()</a></code> return a
-<code>y1</code> draw and <code>E[y1 | y2]</code> for <em>every</em> row, paired and unpaired alike –
-<code>y1_obs</code> selects a likelihood branch, not a prediction.</p>
-<p><strong>A design consequence, worth knowing before the data are collected.</strong>
-<code>lambdatwo</code> appears on both branches, so every row informs it. <code>lambdaone</code>
-appears only on the paired branch and is identified by the paired rows
-<em>alone</em>. <code>mu</code> appears on both, but the unpaired branch sees it only through
-the sum <code>mu + lambdatwo</code> – those rows constrain the total rate of the
-observed margin, not how it divides between the shared and source-2-only
-components. Separating <code>mu</code> from <code>lambdatwo</code>, and so estimating the
-congruence \(f\), is therefore also informed by the paired rows. With few of
-them, <code>mu</code> and <code>lambdatwo</code> trade off along their sum and the prior does
-correspondingly more of the work, however many unpaired rows the design
-contains.</p>
-<p><strong>This is not censoring in the brms sense.</strong> The brms <code>cens()</code> addition term
-means a value known to lie in a set – <code>left</code>, <code>right</code>, <code>interval</code>. Here the
-first count is not observed at all and the likelihood marginalises over its
-whole support. This family was called <code>bipois_cens()</code> up to 0.9.1; the name
-was wrong and was changed at 0.10.0. Do not combine this family with
-<code>cens()</code>.</p>
+first count conditional on the observed second count. <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code>
+and <code><a href="https://mc-stan.org/rstantools/reference/posterior_epred.html" class="external-link">posterior_epred()</a></code> return a <code>y1</code> draw and <code>E[y1 | y2]</code> for <em>every</em> row,
+paired and unpaired alike – <code>y1_obs</code> selects a likelihood branch, not a
+prediction.</p>
+<p><strong>Parameters identified only by the paired rows.</strong> <code>lambdatwo</code> appears on
+both branches, so every row informs <code>lambdatwo</code>. <code>lambdaone</code> appears only
+on the paired branch and is identified by the paired rows alone. The
+likelihood term for an unpaired row depends on <code>mu</code> and <code>lambdatwo</code> only
+through <code>mu + lambdatwo</code>. Unpaired rows therefore constrain the expected
+count of the second source, but not how <code>mu + lambdatwo</code> divides between
+the shared and source-2-exclusive components. The separation of <code>mu</code> from
+<code>lambdatwo</code>, and so the estimate of the congruence \(f\), is informed by
+the paired rows alone. With few paired rows, the likelihood is nearly flat
+along <code>mu + lambdatwo</code> = constant, so in that direction the posterior
+follows the prior, however many unpaired rows the design contains.</p>
+<p><strong>Relation to censoring in brms.</strong> brms uses the <code>cens()</code> addition term for a
+value known to lie in a set (<code>left</code>, <code>right</code> or <code>interval</code>). On an unpaired
+row, the first count is not observed at all, and the likelihood marginalises
+over its whole support. <code>bipois_partialobs()</code> was called <code>bipois_cens()</code> up
+to 0.9.1. Do not combine <code>bipois_partialobs()</code> with <code>cens()</code>.</p>
 <p>Use in a brm() call as:
 brm(
 bf(y1 | vint(y2, y1_obs) ~ 1,
 mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
-nlf(lambdaone ~ lamx + methd),
-nlf(lambdatwo ~ lamx - methd),
-lamx ~ 1, methd ~ 1, nl = TRUE),
+nlf(lambdaone ~ lamx + delta),
+nlf(lambdatwo ~ lamx - delta),
+lamx ~ 1, delta ~ 1, nl = TRUE),
 family   = bipois_partialobs(),
 stanvars = bipois_partialobs_stanvars(),
 data     = dat
@@ -222,22 +222,24 @@ apply to a fit made with either constructor.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p><strong>Choosing between this family and <code><a href="binegbin_partialobs.html">binegbin_partialobs()</a></code>.</strong> This family fixes
-the variance of each latent component equal to its mean. Where the counts
-are genuinely overdispersed relative to that,
-<code><a href="binegbin_partialobs.html">binegbin_partialobs()</a></code> is the correct model and this one will understate
-the marginal variances. Where they are not, <code><a href="binegbin_partialobs.html">binegbin_partialobs()</a></code> can only
-represent the fit by driving its dispersions to their Poisson limit
+    <p><strong>Choosing between <code>bipois_partialobs()</code> and <code><a href="binegbin_partialobs.html">binegbin_partialobs()</a></code>.</strong>
+<code>bipois_partialobs()</code> fixes the variance of each latent component equal to
+its mean. Where the counts are overdispersed relative to a Poisson
+distribution, <code><a href="binegbin_partialobs.html">binegbin_partialobs()</a></code> is the correct model and
+<code>bipois_partialobs()</code> will understate the marginal variances. Where the
+counts are not overdispersed, <code><a href="binegbin_partialobs.html">binegbin_partialobs()</a></code> fits such counts only
+by driving its dispersions to their Poisson limit
 (<code>shape</code> \(\to\infty\), equivalently <code>kappa</code> \(\to 0\)), a boundary at
-which sampling degrades; fitting the equidispersed family directly avoids
-it. Compare the two with <code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code>.</p>
-<p><strong>One likelihood, two constructors.</strong> This returns the same
-<code>custom_family</code> <code>name</code> as <code><a href="bipois.html">bipois()</a></code>, so brms resolves both to one <code>bipois_lpmf</code> and
-one set of <code><a href="bipois.html">log_lik_bipois()</a></code> / <code><a href="bipois.html">posterior_predict_bipois()</a></code> /
-<code><a href="bipois.html">posterior_epred_bipois()</a></code> methods. The paired branch is therefore not a
-second copy that can drift from the fully paired likelihood; it is the same
-code. See <code><a href="binegbin_partialobs.html">binegbin_partialobs()</a></code> for why <code>vars</code> declares a literal in the
-plain constructor rather than the two families declaring overloaded Stan
+which sampling degrades; fitting <code>bipois_partialobs()</code> directly avoids that
+boundary. Compare the fits from the two constructors with <code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code>.</p>
+<p><strong>Shared Stan function and post-processing methods.</strong>
+<code>bipois_partialobs()</code> returns the same <code>custom_family</code> <code>name</code> as
+<code><a href="bipois.html">bipois()</a></code>, so brms resolves both constructors to one <code>bipois_lpmf</code> and one
+set of <code><a href="bipois.html">log_lik_bipois()</a></code> / <code><a href="bipois.html">posterior_predict_bipois()</a></code> /
+<code><a href="bipois.html">posterior_epred_bipois()</a></code> methods. The paired branch of
+<code>bipois_partialobs()</code> therefore runs the same code as <code><a href="bipois.html">bipois()</a></code>. See
+<code><a href="binegbin_partialobs.html">binegbin_partialobs()</a></code> for why <code>vars</code> declares a literal in the plain
+constructor rather than the two constructors declaring overloaded Stan
 functions.</p>
 <p><strong>Two <code>vint()</code> arguments, in declared order.</strong> brms appends <code>vint()</code> integers
 to the generated lpmf call in the order they are listed in the <code>vint()</code> term

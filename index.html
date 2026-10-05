@@ -11,8 +11,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Joint Bivariate-Count brms Custom Families for Paired Counts">
-<meta name="description" content="Provides custom brms families for comparing two paired count sources, modelling the pair jointly via trivariate reduction rather than reducing it to a difference. Two families are supplied: a bivariate Poisson (bipois()) and its overdispersed sibling with negative-binomial components (binegbin()). Each has a second constructor (bipois_partialobs(), binegbin_partialobs()) that admits rows on which the first count was never recorded, scoring them by the integrated-out marginal of the same joint model, so those rows still inform the shared component and the second source. Modelling the pair rather than its difference captures the overall level, the correlation between sources, and marginal overdispersion alongside the disagreement, and supports simulating one count conditional on the other, including on rows where it was never recorded. An interpretable reparameterisation separates overall level, congruence, and source bias, giving each a finite null and so admitting priors that shrink towards a simpler model. The Negative-Binomial family lets the two source-specific components differ in overdispersion.">
-<meta property="og:description" content="Provides custom brms families for comparing two paired count sources, modelling the pair jointly via trivariate reduction rather than reducing it to a difference. Two families are supplied: a bivariate Poisson (bipois()) and its overdispersed sibling with negative-binomial components (binegbin()). Each has a second constructor (bipois_partialobs(), binegbin_partialobs()) that admits rows on which the first count was never recorded, scoring them by the integrated-out marginal of the same joint model, so those rows still inform the shared component and the second source. Modelling the pair rather than its difference captures the overall level, the correlation between sources, and marginal overdispersion alongside the disagreement, and supports simulating one count conditional on the other, including on rows where it was never recorded. An interpretable reparameterisation separates overall level, congruence, and source bias, giving each a finite null and so admitting priors that shrink towards a simpler model. The Negative-Binomial family lets the two source-specific components differ in overdispersion.">
+<meta name="description" content="Provides custom brms families for comparing two paired count sources, modelling the pair jointly via trivariate reduction rather than reducing it to a difference. Two families are supplied: a bivariate Poisson (bipois()) and its overdispersed sibling with negative-binomial components (binegbin()). Each has a second constructor (bipois_partialobs(), binegbin_partialobs()) that admits rows on which the first count was never recorded, scoring them by the integrated-out marginal of the same joint model, so those rows still inform the shared component and the second source. Modelling the pair rather than its difference captures the midpoint of the two expected counts, the correlation between sources, and marginal overdispersion alongside the disagreement, and supports simulating one count conditional on the other, including on rows where it was never recorded. An interpretable reparameterisation separates the midpoint, congruence, and source bias, giving each a finite null and so admitting priors that shrink towards a simpler model. The Negative-Binomial family lets the two source-exclusive components differ in overdispersion.">
+<meta property="og:description" content="Provides custom brms families for comparing two paired count sources, modelling the pair jointly via trivariate reduction rather than reducing it to a difference. Two families are supplied: a bivariate Poisson (bipois()) and its overdispersed sibling with negative-binomial components (binegbin()). Each has a second constructor (bipois_partialobs(), binegbin_partialobs()) that admits rows on which the first count was never recorded, scoring them by the integrated-out marginal of the same joint model, so those rows still inform the shared component and the second source. Modelling the pair rather than its difference captures the midpoint of the two expected counts, the correlation between sources, and marginal overdispersion alongside the disagreement, and supports simulating one count conditional on the other, including on rows where it was never recorded. An interpretable reparameterisation separates the midpoint, congruence, and source bias, giving each a finite null and so admitting priors that shrink towards a simpler model. The Negative-Binomial family lets the two source-exclusive components differ in overdispersion.">
 <meta property="og:image" content="https://anhsmith.github.io/bicountbrms/logo.svg">
 </head>
 <body>
@@ -69,7 +69,7 @@
 
 <p>Custom <a href="https://paulbuerkner.com/brms/" class="external-link">brms</a> families for Bayesian modelling of <strong>pairs of counts</strong> that are positively correlated. Applications include counts recorded by two sources that measure the same quantity, such as two observers, two instruments, or two reporting channels, where the question is how much, and how systematically, the two sources disagree.</p>
 <p>The pair <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(y_1, y_2)</annotation></semantics></math> is modelled jointly using <strong>trivariate reduction</strong> with Poisson (Holgate 1964; Karlis and Ntzoufras 2003) or negative-binomial (Kirkpatrick and Neale 2016; Kirkpatrick 2022) components, using <code><a href="reference/bipois.html">bipois()</a></code> or <code><a href="reference/binegbin.html">binegbin()</a></code>, respectively. Correlation between the two counts is induced via an unobserved shared latent component, with an additional component each that only one source recorded.</p>
-<p>The native parameters — means and (for negative binomial) dispersions for each of the three latent components — can be <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html">reparameterised into four interpretable coordinates</a>: the overall count rate, the congruence between the two sources, the bias toward one of them, and (for negative binomial) the excess dispersion of each source. The package also allows the model to be fit when one source is only partially observed (the <code>*_partialobs</code> variants); posterior predictions can then be made for the missing values of that source based on the observed values of the other.</p>
+<p>The native parameters — means and (for negative binomial) dispersions for each of the three latent components — can be <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html">reparameterised into four interpretable coordinates</a>: the midpoint of the two expected counts, the congruence between the two sources, the bias toward one of them, and (for negative binomial) the overdispersion of each component. The package also allows the model to be fit when one source is only partially observed (the <code>*_partialobs</code> variants); posterior predictions can then be made for the missing values of that source based on the observed values of the other.</p>
 <div class="section level2">
 <h2 id="the-core-functions">The core functions<a class="anchor" aria-label="anchor" href="#the-core-functions"></a>
 </h2>
@@ -169,8 +169,8 @@
 </tr>
 <tr>
 <td>—</td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><annotation encoding="application/x-tex">N_{\text{shared}}</annotation></semantics></math></td>
-<td>latent count both sources recorded</td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>s</mi></msub><annotation encoding="application/x-tex">N_s</annotation></semantics></math></td>
+<td>latent count recorded by both sources</td>
 </tr>
 <tr>
 <td>—</td>
@@ -191,11 +191,11 @@
 <td>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>
 </td>
-<td>rates of the two source-specific components</td>
+<td>rates of the two source-exclusive components</td>
 </tr>
 <tr>
 <td><code>shapes</code></td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mtext mathvariant="normal">s</mtext></msub><annotation encoding="application/x-tex">\phi_{\text{s}}</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>s</mi></msub><annotation encoding="application/x-tex">\phi_s</annotation></semantics></math></td>
 <td>NB2 dispersion of the shared component</td>
 </tr>
 <tr>
@@ -205,7 +205,7 @@
 <td>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x2}</annotation></semantics></math>
 </td>
-<td>NB2 dispersions of the two source-specific components</td>
+<td>NB2 dispersions of the two exclusive components</td>
 </tr>
 <tr>
 <td>
@@ -215,7 +215,7 @@
 </tr>
 </tbody>
 </table>
-<p><code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">brms::custom_family()</a></code> requires one distributional parameter to be named <code>mu</code>, and rejects any name ending in a digit. Here <code>mu</code> is the rate of the shared component rather than the mean of either count, and the two source-specific rates are spelled out (<code>one</code> or <code>two</code>).</p>
+<p><code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">brms::custom_family()</a></code> requires one distributional parameter to be named <code>mu</code>, and rejects any name ending in a digit. Here <code>mu</code> is the rate of the shared component rather than the mean of either count, and the two exclusive rates are spelled out (<code>one</code> or <code>two</code>).</p>
 </div>
 <div class="section level2">
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
@@ -224,7 +224,7 @@
 <li>
 <a href="https://anhsmith.github.io/bicountbrms/articles/bicountbrms.html">Getting started</a> — one fit, end to end: simulate, fit, check, predict.</li>
 <li>
-<a href="https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.html">The families and their parameters</a> — the construction, the moments, and a fitted demonstration that the two excess dispersions can be told apart when they differ.</li>
+<a href="https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.html">The families and their parameters</a> — the construction, the moments, and a fitted demonstration that the dispersions of the two exclusive components can be told apart when they differ.</li>
 <li>
 <a href="https://anhsmith.github.io/bicountbrms/articles/choosing-priors.html">Choosing priors</a> — what brms leaves improper, and which of the <code>class</code>, <code>dpar</code> and <code>nlpar</code> slots each prior belongs in.</li>
 <li>

@@ -11,9 +11,9 @@
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="The families and their parameters">
-<meta name="description" content="How the two families are constructed, what each distributional parameter means, how to constrain the two excess dispersions to be equal, and a fitted demonstration that they can be told apart when they are not.
+<meta name="description" content="How the two families are constructed, what each distributional parameter means, how to constrain the dispersions of the two exclusive components to be equal, and a fit to simulated data in which two unequal dispersions are recovered separately.
 ">
-<meta property="og:description" content="How the two families are constructed, what each distributional parameter means, how to constrain the two excess dispersions to be equal, and a fitted demonstration that they can be told apart when they are not.
+<meta property="og:description" content="How the two families are constructed, what each distributional parameter means, how to constrain the dispersions of the two exclusive components to be equal, and a fit to simulated data in which two unequal dispersions are recovered separately.
 ">
 <meta property="og:image" content="https://anhsmith.github.io/bicountbrms/logo.svg">
 </head>
@@ -93,10 +93,10 @@ observed counts. <span class="citation">Holgate (<a href="#ref-holgate1964">1964
 Poisson components; <span class="citation">Kirkpatrick and Neale (<a href="#ref-kirkpatrickApplyingMultivariateDiscrete2016">2016</a>)</span>
 and <span class="citation">Kirkpatrick (<a href="#ref-kirkpatrickRMKdiscreteSundryDiscrete2022">2022</a>)</span>
 with negative-binomial components.</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mn>1</mn></msub><mo>=</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>+</mo><msub><mi>N</mi><mn>1</mn></msub><mspace width="2.0em"></mspace><msub><mi>y</mi><mn>2</mn></msub><mo>=</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>+</mo><msub><mi>N</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">
-y_1 = N_{\text{shared}} + N_1
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mn>1</mn></msub><mo>=</mo><msub><mi>N</mi><mi>s</mi></msub><mo>+</mo><msub><mi>N</mi><mn>1</mn></msub><mspace width="2.0em"></mspace><msub><mi>y</mi><mn>2</mn></msub><mo>=</mo><msub><mi>N</mi><mi>s</mi></msub><mo>+</mo><msub><mi>N</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">
+y_1 = N_s + N_1
 \qquad
-y_2 = N_{\text{shared}} + N_2
+y_2 = N_s + N_2
 </annotation></semantics></math></p>
 <p><code>N_shared</code> is never observed. The likelihood sums it out
 analytically over
@@ -118,12 +118,12 @@ integer data through <code>vint()</code>, because
 column.</p>
 <p>The shared latent count enters both observed counts and therefore
 induces their covariance,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">v</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathrm{Cov}(y_1, y_2) = \mathrm{Var}(N_{\text{shared}})</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">v</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>N</mi><mi>s</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\mathrm{Cov}(y_1, y_2) = \mathrm{Var}(N_s)</annotation></semantics></math>.
 It cancels from the difference,</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><msub><mi>y</mi><mn>1</mn></msub><mo>−</mo><msub><mi>y</mi><mn>2</mn></msub><mo>=</mo><msub><mi>N</mi><mn>1</mn></msub><mo>−</mo><msub><mi>N</mi><mn>2</mn></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
 d = y_1 - y_2 = N_1 - N_2,
 </annotation></semantics></math></p>
-<p>so the difference depends on the two source-specific counts alone.
+<p>so the difference depends on the two source-exclusive counts alone.
 For Poisson latent counts, that difference is exactly
 Skellam-distributed <span class="citation">(<a href="#ref-skellam1946">Skellam 1946</a>)</span>, which is why
 <code><a href="../reference/bipois.html">bipois()</a></code> induces the Skellam as its difference model.</p>
@@ -134,7 +134,7 @@ the shared latent count. Since
 <code>mu</code> is not the mean of either observed count, nor of their
 difference. The constraint is a requirement of
 <code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">custom_family()</a></code> rather than a modelling choice, and the
-same applies to the spelling of the two source-specific rates:
+same applies to the spelling of the two exclusive rates:
 <code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">custom_family()</a></code> rejects a distributional parameter name
 ending in a digit, so the code writes <code>lambdaone</code> and
 <code>lambdatwo</code> where the documentation writes
@@ -172,9 +172,9 @@ limit.</p>
 <td>
 <code>mu</code>, <code>shapes</code>
 </td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><annotation encoding="application/x-tex">N_{\text{shared}}</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>s</mi></msub><annotation encoding="application/x-tex">N_s</annotation></semantics></math></td>
 <td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math></td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mtext mathvariant="normal">s</mtext></msub><annotation encoding="application/x-tex">\phi_{\text{s}}</annotation></semantics></math></td>
+<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>s</mi></msub><annotation encoding="application/x-tex">\phi_s</annotation></semantics></math></td>
 </tr>
 <tr class="even">
 <td>
@@ -198,9 +198,9 @@ limit.</p>
 <code><a href="../reference/binegbin.html">binegbin()</a></code> takes all six. Every parameter uses a log
 link.</p>
 <p>The moments follow directly from the decomposition:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><mi>μ</mi><mo>+</mo><mstyle displaystyle="false"><mfrac><msup><mi>μ</mi><mn>2</mn></msup><msub><mi>ϕ</mi><mtext mathvariant="normal">s</mtext></msub></mfrac></mstyle><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><mo>+</mo><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>+</mo><mstyle displaystyle="false"><mfrac><msubsup><mi>λ</mi><mn>1</mn><mn>2</mn></msubsup><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub></mfrac></mstyle><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>d</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>+</mo><mstyle displaystyle="false"><mfrac><msubsup><mi>λ</mi><mn>1</mn><mn>2</mn></msubsup><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub></mfrac></mstyle><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><mo>+</mo><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><msub><mi>λ</mi><mn>2</mn></msub><mo>+</mo><mstyle displaystyle="false"><mfrac><msubsup><mi>λ</mi><mn>2</mn><mn>2</mn></msubsup><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub></mfrac></mstyle><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><mi>μ</mi><mo>+</mo><mstyle displaystyle="false"><mfrac><msup><mi>μ</mi><mn>2</mn></msup><msub><mi>ϕ</mi><mi>s</mi></msub></mfrac></mstyle><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><mo>+</mo><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>+</mo><mstyle displaystyle="false"><mfrac><msubsup><mi>λ</mi><mn>1</mn><mn>2</mn></msubsup><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub></mfrac></mstyle><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>d</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>+</mo><mstyle displaystyle="false"><mfrac><msubsup><mi>λ</mi><mn>1</mn><mn>2</mn></msubsup><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub></mfrac></mstyle><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><mo>+</mo><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><msub><mi>λ</mi><mn>2</mn></msub><mo>+</mo><mstyle displaystyle="false"><mfrac><msubsup><mi>λ</mi><mn>2</mn><mn>2</mn></msubsup><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub></mfrac></mstyle><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
 \mathrm{Var}(y_1) =
-  \Big(\mu + \tfrac{\mu^2}{\phi_{\text{s}}}\Big) +
+  \Big(\mu + \tfrac{\mu^2}{\phi_s}\Big) +
   \Big(\lambda_1 + \tfrac{\lambda_1^2}{\phi_{x1}}\Big),
 \qquad
 \mathrm{Var}(d) =
@@ -208,11 +208,12 @@ link.</p>
   \Big(\lambda_2 + \tfrac{\lambda_2^2}{\phi_{x2}}\Big).
 </annotation></semantics></math></p>
 <p>The covariance involves the shared latent count alone, so neither
-excess dispersion appears in it:
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">v</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>μ</mi><mo>+</mo><msup><mi>μ</mi><mn>2</mn></msup><mi>/</mi><msub><mi>ϕ</mi><mtext mathvariant="normal">s</mtext></msub></mrow><annotation encoding="application/x-tex">\mathrm{Cov}(y_1, y_2) = \mu + \mu^2/\phi_{\text{s}}</annotation></semantics></math><span class="citation">(<a href="#ref-kirkpatrickApplyingMultivariateDiscrete2016">Kirkpatrick and
-Neale 2016</a>)</span>. Freeing the two excess dispersions therefore
-changes both margins and the difference, and leaves the covariance
-unchanged; the correlation moves only through its denominator.</p>
+dispersion of an exclusive component appears in it:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">C</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">v</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>μ</mi><mo>+</mo><msup><mi>μ</mi><mn>2</mn></msup><mi>/</mi><msub><mi>ϕ</mi><mi>s</mi></msub></mrow><annotation encoding="application/x-tex">\mathrm{Cov}(y_1, y_2) = \mu + \mu^2/\phi_s</annotation></semantics></math><span class="citation">(<a href="#ref-kirkpatrickApplyingMultivariateDiscrete2016">Kirkpatrick and
+Neale 2016</a>)</span>. Freeing the dispersions of the two exclusive
+components therefore changes both margins and the difference, and leaves
+the covariance unchanged; the correlation moves only through its
+denominator.</p>
 <p>Two features of that covariance bound what the construction can
 represent. The covariance is a variance, so it cannot be negative: both
 families represent non-negative association only. It is also bounded
@@ -227,29 +228,32 @@ variances,</p>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>V</mi><mn>2</mn></msub><annotation encoding="application/x-tex">V_2</annotation></semantics></math>
 the variances of the two observed counts, with the upper bound attained
-only when one source has no private component. In the Poisson case, each
-variance equals its mean, and this is the ceiling Holgate <span class="citation">(<a href="#ref-holgate1964">1964</a>)</span> states and
+only when one source has no exclusive component. In the Poisson case,
+each variance equals its mean, and this is the ceiling Holgate <span class="citation">(<a href="#ref-holgate1964">1964</a>)</span> states and
 calls the drawback. A construction admitting negative correlation gives
 up the shared latent count, which is the quantity these families
 estimate.</p>
-<p>An observation-level random effect on the source-specific components
-would be the obvious alternative to a scalar dispersion, and it fails
-synthetic recovery. With one observed pair per unit but three latent
-deviates per unit, the excess deviates absorb the residual: in the
-motivating dataset the population standard deviation of the excess was
-recovered as 0.37 against a true 0.85, and drawing fresh deviates gave
+<p>An observation-level random effect on the exclusive components would
+be the obvious alternative to a scalar dispersion. Fitted to simulated
+data, the observation-level random effect underestimated the variance of
+the exclusive components. With one observed pair per unit but three
+latent deviates per unit, the exclusive-component deviates absorb the
+residual variation. In the motivating dataset, the population standard
+deviation of the exclusive-component deviates was recovered as 0.37
+against a true 0.85. A posterior-predictive check that reuses the fitted
+deviates did not detect the underestimated standard deviation. A check
+that draws new deviates from the fitted population distribution gave
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>d</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>2.9</mn></mrow><annotation encoding="application/x-tex">\mathrm{Var}(d) = 2.9</annotation></semantics></math>
-against a true 19.2. A conditional posterior-predictive check does not
-expose that failure; a marginal one, drawing fresh deviates, does.</p>
+against a true 19.2, an underestimate by a factor of 6.6.</p>
 </div>
 <div class="section level2">
-<h2 id="tying-the-two-excess-dispersions">Tying the two excess dispersions<a class="anchor" aria-label="anchor" href="#tying-the-two-excess-dispersions"></a>
+<h2 id="tying-the-dispersions-of-the-two-exclusive-components">Tying the dispersions of the two exclusive components<a class="anchor" aria-label="anchor" href="#tying-the-dispersions-of-the-two-exclusive-components"></a>
 </h2>
 <p>Both negative-binomial constructors estimate a separate dispersion
-for each source-specific component. The two sources are different
-instruments, and no argument requires their source-specific excess to be
-equally overdispersed. Up to release 0.9.1, a single distributional
-parameter <code>shapex</code> imposed
+for each exclusive component. The two sources are different instruments,
+and no argument requires their exclusive components to be equally
+overdispersed. Up to release 0.9.1, a single distributional parameter
+<code>shapex</code> imposed
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">\phi_{x1} = \phi_{x2}</annotation></semantics></math>;
 0.10.0 frees the constraint for both constructors.</p>
 <p>To impose that constraint deliberately, route both distributional
@@ -437,7 +441,7 @@ zero.</p>
 <span><span class="va">d1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/density.html" class="external-link">density</a></span><span class="op">(</span><span class="va">draws</span><span class="op">$</span><span class="va">b_shapexone_Intercept</span><span class="op">)</span></span>
 <span><span class="va">d2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/density.html" class="external-link">density</a></span><span class="op">(</span><span class="va">draws</span><span class="op">$</span><span class="va">b_shapextwo_Intercept</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">d1</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">d1</span><span class="op">$</span><span class="va">x</span>, <span class="va">d2</span><span class="op">$</span><span class="va">x</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">d1</span><span class="op">$</span><span class="va">y</span>, <span class="va">d2</span><span class="op">$</span><span class="va">y</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>     lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="st">"#C4622D"</span>, main <span class="op">=</span> <span class="st">"The two excess dispersions"</span>,</span>
+<span>     lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="st">"#C4622D"</span>, main <span class="op">=</span> <span class="st">"Exclusive-component dispersions"</span>,</span>
 <span>     xlab <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="va">log</span> <span class="op">~</span> <span class="va">phi</span><span class="op">)</span>, ylab <span class="op">=</span> <span class="st">"density"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">d2</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="st">"#2D6A7F"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>v <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">truth</span><span class="op">$</span><span class="va">shapexone</span><span class="op">)</span>, lty <span class="op">=</span> <span class="fl">3</span>, col <span class="op">=</span> <span class="st">"#C4622D"</span><span class="op">)</span></span>
@@ -453,7 +457,7 @@ zero.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/mtext.html" class="external-link">mtext</a></span><span class="op">(</span><span class="st">"solid = zero, dotted = truth"</span>, side <span class="op">=</span> <span class="fl">3</span>, line <span class="op">=</span> <span class="op">-</span><span class="fl">1.1</span>,</span>
 <span>      cex <span class="op">=</span> <span class="fl">0.7</span>, adj <span class="op">=</span> <span class="fl">0.97</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="figure/dispersion-posteriors-1.svg" alt="Two panels. The left shows posterior densities for the two excess dispersions on the log scale, well separated, with their true values marked. The right shows the posterior for their log ratio, with zero marked outside the bulk of the distribution."><p class="caption">
+<img src="figure/dispersion-posteriors-1.svg" alt="Two panels. The left shows posterior densities for the dispersions of the two exclusive components on the log scale, well separated, with their true values marked. The right shows the posterior for their log ratio, with zero marked outside the bulk of the distribution."><p class="caption">
 plot of chunk dispersion-posteriors
 </p>
 </div>
@@ -471,8 +475,8 @@ designs.</p>
 <code>posterior_predict()</code><a class="anchor" aria-label="anchor" href="#quantities-returned-by-posterior_epred-and-posterior_predict"></a>
 </h2>
 <p><code><a href="https://mc-stan.org/rstantools/reference/posterior_epred.html" class="external-link">posterior_epred()</a></code> returns</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>y</mi><mn>1</mn></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>+</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_{\text{shared}} \mid y_2] + \lambda_1,
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>y</mi><mn>1</mn></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>N</mi><mi>s</mi></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>+</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_s \mid y_2] + \lambda_1,
 </annotation></semantics></math></p>
 <p>the expected first count given the second count observed on that row.
 The returned quantity is a conditional expectation rather than a
@@ -481,7 +485,7 @@ value.</p>
 <p>For <code><a href="../reference/bipois.html">bipois()</a></code>, the conditional distribution is available
 in closed form: conditioning a sum of independent Poisson counts on its
 total gives a Binomial, so
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mtext mathvariant="normal">shared</mtext></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo>∼</mo><mrow><mi mathvariant="normal">B</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>2</mn></msub><mo>,</mo><mspace width="0.222em"></mspace><mi>μ</mi><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">N_{\text{shared}} \mid y_2 \sim \mathrm{Binomial}(y_2,\ \mu/(\mu +
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mi>s</mi></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo>∼</mo><mrow><mi mathvariant="normal">B</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">n</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">l</mi></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>2</mn></msub><mo>,</mo><mspace width="0.222em"></mspace><mi>μ</mi><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">N_s \mid y_2 \sim \mathrm{Binomial}(y_2,\ \mu/(\mu +
 \lambda_2))</annotation></semantics></math> and the expectation is
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mn>2</mn></msub><mspace width="0.167em"></mspace><mi>μ</mi><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>λ</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">y_2\,\mu/(\mu + \lambda_2) +
 \lambda_1</annotation></semantics></math>. A sum of negative-binomial
@@ -525,8 +529,8 @@ grows — rather than at a single tolerance.</li>
 <p>For the post-processing methods, the suite verifies that each
 expectation equals the mean of its own predictive draws, that the
 observation flag changes neither the prediction nor the expectation, and
-that exchanging the two excess dispersions anywhere they are routed
-produces a detectably different answer.</p>
+that exchanging the dispersions of the two exclusive components anywhere
+they are routed produces a detectably different answer.</p>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

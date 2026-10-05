@@ -3,7 +3,7 @@
 Maps the interpretable coordinates – the midpoint `M` of the two
 expected counts, congruence `f`, and source bias `delta` – onto the rate
 dpars every family in this package takes (`mu`, `lambdaone`,
-`lambdatwo`), optionally converting SD-scale dispersions to the
+`lambdatwo`), optionally converting overdispersions to the
 `shapes`/`shapexone`/`shapextwo` dpars.
 
 The three rates are common to
@@ -12,8 +12,8 @@ The three rates are common to
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 and
 [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md),
-so this direction serves all four constructors. The dispersions are
-where they differ: the Poisson families have none, and both
+so this direction serves all four constructors. The four constructors
+differ in their dispersions: the Poisson families have none, and both
 negative-binomial constructors have one per margin.
 
 Everything this returns is named for a dpar a shipping family accepts,
@@ -51,23 +51,25 @@ binegbin_mfd_to_dpars(
 - f:
 
   Congruence, the mean of the shared component as a proportion of `M`:
-  `mu / M`. In `[0, 1]`. `f = 1` means perfect agreement (both excesses
-  vanish); `f = 0` means no shared component at all.
+  `mu / M`. In `[0, 1]`. `f = 1` means perfect congruence (both
+  source-exclusive components vanish); `f = 0` means no shared component
+  at all.
 
 - delta:
 
   Source bias on the log-ratio scale, `0.5 * log(lambdaone/lambdatwo)`.
   `0` is unbiased. `+/-Inf` is permitted and gives the limit where one
-  excess rate is zero.
+  exclusive rate is zero.
 
 - kappas, kappax:
 
-  Optional SD-scale dispersions. `0` is the Poisson limit. `kappas` is
-  the dispersion of the shared component, and the returned list gains
-  `shapes` (`= 1/kappa^2`, so `kappa = 0` gives `Inf`). `kappax` is the
-  shorthand for a single excess dispersion governing *both* margins:
-  supply it and the returned list gains `shapexone` and `shapextwo` at
-  that common value, which is the symmetric model
+  Optional overdispersions, `kappa = 1/sqrt(phi)`. `0` is the Poisson
+  limit. `kappas` is the overdispersion of the shared component, and the
+  returned list gains `shapes` (`= 1/kappa^2`, so `kappa = 0` gives
+  `Inf`). `kappax` is the shorthand for a single overdispersion
+  governing *both* margins: supply it and the returned list gains
+  `shapexone` and `shapextwo` at that common value, which is the
+  symmetric model
   [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
   reaches by tying the two with
   [`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html).
@@ -79,37 +81,38 @@ binegbin_mfd_to_dpars(
 
 - kappaxone, kappaxtwo:
 
-  Optional per-margin SD-scale excess dispersions, for the general case
-  in which the two margins are free to differ. If supplied, the returned
-  list gains `shapexone`/`shapextwo`. Mutually exclusive with `kappax`,
-  which writes the same two slots.
+  Optional per-margin overdispersions of the exclusive components, for
+  the general case in which the two margins are free to differ. If
+  supplied, the returned list gains `shapexone`/`shapextwo`. Mutually
+  exclusive with `kappax`, which writes the same two slots.
 
 ## Value
 
 A named list of `mu`, `lambdaone`, `lambdatwo`, plus `shapes` when
 `kappas` is supplied, and `shapexone`/`shapextwo` when either `kappax`
-or `kappaxone`/`kappaxtwo` are. Every name is a dpar of a shipping
-family.
+or `kappaxone`/`kappaxtwo` are supplied. Every name is a dpar of a
+shipping family.
 
 ## Details
 
 Arguments are recycled to a common length, so this vectorises over
 posterior draws.
 
-**Boundary behaviour.** At `f = 1` both excess rates are exactly `0`
+**Boundary behaviour.** At `f = 1` both exclusive rates are exactly `0`
 regardless of `delta` – the bias becomes unidentifiable, which
 [`binegbin_dpars_to_mfd()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_dpars_to_mfd.md)
 reports back as `NA`. This direction is always well defined; only the
 inverse degenerates.
 
-**The two spellings of the excess dispersion.** Both negative-binomial
-constructors take the pair `shapexone`/`shapextwo`, so that is what this
-function writes. Supply `kappaxone`/`kappaxtwo` to give the two margins
-different values, or `kappax` to give them the same one – the symmetric
-model, term for term the pre-0.8.0 likelihood, which a fit reaches by
-routing both dpars through one non-linear parameter. The two spellings
-are mutually exclusive in a single call because they write the same two
-slots.
+**The two spellings of the overdispersion of the exclusive components.**
+Both negative-binomial constructors take the pair
+`shapexone`/`shapextwo`, so this function returns `shapexone` and
+`shapextwo` and never `shapex`. Supply `kappaxone`/`kappaxtwo` to give
+the two margins different values, or `kappax` to give both margins a
+single value – the symmetric model, term for term the pre-0.8.0
+likelihood, which a fit reaches by routing both dpars through one
+non-linear parameter. The two spellings are mutually exclusive in a
+single call because they write the same two slots.
 
 Before 0.10.0, `kappax` returned a dpar named `shapex` and
 `kappaxone`/`kappaxtwo` returned the pair, because two different
@@ -122,7 +125,7 @@ and
 [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
 take the same three rates and no dispersion, so call this with `M`, `f`
 and `delta` alone and pass the result straight through. There is no
-`kappa` to supply: the Poisson case is not a dispersion set to a
+`kappa` to supply: the Poisson case is not an dispersion set to a
 particular value but the absence of the parameter, which is precisely
 why fitting it wants its own family rather than
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
@@ -139,7 +142,8 @@ with `kappa` driven to `0`.
 ## Examples
 
 ``` r
-# A moderately congruent pair, source 1 running high
+# A moderately congruent pair, source 1 recording more of the unshared
+# events
 binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = 0.2)
 #> $mu
 #> [1] 8.04
@@ -151,7 +155,7 @@ binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = 0.2)
 #> [1] 3.178394
 #> 
 
-# Perfect congruence: both excesses vanish
+# Perfect congruence: both exclusive components vanish
 binegbin_mfd_to_dpars(M = 12, f = 1, delta = 0.5)
 #> $mu
 #> [1] 12
@@ -163,7 +167,7 @@ binegbin_mfd_to_dpars(M = 12, f = 1, delta = 0.5)
 #> [1] 0
 #> 
 
-# One excess dispersion for both margins, and two different ones
+# kappax: one overdispersion for both exclusive components
 binegbin_mfd_to_dpars(M = 12, f = 0.67, kappas = 0.4, kappax = 0.9)
 #> $mu
 #> [1] 8.04
@@ -183,6 +187,8 @@ binegbin_mfd_to_dpars(M = 12, f = 0.67, kappas = 0.4, kappax = 0.9)
 #> $shapextwo
 #> [1] 1.234568
 #> 
+
+# kappaxone, kappaxtwo: one overdispersion per exclusive component
 binegbin_mfd_to_dpars(M = 12, f = 0.67, kappas = 0.4,
                       kappaxone = 0.9, kappaxtwo = 0.3)
 #> $mu
@@ -207,11 +213,11 @@ binegbin_mfd_to_dpars(M = 12, f = 0.67, kappas = 0.4,
 # To FIT in these coordinates, pass them through a non-linear formula
 # (every dpar is log-linked, so the link supplies the exp()):
 #   bf(y1 | vint(y2) ~ 1, nl = TRUE) +
-#     nlf(mu        ~ eta + log_inv_logit(con)) +
-#     nlf(lambdaone ~ log(2) + eta + log_inv_logit(-con) +
-#                     log_inv_logit(2 * methd)) +
-#     nlf(lambdatwo ~ log(2) + eta + log_inv_logit(-con) +
-#                     log_inv_logit(-2 * methd)) +
-#     lf(eta ~ 1, con ~ 1, methd ~ 1)
-# where eta = log M, con = logit f, methd = delta.
+#     nlf(mu        ~ logM + log_inv_logit(logitf)) +
+#     nlf(lambdaone ~ log(2) + logM + log_inv_logit(-logitf) +
+#                     log_inv_logit(2 * delta)) +
+#     nlf(lambdatwo ~ log(2) + logM + log_inv_logit(-logitf) +
+#                     log_inv_logit(-2 * delta)) +
+#     lf(logM ~ 1, logitf ~ 1, delta ~ 1)
+# where logM = log M, logitf = logit f and delta = artanh(beta).
 ```

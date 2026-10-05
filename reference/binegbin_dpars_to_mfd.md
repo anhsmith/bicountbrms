@@ -5,7 +5,7 @@ Inverse of
 Reads the rate dpars `mu`, `lambdaone`, `lambdatwo` back into the
 interpretable coordinates: the midpoint `M` of the two expected counts,
 congruence `f`, and source bias `delta`, optionally converting NB2
-dispersions back to the SD scale.
+inverse dispersions to overdispersions.
 
 As with the forward direction, the three rates are common to
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md),
@@ -17,9 +17,10 @@ so this serves all four constructors; only the dispersion arguments
 differ.
 
 This direction reads a *stored fit*, so it accepts `shapex` – the single
-excess dispersion declared by every `binegbin` fit made before 0.10.0 –
-as well as the current `shapexone`/`shapextwo`. The forward direction
-writes only current names; see its documentation for why the two differ.
+dispersion of both exclusive components, declared by every `binegbin`
+fit made before 0.10.0 – as well as the current `shapexone`/`shapextwo`.
+The forward direction writes only current names; see its documentation
+for why the two directions differ.
 
 ## Usage
 
@@ -43,15 +44,15 @@ binegbin_dpars_to_mfd(
 
 - lambdaone, lambdatwo:
 
-  The two excess rates.
+  The rates of the two source-exclusive components.
 
 - shapes, shapex:
 
-  Optional NB2 dispersions. If supplied, the returned list gains
+  Optional NB2 inverse dispersions. If supplied, the returned list gains
   `kappas`/`kappax` (`= 1/sqrt(shape)`, so `shape = Inf` gives `0`).
-  `shapex` is the single excess dispersion declared by a `binegbin` fit
-  made before 0.10.0, when one dpar governed both margins; no shipping
-  family takes it now. A fit of
+  `shapex` is the single dispersion of both exclusive components,
+  declared by a `binegbin` fit made before 0.10.0; no shipping family
+  takes it now. A fit of
   [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
   or
   [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
@@ -59,16 +60,16 @@ binegbin_dpars_to_mfd(
 
 - shapexone, shapextwo:
 
-  Optional per-margin NB2 excess dispersions, as taken by both
-  negative-binomial constructors since 0.10.0. If supplied, the returned
-  list gains `kappaxone`/`kappaxtwo`. Mutually exclusive with `shapex`,
-  which is the same quantity under its older name.
+  Optional NB2 inverse dispersions of the exclusive components, as taken
+  by both negative-binomial constructors since 0.10.0. If supplied, the
+  returned list gains `kappaxone`/`kappaxtwo`. Mutually exclusive with
+  `shapex`, which is the same quantity under its older name.
 
 ## Value
 
 A named list of `M`, `f`, `delta`, plus `beta` (the bounded bias
 `tanh(delta)`), `kappas`/`kappax` when `shapes`/`shapex` are supplied,
-and `kappaxone`/`kappaxtwo` when `shapexone`/`shapextwo` are.
+and `kappaxone`/`kappaxtwo` when `shapexone`/`shapextwo` are supplied.
 
 ## Details
 
@@ -79,13 +80,13 @@ coordinates.
 **Boundary behaviour**, which the forward direction does not have:
 
 - `lambdaone == lambdatwo == 0` (perfect congruence, `f = 1`): the bias
-  is genuinely unidentified – there is no excess to be biased – and
-  `delta` is returned as `NA`, not `0`. Zero would assert an unbiased
-  source, which the data at that point cannot support.
+  is genuinely unidentified – there are no exclusive events to be biased
+  – and `delta` is returned as `NA`, not `0`. Zero would assert an
+  unbiased source, which the data at that point cannot support.
 
 - `M == 0` (nothing anywhere): `f` is undefined and returned as `NA`.
 
-- Exactly one excess rate `0`: `delta` is `+/-Inf`, the well-defined
+- Exactly one exclusive rate `0`: `delta` is `+/-Inf`, the well-defined
   limit where one source never records an unshared event.
 
 Because of the first case, round-tripping is exact everywhere except at

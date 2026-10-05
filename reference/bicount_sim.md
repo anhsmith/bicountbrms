@@ -46,8 +46,8 @@ Each unit's counts were constructed by trivariate reduction,
 `y1 = Ns + N1` and `y2 = Ns + N2`, from three independent
 negative-binomial components with means `mu = M f`,
 `lambda1 = M (1 - f)(1 + beta)` and `lambda2 = M (1 - f)(1 - beta)`, and
-dispersions `phi = 1 / kappa^2`. Here `M` is the midpoint of the two
-expected counts, `f` the congruence, and `beta = tanh(delta)` the
+inverse dispersions `phi = 1 / kappa^2`. Here `M` is the midpoint of the
+two expected counts, `f` the congruence, and `beta = tanh(delta)` the
 bounded source bias. The generating values were:
 
 |      |     |     |      |        |         |         |
@@ -99,32 +99,33 @@ all(bicount_sim$y1[rec] ==
 
 if (FALSE) { # \dontrun{
 # Fitting compiles a Stan model and samples, which takes minutes.
-# The model is written in midpoint M, congruence f and bias delta through
-# non-linear formulas, with eta = log M, con = logit f, methd = delta and
-# the three dispersions on the kappa scale, and site effects on f and delta.
+# The model is written in midpoint M, congruence f and source bias through
+# non-linear formulas, with logM = log M, logitf = logit f,
+# delta = artanh(beta), the three overdispersions kappa, and site effects on
+# f and delta.
 library(brms)
 dat <- bicount_sim
 dat$y1[dat$y1_obs == 0] <- 0L
 
 fit <- brm(
   bf(y1 | vint(y2, y1_obs) ~ 1, nl = TRUE) +
-    nlf(mu        ~ eta + log_inv_logit(con)) +
-    nlf(lambdaone ~ log(2) + eta + log_inv_logit(-con) +
-                    log_inv_logit(2 * methd)) +
-    nlf(lambdatwo ~ log(2) + eta + log_inv_logit(-con) +
-                    log_inv_logit(-2 * methd)) +
+    nlf(mu        ~ logM + log_inv_logit(logitf)) +
+    nlf(lambdaone ~ log(2) + logM + log_inv_logit(-logitf) +
+                    log_inv_logit(2 * delta)) +
+    nlf(lambdatwo ~ log(2) + logM + log_inv_logit(-logitf) +
+                    log_inv_logit(-2 * delta)) +
     nlf(shapes    ~ log(1 / kappas^2)) +
     nlf(shapexone ~ log(1 / kappaxone^2)) +
     nlf(shapextwo ~ log(1 / kappaxtwo^2)) +
-    lf(eta ~ 1) + lf(con ~ 0 + site) + lf(methd ~ 0 + site) +
+    lf(logM ~ 1) + lf(logitf ~ 0 + site) + lf(delta ~ 0 + site) +
     lf(kappas ~ 1) + lf(kappaxone ~ 1) + lf(kappaxtwo ~ 1),
   data     = dat,
   family   = binegbin_partialobs(),
   stanvars = binegbin_partialobs_stanvars(),
   prior    = c(
-    set_prior("normal(0.5, 2)", class = "b", nlpar = "eta"),
-    set_prior("normal(0, 1.5)", class = "b", nlpar = "con"),
-    set_prior("normal(0, 0.5)", class = "b", nlpar = "methd"),
+    set_prior("normal(0.5, 2)", class = "b", nlpar = "logM"),
+    set_prior("normal(0, 1.5)", class = "b", nlpar = "logitf"),
+    set_prior("normal(0, 0.5)", class = "b", nlpar = "delta"),
     set_prior("normal(0, 1)",   class = "b", nlpar = "kappas",    lb = 0),
     set_prior("normal(0, 1)",   class = "b", nlpar = "kappaxone", lb = 0),
     set_prior("normal(0, 1)",   class = "b", nlpar = "kappaxtwo", lb = 0)

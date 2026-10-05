@@ -2,12 +2,12 @@
 
 Returns a brms custom family for the joint distribution of a pair of
 counts, `(y1, y2)`, constructed via trivariate reduction:
-`y1 = N_shared + N1`, `y2 = N_shared + N2`, with
-`N_shared ~ Poisson(mu)`, `N1 ~ Poisson(lambdaone)`,
-`N2 ~ Poisson(lambdatwo)` mutually independent given their rates. All
-three rates are link = "log". Modelling the pair jointly avoids
-regressing the difference on one of its own components (a
-`d = y1 - y2 ~ y2` design), which induces regression to the mean.
+`y1 = N_s + N1`, `y2 = N_s + N2`, with `N_s ~ Poisson(mu)`,
+`N1 ~ Poisson(lambdaone)`, `N2 ~ Poisson(lambdatwo)` mutually
+independent given their rates. All three rates are link = "log".
+Modelling the pair jointly avoids regressing the difference on one of
+its own components (a `d = y1 - y2 ~ y2` design), which induces
+regression to the mean.
 
 Use this when both counts were recorded on every row. If the first count
 is missing on some rows, use
@@ -57,9 +57,10 @@ requires a dpar literally named `"mu"`
 (`stop2("All families must have a 'mu' parameter.")`, unconditional),
 whatever the family actually calls that quantity. Here it is bound to
 `lambda_shared`, the rate of the component shared between `y1` and `y2`
-– not a mean of either response individually. `lambdaone` (source-1-only
-rate) and `lambdatwo` (source-2-only rate) are the other two dpars,
-plainly named (no forced reinterpretation needed for those two).
+– not a mean of either response individually. `lambdaone` (rate of the
+source-1-exclusive component) and `lambdatwo` (rate of the
+source-2-exclusive component) are the other two dpars, plainly named (no
+forced reinterpretation needed for those two).
 
 **The spelling `lambdaone` rather than `lambda1`.**
 [`custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)

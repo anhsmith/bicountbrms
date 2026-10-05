@@ -4,8 +4,8 @@ Overdispersed sibling of
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md).
 Returns a brms custom family for the joint distribution of a pair of
 counts `(y1, y2)` via trivariate reduction with Negative-Binomial
-(rather than Poisson) latent components: `y1 = N_shared + N1`,
-`y2 = N_shared + N2`, with `N_shared ~ NB2(mu, shapes)`,
+(rather than Poisson) latent components: `y1 = N_s + N1`,
+`y2 = N_s + N2`, with `N_s ~ NB2(mu, shapes)`,
 `N1 ~ NB2(lambdaone, shapexone)`, `N2 ~ NB2(lambdatwo, shapextwo)`
 mutually independent given their rates. `NB2(m, phi)` has mean `m` and
 variance `m + m^2/phi` (Stan `neg_binomial_2`; R
@@ -18,19 +18,19 @@ which is the same family with an observation flag – same `name`, same
 six dpars, same likelihood, same post-processing.
 
 Six dpars: the three rates (`mu` = shared rate, `lambdaone`/`lambdatwo`
-= the two source-specific rates) plus three dispersions – `shapes` for
-the shared component and `shapexone`/`shapextwo` for the two
-source-specific excess components. All six use `link = "log"`. Supply
-the excess rates through a non-linear formula without an explicit
-[`exp()`](https://rdrr.io/r/base/Log.html) (the log link applies it):
-`nlf(lambdaone ~ lamx)` gives `lambdaone = exp(lamx)`.
+= the rates of the two source-exclusive components) plus three
+dispersions – `shapes` for the shared component and
+`shapexone`/`shapextwo` for the two exclusive components. All six use
+`link = "log"`. Supply the exclusive rates through a non-linear formula
+without an explicit [`exp()`](https://rdrr.io/r/base/Log.html) (the log
+link applies it): `nlf(lambdaone ~ lamx)` gives `lambdaone = exp(lamx)`.
 
 See the `binegbin.R` file header for why Negative-Binomial components
 are used instead of an observation-level random effect on
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
 – briefly, the random-effect version fails synthetic recovery, because
-with one observed pair but three latent deviates per unit the excess
-deviates act as residual absorbers.
+with one observed pair but three latent deviates per unit the
+exclusive-component deviates act as residual absorbers.
 
 Use in a brm() call as: brm( bf(y1 \| vint(y2) ~ 1, mu ~ 1 + (1 \|
 vessel), nlf(lambdaone ~ lamx), nlf(lambdatwo ~ lamx), lamx ~ 1, shapes
@@ -64,11 +64,12 @@ with posterior draws in rows and observations in columns.
 
 ## Details
 
-**Tying the two excess dispersions.** Up to 0.9.1 this family had a
-single `shapex` shared by both excess components, imposing
-`shapexone == shapextwo`. That is a modelling choice rather than a
-property of the construction, and 0.10.0 frees it. To recover the
-constraint, route both through one non-linear parameter:
+**Tying the dispersions of the two exclusive components.** Up to 0.9.1,
+`binegbin()` had a single `shapex`, shared by both exclusive components,
+which imposed `shapexone == shapextwo`. Equal dispersions are a
+modelling choice rather than a property of the construction. 0.10.0
+removes the constraint. To recover the constraint, route `shapexone` and
+`shapextwo` through one non-linear parameter:
 
     bf(y1 | vint(y2) ~ 1,
        mu ~ 1 + (1 | vessel),

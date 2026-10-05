@@ -117,7 +117,7 @@ P(y_2 = y) = \sum_{k=0}^{y}
 which is the joint model with the first count summed out over its whole
 support. The row is neither dropped nor given a separate univariate
 model on the second count, either of which would be a different model
-from the one the paired rows are fitted to.
+from the joint model fitted to the paired rows.
 
 Two consequences follow. An unpaired row informs $`\mu`$,
 $`\phi_{\text{s}}`$, $`\lambda_2`$, $`\phi_{x2}`$ and any group-level
@@ -163,9 +163,9 @@ knitr::kable(recovery, digits = 2, row.names = FALSE)
 | shapexone | paired rows |     2 |   4.41 |  2.03 | 10.07 |
 | shapextwo | every row   |     4 |   5.93 |  2.98 | 12.18 |
 
-Five of the six intervals contain their true value. The sixth,
-$`\phi_{x1}`$, does not: its interval runs from 2.03 to 10.07 against a
-truth of 2, so it misses at the lower end by 0.03.
+Five of the six intervals contain their true value. The interval for
+$`\phi_{x1}`$ runs from 2.03 to 10.07 against a true value of 2, missing
+it at the lower end by 0.03.
 
 The seed was not changed to make the miss disappear. A 95% interval from
 a correctly specified model excludes the truth 5% of the time by
@@ -186,7 +186,8 @@ returns a draw of the first count for every row, conditional on the
 second count recorded there. The observation flag selects a branch of
 the likelihood; it does not change the prediction. Rows on which the
 first count was never recorded are therefore predicted in exactly the
-same way as paired rows, which is what the imputation depends on.
+same way as paired rows. On an unpaired row, the predicted first count
+is the imputed value of the unrecorded first count.
 
 ``` r
 
@@ -264,16 +265,17 @@ the congruence, because both depend on $`\lambda_1`$. Where either is
 the quantity of interest, the number of paired rows should therefore be
 chosen when the study is designed.
 
-## Tying the excess and shared dispersions
+## Tying the dispersions of the exclusive and shared components
 
 With few paired rows, a small $`\lambda_1`$, or both, `shapexone` is
 weakly identified and therefore its posterior stays close to its prior.
 Where there is no evidence that the two sources differ in the
-overdispersion of their excess counts, constraining
-$`\phi_{x1} = \phi_{x2}`$ estimates one excess dispersion from every
-row, because $`\phi_{x2}`$ appears in the likelihood term for both kinds
-of row. Where the shared component is not expected to differ either, all
-three dispersions can be constrained to be equal.
+overdispersion of their source-exclusive counts, constraining
+$`\phi_{x1} = \phi_{x2}`$ estimates one dispersion for both exclusive
+components from every row, because $`\phi_{x2}`$ appears in the
+likelihood term for both kinds of row. Where the shared component is not
+expected to differ either, all three dispersions can be constrained to
+be equal.
 
 Each constraint is imposed by routing the tied dispersions through one
 non-linear parameter:
@@ -306,14 +308,27 @@ The prior on the tied parameter takes `class = "b"` and `nlpar`, not
 on the formula lists the slots. [The families and their
 parameters](https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.md)
 shows the generated Stan for the two-way tie. Either constraint is an
-assumption rather than an estimate. If the dispersions differ, each tied
-value is biased towards a common one, and with few paired rows the data
-may not reveal the difference.
+assumption rather than an estimate. Tying trades bias for variance. In
+the untied model, `shapexone` is informed by the paired rows alone. In
+the tied model, the unpaired rows also inform the tied parameter through
+the second margin, so the posterior variance of the tied parameter is
+generally smaller. If the tied dispersions differ in truth, the tied
+parameter is a biased estimate of each tied dispersion. With few paired
+rows, the 95% interval for $`\log\phi_{x1} - \log\phi_{x2}`$ under the
+untied model may contain zero even where $`\phi_{x1}`$ and $`\phi_{x2}`$
+differ, so the data may not show whether the constraint holds.
 
-## Telling which constructor a stored fit used
+## Identifying the constructor of a stored fit
 
-`family$name` is `"binegbin"` for both constructors, so it does not
-distinguish them. The presence of the second supplementary integer does:
+`fit$family$name` is `"binegbin"` under both constructors.
+`standata(fit)` contains `vint2` only for a fit from
+[`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md).
+For such a fit, `fit$family$vars` is `vint1[n], vint2[n]`; for a fit
+from
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md),
+`fit$family$vars` is `vint1[n], 1`. The chunk below prints
+`"vint2" %in% names(standata(fit))` and `fit$family$vars` for the fit
+above:
 
 ``` r
 

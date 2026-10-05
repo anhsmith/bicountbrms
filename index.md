@@ -22,12 +22,12 @@ The native parameters — means and (for negative binomial) dispersions
 for each of the three latent components — can be [reparameterised into
 four interpretable
 coordinates](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html):
-the overall count rate, the congruence between the two sources, the bias
-toward one of them, and (for negative binomial) the excess dispersion of
-each source. The package also allows the model to be fit when one source
-is only partially observed (the `*_partialobs` variants); posterior
-predictions can then be made for the missing values of that source based
-on the observed values of the other.
+the midpoint of the two expected counts, the congruence between the two
+sources, the bias toward one of them, and (for negative binomial) the
+overdispersion of each component. The package also allows the model to
+be fit when one source is only partially observed (the `*_partialobs`
+variants); posterior predictions can then be made for the missing values
+of that source based on the observed values of the other.
 
 ## The core functions
 
@@ -127,19 +127,19 @@ priors](https://anhsmith.github.io/bicountbrms/articles/choosing-priors.html).
 |----|----|----|
 | `y1` (the response) | $`y_1`$ | count from source 1 |
 | `y2` (via `vint()`) | $`y_2`$ | count from source 2 |
-| — | $`N_{\text{shared}}`$ | latent count both sources recorded |
+| — | $`N_s`$ | latent count recorded by both sources |
 | — | $`N_1`$, $`N_2`$ | latent counts only one source recorded |
 | `mu` | $`\mu`$ | rate of the shared component (**not** a response mean) |
-| `lambdaone`, `lambdatwo` | $`\lambda_1`$, $`\lambda_2`$ | rates of the two source-specific components |
-| `shapes` | $`\phi_{\text{s}}`$ | NB2 dispersion of the shared component |
-| `shapexone`, `shapextwo` | $`\phi_{x1}`$, $`\phi_{x2}`$ | NB2 dispersions of the two source-specific components |
+| `lambdaone`, `lambdatwo` | $`\lambda_1`$, $`\lambda_2`$ | rates of the two source-exclusive components |
+| `shapes` | $`\phi_s`$ | NB2 dispersion of the shared component |
+| `shapexone`, `shapextwo` | $`\phi_{x1}`$, $`\phi_{x2}`$ | NB2 dispersions of the two exclusive components |
 | `y1_obs` (via `vint()`) | — | the `_partialobs()` indicator: `1` where $`y_1`$ was recorded and `0` otherwise |
 
 [`brms::custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
 requires one distributional parameter to be named `mu`, and rejects any
 name ending in a digit. Here `mu` is the rate of the shared component
-rather than the mean of either count, and the two source-specific rates
-are spelled out (`one` or `two`).
+rather than the mean of either count, and the two exclusive rates are
+spelled out (`one` or `two`).
 
 ## Documentation
 
@@ -149,7 +149,8 @@ are spelled out (`one` or `two`).
 - [The families and their
   parameters](https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.html)
   — the construction, the moments, and a fitted demonstration that the
-  two excess dispersions can be told apart when they differ.
+  dispersions of the two exclusive components can be told apart when
+  they differ.
 - [Choosing
   priors](https://anhsmith.github.io/bicountbrms/articles/choosing-priors.html)
   — what brms leaves improper, and which of the `class`, `dpar` and

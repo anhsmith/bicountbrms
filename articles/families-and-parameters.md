@@ -25,9 +25,9 @@ Kirkpatrick ([2022](#ref-kirkpatrickRMKdiscreteSundryDiscrete2022)) with
 negative-binomial components.
 
 ``` math
-y_1 = N_{\text{shared}} + N_1
+y_1 = N_s + N_1
 \qquad
-y_2 = N_{\text{shared}} + N_2
+y_2 = N_s + N_2
 ```
 
 `N_shared` is never observed. The likelihood sums it out analytically
@@ -48,14 +48,14 @@ declares a single response column.
 
 The shared latent count enters both observed counts and therefore
 induces their covariance,
-$`\mathrm{Cov}(y_1, y_2) = \mathrm{Var}(N_{\text{shared}})`$. It cancels
-from the difference,
+$`\mathrm{Cov}(y_1, y_2) = \mathrm{Var}(N_s)`$. It cancels from the
+difference,
 
 ``` math
 d = y_1 - y_2 = N_1 - N_2,
 ```
 
-so the difference depends on the two source-specific counts alone. For
+so the difference depends on the two source-exclusive counts alone. For
 Poisson latent counts, that difference is exactly Skellam-distributed
 ([Skellam 1946](#ref-skellam1946)), which is why
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
@@ -68,7 +68,7 @@ either observed count, nor of their difference. The constraint is a
 requirement of
 [`custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
 rather than a modelling choice, and the same applies to the spelling of
-the two source-specific rates:
+the two exclusive rates:
 [`custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
 rejects a distributional parameter name ending in a digit, so the code
 writes `lambdaone` and `lambdatwo` where the documentation writes
@@ -86,11 +86,11 @@ NB2$`(m, \phi)`$ is `neg_binomial_2` in Stan and
 $`m + m^2/\phi`$, so a larger $`\phi`$ means less overdispersion, and
 the Poisson is the $`\phi \to \infty`$ limit.
 
-| dpar | latent count | rate | dispersion |
-|----|----|----|----|
-| `mu`, `shapes` | $`N_{\text{shared}}`$ | $`\mu`$ | $`\phi_{\text{s}}`$ |
-| `lambdaone`, `shapexone` | $`N_1`$ | $`\lambda_1`$ | $`\phi_{x1}`$ |
-| `lambdatwo`, `shapextwo` | $`N_2`$ | $`\lambda_2`$ | $`\phi_{x2}`$ |
+| dpar                     | latent count | rate          | dispersion    |
+|--------------------------|--------------|---------------|---------------|
+| `mu`, `shapes`           | $`N_s`$      | $`\mu`$       | $`\phi_s`$    |
+| `lambdaone`, `shapexone` | $`N_1`$      | $`\lambda_1`$ | $`\phi_{x1}`$ |
+| `lambdatwo`, `shapextwo` | $`N_2`$      | $`\lambda_2`$ | $`\phi_{x2}`$ |
 
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
 takes the three rates alone;
@@ -101,7 +101,7 @@ The moments follow directly from the decomposition:
 
 ``` math
 \mathrm{Var}(y_1) =
-  \Big(\mu + \tfrac{\mu^2}{\phi_{\text{s}}}\Big) +
+  \Big(\mu + \tfrac{\mu^2}{\phi_s}\Big) +
   \Big(\lambda_1 + \tfrac{\lambda_1^2}{\phi_{x1}}\Big),
 \qquad
 \mathrm{Var}(d) =
@@ -109,13 +109,13 @@ The moments follow directly from the decomposition:
   \Big(\lambda_2 + \tfrac{\lambda_2^2}{\phi_{x2}}\Big).
 ```
 
-The covariance involves the shared latent count alone, so neither excess
-dispersion appears in it:
-$`\mathrm{Cov}(y_1, y_2) = \mu + \mu^2/\phi_{\text{s}}`$([Kirkpatrick
-and Neale 2016](#ref-kirkpatrickApplyingMultivariateDiscrete2016)).
-Freeing the two excess dispersions therefore changes both margins and
-the difference, and leaves the covariance unchanged; the correlation
-moves only through its denominator.
+The covariance involves the shared latent count alone, so neither
+dispersion of an exclusive component appears in it:
+$`\mathrm{Cov}(y_1, y_2) = \mu + \mu^2/\phi_s`$([Kirkpatrick and Neale
+2016](#ref-kirkpatrickApplyingMultivariateDiscrete2016)). Freeing the
+dispersions of the two exclusive components therefore changes both
+margins and the difference, and leaves the covariance unchanged; the
+correlation moves only through its denominator.
 
 Two features of that covariance bound what the construction can
 represent. The covariance is a variance, so it cannot be negative: both
@@ -128,30 +128,33 @@ above, because the shared count contributes to both observed variances,
 ```
 
 for $`V_1`$ and $`V_2`$ the variances of the two observed counts, with
-the upper bound attained only when one source has no private component.
-In the Poisson case, each variance equals its mean, and this is the
-ceiling Holgate ([1964](#ref-holgate1964)) states and calls the
+the upper bound attained only when one source has no exclusive
+component. In the Poisson case, each variance equals its mean, and this
+is the ceiling Holgate ([1964](#ref-holgate1964)) states and calls the
 drawback. A construction admitting negative correlation gives up the
 shared latent count, which is the quantity these families estimate.
 
-An observation-level random effect on the source-specific components
-would be the obvious alternative to a scalar dispersion, and it fails
-synthetic recovery. With one observed pair per unit but three latent
-deviates per unit, the excess deviates absorb the residual: in the
-motivating dataset the population standard deviation of the excess was
-recovered as 0.37 against a true 0.85, and drawing fresh deviates gave
-$`\mathrm{Var}(d) = 2.9`$ against a true 19.2. A conditional
-posterior-predictive check does not expose that failure; a marginal one,
-drawing fresh deviates, does.
+An observation-level random effect on the exclusive components would be
+the obvious alternative to a scalar dispersion. Fitted to simulated
+data, the observation-level random effect underestimated the variance of
+the exclusive components. With one observed pair per unit but three
+latent deviates per unit, the exclusive-component deviates absorb the
+residual variation. In the motivating dataset, the population standard
+deviation of the exclusive-component deviates was recovered as 0.37
+against a true 0.85. A posterior-predictive check that reuses the fitted
+deviates did not detect the underestimated standard deviation. A check
+that draws new deviates from the fitted population distribution gave
+$`\mathrm{Var}(d) = 2.9`$ against a true 19.2, an underestimate by a
+factor of 6.6.
 
-## Tying the two excess dispersions
+## Tying the dispersions of the two exclusive components
 
 Both negative-binomial constructors estimate a separate dispersion for
-each source-specific component. The two sources are different
-instruments, and no argument requires their source-specific excess to be
-equally overdispersed. Up to release 0.9.1, a single distributional
-parameter `shapex` imposed $`\phi_{x1} = \phi_{x2}`$; 0.10.0 frees the
-constraint for both constructors.
+each exclusive component. The two sources are different instruments, and
+no argument requires their exclusive components to be equally
+overdispersed. Up to release 0.9.1, a single distributional parameter
+`shapex` imposed $`\phi_{x1} = \phi_{x2}`$; 0.10.0 frees the constraint
+for both constructors.
 
 To impose that constraint deliberately, route both distributional
 parameters through one non-linear parameter:
@@ -335,7 +338,7 @@ op <- par(mfrow = c(1, 2), mar = c(4.1, 4.1, 2.6, 1.1), bty = "n")
 d1 <- density(draws$b_shapexone_Intercept)
 d2 <- density(draws$b_shapextwo_Intercept)
 plot(d1, xlim = range(d1$x, d2$x), ylim = c(0, max(d1$y, d2$y)),
-     lwd = 2, col = "#C4622D", main = "The two excess dispersions",
+     lwd = 2, col = "#C4622D", main = "Exclusive-component dispersions",
      xlab = expression(log ~ phi), ylab = "density")
 lines(d2, lwd = 2, col = "#2D6A7F")
 abline(v = log(truth$shapexone), lty = 3, col = "#C4622D")
@@ -352,10 +355,10 @@ mtext("solid = zero, dotted = truth", side = 3, line = -1.1,
       cex = 0.7, adj = 0.97)
 ```
 
-![Two panels. The left shows posterior densities for the two excess
-dispersions on the log scale, well separated, with their true values
-marked. The right shows the posterior for their log ratio, with zero
-marked outside the bulk of the
+![Two panels. The left shows posterior densities for the dispersions of
+the two exclusive components on the log scale, well separated, with
+their true values marked. The right shows the posterior for their log
+ratio, with zero marked outside the bulk of the
 distribution.](figure/dispersion-posteriors-1.svg)
 
 plot of chunk dispersion-posteriors
@@ -376,7 +379,7 @@ alone. `tests/testthat/test-binegbin-dispersions.R` runs both designs.
 returns
 
 ``` math
-\mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_{\text{shared}} \mid y_2] + \lambda_1,
+\mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_s \mid y_2] + \lambda_1,
 ```
 
 the expected first count given the second count observed on that row.
@@ -388,7 +391,7 @@ For
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md),
 the conditional distribution is available in closed form: conditioning a
 sum of independent Poisson counts on its total gives a Binomial, so
-$`N_{\text{shared}} \mid y_2 \sim \mathrm{Binomial}(y_2,\ \mu/(\mu +
+$`N_s \mid y_2 \sim \mathrm{Binomial}(y_2,\ \mu/(\mu +
 \lambda_2))`$ and the expectation is $`y_2\,\mu/(\mu + \lambda_2) +
 \lambda_1`$. A sum of negative-binomial counts has no Binomial
 conditional, so
@@ -429,8 +432,8 @@ verifies:
 For the post-processing methods, the suite verifies that each
 expectation equals the mean of its own predictive draws, that the
 observation flag changes neither the prediction nor the expectation, and
-that exchanging the two excess dispersions anywhere they are routed
-produces a detectably different answer.
+that exchanging the dispersions of the two exclusive components anywhere
+they are routed produces a detectably different answer.
 
 ## References
 

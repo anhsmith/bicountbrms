@@ -44,21 +44,40 @@
   row with only the second count “unpaired”, replacing “matched” and
   “unmatched”. No change to the API.
 - The article on partially observed fits has a new section, “Tying the
-  excess and shared dispersions”. It gives the formulas and priors for
-  $`\phi_{x1} = \phi_{x2}`$ and for $`\phi_s = \phi_{x1} = \phi_{x2}`$,
-  for designs with few paired rows or a small `lambdaone`, in which
-  `shapexone` is weakly identified.
+  dispersions of the exclusive and shared components”. It gives the
+  formulas and priors for $`\phi_{x1} = \phi_{x2}`$ and for
+  $`\phi_s = \phi_{x1} = \phi_{x2}`$, for designs with few paired rows
+  or a small `lambdaone`, in which `shapexone` is weakly identified.
 - Corrected a false statement in three articles and in a test comment: a
   prior written with the pre-0.10.0 spelling
-  `class = "Intercept", dpar = "shapex"` on a model that ties the excess
-  dispersions is not dropped silently. brms stops with an error that the
-  prior does not correspond to any model parameter.
-  `test-stancode-shape.R` now checks for that error.
+  `class = "Intercept", dpar = "shapex"` on a model that ties the
+  dispersions of the exclusive components is not dropped silently. brms
+  stops with an error that the prior does not correspond to any model
+  parameter. `test-stancode-shape.R` now checks for that error.
 - The tied-dispersion formula in “Choosing priors” declared a non-linear
   parameter `lamx` that no
   [`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html)
   term used, and brms rejects such a formula. The formula now gives
   `lambdaone` and `lambdatwo` their own intercepts.
+- Documentation and articles now follow the terminology of the
+  manuscript describing the package: the counts recorded by one source
+  only are the exclusive components; “dispersion” is the generic term
+  for `shapes`, `shapexone` and `shapextwo`, and $`\kappa`$ is the
+  overdispersion; the coordinates are the midpoint, the congruence and
+  the source bias; and a design in which the first count is missing on
+  some rows is partially paired. No change to the API.
+- The examples and *The anatomy of a paired count* name the non-linear
+  parameters of the $`(M, f, \delta)`$ formula `logM`, `logitf` and
+  `delta`, as the manuscript does, rather than `eta`, `con` and `methd`.
+  These names are chosen in the user’s
+  [`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html)
+  formula, so formulas written with the old names are unaffected.
+- The error messages of
+  [`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_mfd_to_dpars.md)
+  and
+  [`binegbin_dpars_to_mfd()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_dpars_to_mfd.md)
+  for conflicting dispersion arguments now name the exclusive
+  components. The conditions that raise them are unchanged.
 
 ## bicountbrms 0.10.0
 
@@ -171,13 +190,14 @@
   this package is pinned. Three independent fallbacks have to line up
   for that to work: `.get_rate()` resolves pre-0.7.0
   `lambdaem`/`lambdalb`; `.SHAPEXONE_NAMES` and `.SHAPEXTWO_NAMES` both
-  list `shapex` last, so both per-margin dispersions resolve to the one
-  such a fit has; and an absent `vint2` selects the matched branch.
-  Scanning the fit directory of the sibling project found 103 stored
-  `binegbin` fits, every one of them with the pre-0.7.0 rate names *and*
-  the single `shapex`, so all three paths are exercised in practice.
-  `test-dpar-compat.R` now builds that exact prep and asserts all three
-  methods agree with the six-dpar answer with the dispersions tied.
+  list `shapex` last, so both per-margin dispersions resolve to the
+  single `shapex` of such a fit; and an absent `vint2` selects the
+  matched branch. Scanning the fit directory of the sibling project
+  found 103 stored `binegbin` fits, every one of them with the pre-0.7.0
+  rate names *and* the single `shapex`, so all three paths are exercised
+  in practice. `test-dpar-compat.R` now builds that exact prep and
+  asserts all three methods agree with the six-dpar answer with the
+  dispersions tied.
 
 - **[`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_mfd_to_dpars.md)
   no longer emits `shapex`.** Supplying `kappax` now writes `shapexone`
@@ -197,9 +217,10 @@
 
 - **The README is now an orientation page.** The construction, the
   moments, prior guidance, validation and the release history have moved
-  into the articles. What remains is what the package is, how to install
-  it, the constructors in a table, the notation bridge from symbol to
-  distributional-parameter name, one minimal fit, and links.
+  into the articles. The README now contains a description of the
+  package, installation instructions, a table of the constructors, a
+  table mapping each symbol to its distributional-parameter name, one
+  minimal fit, and links.
 
   Four articles are new, and the site gains an `articles:` section,
   which it did not have before: neither the get-started vignette nor
@@ -330,9 +351,10 @@
 - **README: the conditional-prediction identity is now claimed
   accurately.** The Testing section asserted it for the `_cens` families
   without qualification while the suite checked it on matched rows only.
-  It now states that it holds on matched *and* censored rows and with
-  the two excess dispersions distinct, which is what the tests above
-  pin.
+  The README now states that the identity holds on matched *and*
+  censored rows when `shapexone` and `shapextwo` differ. The tests in
+  the preceding entry check the identity on matched rows and on censored
+  rows, with `shapexone` and `shapextwo` set to different values.
 
 ## bicountbrms 0.9.0
 
@@ -362,8 +384,9 @@
   web and git, so existing clones and
   `pak::pak("anhsmith/pairedcountbrms")` keep working. The redirect from
   `anhsmith/skellambrms` no longer applies: that name is now an
-  independent repository holding the difference families, which is what
-  a user who installed `skellambrms` was asking for.
+  independent repository holding the difference families. A user who
+  installs `skellambrms` therefore receives the difference families, not
+  this package.
 
   The timing is deliberate. A forthcoming 1.0.0 will be archived and
   assigned a DOI, and cited from a methods article describing the joint

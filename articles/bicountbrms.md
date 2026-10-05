@@ -39,19 +39,18 @@ takes all three latent counts to be independent and negative binomial:
 
 ``` math
 \begin{aligned}
-N_{\text{shared}} &\sim \mathrm{NB2}(\mu,\ \phi_s) \\
+N_s &\sim \mathrm{NB2}(\mu,\ \phi_s) \\
 N_1 &\sim \mathrm{NB2}(\lambda_1,\ \phi_{x1}) \qquad
 N_2 \sim \mathrm{NB2}(\lambda_2,\ \phi_{x2}) \\[4pt]
-y_1 &= N_{\text{shared}} + N_1 \qquad
-y_2 = N_{\text{shared}} + N_2
+y_1 &= N_s + N_1 \qquad
+y_2 = N_s + N_2
 \end{aligned}
 ```
 
-$`N_{\text{shared}}`$ is the latent count recorded by both sources;
-$`N_1`$ and $`N_2`$ are the two excesses, each recorded by one source
-only. $`N_{\text{shared}}`$ induces the correlation between the pair. It
-is never observed, and is marginalised out analytically in the
-likelihood.
+$`N_s`$ is the latent count recorded by both sources; $`N_1`$ and
+$`N_2`$ are the two source-exclusive components, the counts recorded by
+one source only. $`N_s`$ induces the correlation between the pair. It is
+never observed, and is marginalised out analytically in the likelihood.
 
 `NB2(m, phi)` is `neg_binomial_2` in Stan and
 `dnbinom(size = phi, mu = m)` in R: mean `m`, variance `m + m^2/phi`.
@@ -59,14 +58,14 @@ Larger `phi` means *less* overdispersion.
 
 Six dpars, all with a log link:
 
-| dpar        | role                                                         |
-|-------------|--------------------------------------------------------------|
-| `mu`        | rate of the shared component, $`\mu`$                        |
-| `lambdaone` | rate of the excess for the first source, $`\lambda_1`$       |
-| `lambdatwo` | rate of the excess for the second source, $`\lambda_2`$      |
-| `shapes`    | dispersion $`\phi_s`$ of the shared component                |
-| `shapexone` | dispersion $`\phi_{x1}`$ of the excess for the first source  |
-| `shapextwo` | dispersion $`\phi_{x2}`$ of the excess for the second source |
+| dpar | role |
+|----|----|
+| `mu` | rate of the shared component, $`\mu`$ |
+| `lambdaone` | rate of the exclusive component of the first source, $`\lambda_1`$ |
+| `lambdatwo` | rate of the exclusive component of the second source, $`\lambda_2`$ |
+| `shapes` | dispersion $`\phi_s`$ of the shared component |
+| `shapexone` | dispersion $`\phi_{x1}`$ of the exclusive component of the first source |
+| `shapextwo` | dispersion $`\phi_{x2}`$ of the exclusive component of the second source |
 
 [`brms::custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
 rejects any family whose dpars do not include one named literally `mu`.
@@ -173,9 +172,9 @@ scale `normal(2, 1)` is lognormal, with 95% of its mass between 1 and
 
 The six truths span 0.69 to 2.08 on the log scale, so no single prior
 sits away from all of them: the true shared rate falls near the prior
-mean, the true second excess rate 1.3 prior SDs below it. Recovery here
-is therefore not on its own evidence that the prior is uninfluential.
-The article [*Mapping native parameters to interpretable
+mean, the true second exclusive rate 1.3 prior SDs below it. Recovery
+here is therefore not on its own evidence that the prior is
+uninfluential. The article [*Mapping native parameters to interpretable
 coordinates*](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html)
 tests that directly, shifting a prior median sevenfold and moving the
 corresponding posterior median by 0.005.
@@ -232,18 +231,18 @@ knitr::kable(recovery, digits = 2)
 The three rates should land tightly on their true values. The three
 dispersions are estimated from an aggregate mean–variance mismatch
 rather than from any directly observed quantity, so their intervals are
-wider; the two excess dispersions especially, since they are identified
-only through the part of the spread in the pair that the shared
-component cannot explain. Wide but covering is the expected result here,
-not a warning sign.
+wider; the dispersions of the two exclusive components especially, since
+they are identified only through the part of the spread in the pair that
+the shared component cannot explain. Wide but covering is the expected
+result here, not a warning sign.
 
 ## Predict and score
 
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
 draws new `y1` **conditional on the observed `y2` in each row**. It
-samples the discrete conditional distribution of $`N_{\text{shared}}`$
-given `y2`, then adds a fresh excess draw — the exact conditional, not
-an approximation.
+samples the discrete conditional distribution of $`N_s`$ given `y2`,
+then adds a fresh draw of the exclusive component — the exact
+conditional, not an approximation.
 
 ``` r
 
@@ -302,18 +301,16 @@ loo(fit)
 Both families return the same quantity:
 
 ``` math
-\mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_{\text{shared}} \mid y_2] + \lambda_1,
+\mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_s \mid y_2] + \lambda_1,
 ```
 
-the expected first count *given the second one that was actually
-observed*, not a marginal expectation. It is what the second source
-implies about the first.
+the expected first count conditional on the observed second count, not
+the marginal expectation $`\mathrm{E}[y_1]`$.
 
 For
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md),
-$`\mathrm{E}[N_{\text{shared}} \mid y_2]`$ is closed form, because
-conditioning a sum of independent Poissons on its total gives a Binomial
-split. For
+$`\mathrm{E}[N_s \mid y_2]`$ is closed form, because conditioning a sum
+of independent Poissons on its total gives a Binomial split. For
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 there is no such shortcut, so the conditional is evaluated over its
 support $`k = 0, \ldots, y_2`$ and summed. Both are exact, and each
@@ -325,8 +322,8 @@ The conditional expectation is returned for every row, including — under
 [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
 and
 [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
-— those where $`y_1`$ was never observed. Imputing the unobserved margin
-is what those two constructors are for.
+— those where $`y_1`$ was never observed. Those two constructors exist
+so that the fitted model can impute $`y_1`$ on those rows.
 
 `posterior_epred(fit)` needs no special handling: it dispatches to the
 family method, as do
@@ -340,12 +337,13 @@ family method, as do
   dpars instead of six. Use it when the margins are not overdispersed;
   compare the two with
   [`loo()`](https://mc-stan.org/loo/reference/loo.html).
-- **The symmetric model.** The fit above let the two excess dispersions
-  differ. To impose $`\phi_{x1} = \phi_{x2}`$ instead, route both
-  through one non-linear parameter — `nlf(shapexone ~ shapexx)`,
-  `nlf(shapextwo ~ shapexx)`, `shapexx ~ 1`, with `nl = TRUE` — and set
-  its prior with `nlpar = "shapexx"`. That is the model this package
-  fitted under a single `shapex` dpar before 0.10.0, term for term.
+- **The symmetric model.** The fit above let the dispersions of the two
+  exclusive components differ. To impose $`\phi_{x1} = \phi_{x2}`$
+  instead, route both through one non-linear parameter —
+  `nlf(shapexone ~ shapexx)`, `nlf(shapextwo ~ shapexx)`, `shapexx ~ 1`,
+  with `nl = TRUE` — and set its prior with `nlpar = "shapexx"`. That is
+  the model this package fitted under a single `shapex` dpar before
+  0.10.0, term for term.
 - [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md)
   — for data where the first count is missing on some rows. It is the
   same family: same name, same six dpars, same likelihood and the same
@@ -360,8 +358,9 @@ family method, as do
   which means a value known to lie in a set.
 - The $`(M, f, \delta)`$**reparameterisation** — the midpoint $`M`$ of
   the two expected counts, congruence $`f`$, and source bias $`\delta`$,
-  with the dispersions on an SD scale $`\kappa = 1/\sqrt{\phi}`$ where
-  $`\kappa = 0`$ is the Poisson limit. It is fitted through
+  with the inverse dispersions converted to overdispersions
+  $`\kappa = 1/\sqrt{\phi}`$, where $`\kappa = 0`$ is the Poisson limit.
+  It is fitted through
   [`nlf()`](https://paulbuerkner.com/brms/reference/brmsformula-helpers.html)
   rather than a separate family, and
   [`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_mfd_to_dpars.md)

@@ -26,31 +26,31 @@ the shared component (`mu`, `shapes`), the rate and dispersion of the
 second source (`lambdatwo`, `shapextwo`), and any group-level effects.
 
 **Imputation after fitting.** The fitted model can impute the unobserved
-first count conditional on the observed second one, which is usually why
-someone wanted this.
+first count conditional on the observed second count.
 [`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
 and
 [`posterior_epred()`](https://mc-stan.org/rstantools/reference/posterior_epred.html)
 return a `y1` draw and `E[y1 | y2]` for *every* row, paired and unpaired
 alike – `y1_obs` selects a likelihood branch, not a prediction.
 
-**A design consequence, worth knowing before the data are collected.**
-The rate `lambdaone` and excess dispersion `shapexone` of the first
-source appear only on the paired branch, so they are identified by the
-paired rows *alone*. A design with 20 paired rows in 500 learns them
-weakly and leans on their priors. `mu`, `shapes`, `lambdatwo` and
-`shapextwo` appear on both branches and are informed by every row.
+**Parameters identified only by the paired rows.** The rate `lambdaone`
+and dispersion `shapexone` of the first source appear only on the paired
+branch, so `lambdaone` and `shapexone` are identified by the paired rows
+alone. With 20 paired rows in 500, the posteriors of `lambdaone` and
+`shapexone` are wide and depend strongly on their priors. `mu`,
+`shapes`, `lambdatwo` and `shapextwo` appear on both branches and are
+informed by every row.
 
-**This is not censoring in the brms sense.** The brms `cens()` addition
-term means a value known to lie in a set – `left`, `right`, `interval`.
-Here the first count is not observed at all and the likelihood
-marginalises over its whole support. This family was called
-`binegbin_cens()` up to 0.9.1; the name was wrong and was changed at
-0.10.0. Do not combine this family with `cens()`.
+**Relation to censoring in brms.** brms uses the `cens()` addition term
+for a value known to lie in a set (`left`, `right` or `interval`). On an
+unpaired row, the first count is not observed at all, and the likelihood
+marginalises over its whole support. `binegbin_partialobs()` was called
+`binegbin_cens()` up to 0.9.1. Do not combine `binegbin_partialobs()`
+with `cens()`.
 
 Use in a brm() call as: brm( bf(y1 \| vint(y2, y1_obs) ~ 1, mu ~ 1 + (1
-\| vessel) + (1 \| vessel:trip_id), nlf(lambdaone ~ lamx + methd),
-nlf(lambdatwo ~ lamx - methd), lamx ~ 1, methd ~ 1, shapes ~ 1,
+\| vessel) + (1 \| vessel:trip_id), nlf(lambdaone ~ lamx + delta),
+nlf(lambdatwo ~ lamx - delta), lamx ~ 1, delta ~ 1, shapes ~ 1,
 shapexone ~ 1, shapextwo ~ 1, nl = TRUE), family =
 binegbin_partialobs(), stanvars = binegbin_partialobs_stanvars(), data =
 dat )
@@ -75,27 +75,29 @@ either constructor.
 
 ## Details
 
-**One likelihood, two constructors.** This returns the same
-`custom_family` `name` as
+**Shared Stan function and post-processing methods.**
+`binegbin_partialobs()` returns the same `custom_family` `name` as
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md),
-so brms resolves both to one `binegbin_lpmf` and one set of
+so brms resolves both constructors to one `binegbin_lpmf` and one set of
 [`log_lik_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 /
 [`posterior_predict_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
 /
 [`posterior_epred_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-methods. The paired branch of the likelihood is therefore not a second
-copy that can drift from the fully paired one; it is the same code.
+methods. The paired branch of `binegbin_partialobs()` therefore runs the
+same code as
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md).
 
 What differs is `vars`.
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-declares `c("vint1[n]", "1")` and this declares
+declares `c("vint1[n]", "1")` and `binegbin_partialobs()` declares
 `c("vint1[n]", "vint2[n]")`. brms pastes those entries into the
 generated call, so the fully paired model reaches the same Stan function
 with the flag fixed at `1`. The alternative – two Stan functions of the
 same name and different arity – would need user-defined function
 overloading, which arrived in Stan 2.29 (February 2022) and would oblige
-this package to declare a floor on the Stan version. It does not.
+this package to declare a minimum Stan version. `DESCRIPTION` sets no
+minimum version of rstan or cmdstanr.
 
 **Two `vint()` arguments, in declared order.** brms appends `vint()`
 integers to the generated lpmf call in the order they are listed in the
