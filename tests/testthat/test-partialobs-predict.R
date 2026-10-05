@@ -21,8 +21,8 @@
 #    split of N_shared | y2, shapexone governs the fresh N1 added on top -- so
 #    swapping those two lines passed the entire suite. The lpmf has a dedicated
 #    transposition test for exactly this hazard (test-binegbin-dispersions.R,
-#    "swapping both rates and both dispersions transposes the joint"); the
-#    prediction functions had no equivalent.
+#    "swapping both rates and both dispersions transposes the joint");
+#    the prediction functions had no equivalent.
 #
 #    MEASURED, NOT ASSUMED. Injecting that swap into
 #    posterior_predict_binegbin() left 412 R-side assertions across
@@ -30,15 +30,15 @@
 #    test-dpar-compat.R, test-deprecated.R and test-bipois-partialobs.R passing, with
 #    zero failures. The tests below fail on it four times.
 #
-# Every check is therefore run on an UNPAIRED row with the two excess
-# dispersions an order of magnitude apart, and each is paired with a
-# non-vacuity assertion showing it discriminates.
+# Every check is therefore run on an UNPAIRED row with the two
+# exclusive-component dispersions an order of magnitude apart, and each is
+# paired with a non-vacuity assertion showing it discriminates.
 #
 # R-side only -- no Stan compilation, so this runs in the fast suite.
 
 MU <- 5; LONE <- 3; LTWO <- 4; SHAPES <- 2
-SX1 <- 0.6    # y1 excess: strongly overdispersed
-SX2 <- 7      # y2 excess: mildly overdispersed
+SX1 <- 0.6    # y1 exclusive component: strongly overdispersed
+SX2 <- 7      # y2 exclusive component: mildly overdispersed
 Y2  <- 6L
 ND  <- 2e5L
 
@@ -86,10 +86,10 @@ test_that("posterior_predict on an UNPAIRED row reproduces the exact conditional
 })
 
 test_that("the conditional the draws match is NOT the dispersion-swapped one", {
-  # Non-vacuity for the test above, and the check that pins which dispersion
-  # enters the conditional weights and which the added N1 draw. Asserted as a
-  # property of the two pmfs, so it does not depend on the sampler: if these
-  # were close the test above could not discriminate.
+  # Non-vacuity for the test above, and the check that pins which
+  # dispersion enters the conditional weights and which the added N1 draw.
+  # Asserted as a property of the two pmfs, so it does not depend on the
+  # sampler: if these were close the test above could not discriminate.
   xs <- 0:100
   p_true    <- cond_pmf(xs, Y2, SX1, SX2)
   p_swapped <- cond_pmf(xs, Y2, SX2, SX1)
@@ -117,8 +117,9 @@ test_that("y1_obs does not change the draws, paired vs unpaired", {
 test_that("epred equals the mean of its own draws on an unpaired asymmetric row", {
   # The epred convention (see test-epred.R) applied where it has not been
   # checked: unpaired row, shapexone != shapextwo. posterior_epred reads only
-  # shapextwo, so this also pins that it is the dispersion of the SECOND margin
-  # that enters -- reading .SHAPEXONE_NAMES there would pass every other test.
+  # shapextwo, so this also pins that it is the dispersion of the SECOND
+  # margin that enters -- reading .SHAPEXONE_NAMES there would pass every other
+  # test.
   set.seed(20260805)
   draws <- posterior_predict_binegbin(1, asym_prep(vint2 = 0L))
   ep    <- unique(as.vector(posterior_epred_binegbin(asym_prep(vint2 = 0L, ndraws = 2L))))
@@ -135,14 +136,14 @@ test_that("epred equals the mean of its own draws on an unpaired asymmetric row"
 # y2 = 0, where the shared component is degenerate
 # ---------------------------------------------------------------------------
 
-test_that("y2 = 0 makes posterior_predict draw the private component alone", {
+test_that("y2 = 0 makes posterior_predict draw only the exclusive component", {
   # N_shared | y2 = 0 is degenerate at 0, so the draws must be exactly
   # NB2(lambdaone, shapexone). This is the branch posterior_predict_binegbin()
   # short-circuits (`if (y2 == 0) 0L`), needed because sample(0, 1) would draw
   # from 1:0 -- and it was untested for the prediction function, epred aside.
   #
-  # It is also the modal row class in a sparse partially observed design: where y2 = 0 the
-  # imputation draws no information from the observed margin at all.
+  # It is also the modal row class in a sparse partially paired design: where
+  # y2 = 0, the imputation draws no information from the observed margin at all.
   set.seed(20260805)
   draws <- posterior_predict_binegbin(1, asym_prep(vint2 = 0L, y2 = 0L))
   expect_length(draws, ND)
@@ -163,22 +164,22 @@ test_that("y2 = 0 makes posterior_predict draw the private component alone", {
 #
 # Everything above runs through a two-vint prep. Most users will never build
 # one: a fully paired design calls binegbin(), passes vint(y2) alone, and lands
-# on a prep with no vint2 at all. That path uses the identical dispersion
-# routing and, before 0.10.0, could not be tested at all -- binegbin() had a
-# single shapex, so shapexone and shapextwo resolved to the same number and no
-# exchange of them was observable.
+# on a prep with no vint2 at all. That path uses the identical
+# dispersion routing and, before 0.10.0, could not be tested at all --
+# binegbin() had a single shapex, so shapexone and shapextwo resolved to the
+# same number and no exchange of them was observable.
 #
 # Two blocks above are deliberately not mirrored here:
 #
-#   "the conditional ... is NOT the dispersion-swapped one" is a property of
-#   the reference pmf alone, not of any method, so it holds for both shapes and
-#   is asserted once.
+#   "the conditional ... is NOT the dispersion-swapped one" is a
+#   property of the reference pmf alone, not of any method, so it holds for both
+#   shapes and is asserted once.
 #
 #   "y1_obs does not change the draws" has no one-vint counterpart -- there is
 #   no flag on this path. Its cross-shape analogue, that the one-vint answer
 #   equals the two-vint answer at y1_obs = 1, is tested in test-unified-vint.R.
 
-# The same fixture with no vint2, which is what vint(y2) alone produces.
+# The same fixture with no vint2, as vint(y2) alone produces.
 asym_prep_paired <- function(y2 = Y2, sx1 = SX1, sx2 = SX2, ndraws = ND) {
   asym_prep(vint2 = NULL, y2 = y2, sx1 = sx1, sx2 = sx2, ndraws = ndraws)
 }
@@ -199,9 +200,9 @@ test_that("posterior_predict on a ONE-VINT row reproduces the exact conditional"
 })
 
 test_that("epred equals the mean of its own draws on a one-vint asymmetric row", {
-  # Pins that posterior_epred_binegbin() reads shapextwo for the conditional
-  # split, exactly as its two-vint counterpart does. Before 0.10.0 there was
-  # one dispersion here and nothing to get wrong; there are now two.
+  # Pins that posterior_epred_binegbin() uses shapextwo, not shapexone, for the
+  # split of y2 into shared and exclusive counts on the one-vint path, as on the
+  # two-vint path.
   set.seed(20260805)
   draws <- posterior_predict_binegbin(1, asym_prep_paired())
   ep    <- unique(as.vector(posterior_epred_binegbin(asym_prep_paired(ndraws = 2L))))
@@ -214,7 +215,7 @@ test_that("epred equals the mean of its own draws on a one-vint asymmetric row",
   expect_gt(abs(wrong - ep), 0.1)
 })
 
-test_that("y2 = 0 on the one-vint path draws the private component alone", {
+test_that("y2 = 0 on the one-vint path draws only the exclusive component", {
   set.seed(20260805)
   draws <- posterior_predict_binegbin(1, asym_prep_paired(y2 = 0L))
   expect_length(draws, ND)
@@ -248,9 +249,9 @@ test_that("log_lik on the one-vint path routes the two dispersions correctly", {
 })
 
 test_that("bipois predicts and expects the same on one-vint and two-vint preps", {
-  # The Poisson families have no dispersion to misroute, so what is at stake
-  # here is only that the one-vint prep is handled at all -- the shape nothing
-  # tested before 0.10.0.
+  # The Poisson families have no dispersion to misroute, so what is at
+  # stake here is only that the one-vint prep is handled at all -- the shape
+  # nothing tested before 0.10.0.
   pois_prep <- function(v2) make_synthetic_prep(
     dpars = list(mu = rep(MU, 500L), lambdaone = rep(LONE, 500L),
                  lambdatwo = rep(LTWO, 500L)),
@@ -280,14 +281,14 @@ test_that("bipois predicts and expects the same on one-vint and two-vint preps",
 #
 # 2. NO FIT-LEVEL TEST THAT UNPAIRED ROWS DO NOT SHARPEN `shapexone`.
 #    test-binegbin-dispersions.R pins at the LIKELIHOOD level that shapexone is
-#    absent from the y2-only branch. The predictive counterpart is a property of
-#    a fit: as the paired fraction falls, the posteriors for lambdaone and
+#    absent from the unpaired branch. The predictive counterpart is a property
+#    of a fit: as the paired fraction falls, the posteriors for lambdaone and
 #    shapexone must WIDEN, and the imputation intervals with them. If adding
-#    y2-only rows tightened shapexone, the unpaired branch would be leaking
-#    information it cannot have. Needs Stan and several fits, so it belongs
-#    behind BICOUNTBRMS_COVERAGE, reusing the compile-once /
-#    update(recompile = FALSE) pattern from coverage_recovery() in
-#    helper-coverage.R. Still needs a concrete spec: which paired fractions,
+#    unpaired rows tightened shapexone, the unpaired branch would be informing
+#    shapexone, on which its likelihood term does not depend. Needs Stan and
+#    several fits, so it belongs behind BICOUNTBRMS_COVERAGE, reusing the
+#    compile-once / update(recompile = FALSE) pattern from coverage_recovery()
+#    in helper-coverage.R. Still needs a concrete spec: which paired fractions,
 #    how many replicates, and what counts as a failure.
 #
 # 3. PREDICTIVE COVERAGE UNDER CORRECT SPECIFICATION IS DELIBERATELY NOT HERE.

@@ -17,39 +17,41 @@ binegbin_dpars_to_mfd(
 \arguments{
 \item{mu}{Shared-component rate.}
 
-\item{lambdaone, lambdatwo}{The two excess rates.}
+\item{lambdaone, lambdatwo}{The rates of the two source-exclusive components.}
 
-\item{shapes, shapex}{Optional NB2 dispersions. If supplied, the returned list
-gains \code{kappas}/\code{kappax} (\verb{= 1/sqrt(shape)}, so \code{shape = Inf} gives \code{0}).
-\code{shapex} is the single excess dispersion declared by a \code{binegbin} fit made
-before 0.10.0, when one dpar governed both margins; no shipping family
-takes it now. A fit of \code{\link[=bipois]{bipois()}} or \code{\link[=bipois_partialobs]{bipois_partialobs()}} has no
-dispersion to pass: read its three rates alone.}
+\item{shapes, shapex}{Optional NB2 inverse dispersions. If supplied, the
+returned list gains \code{kappas}/\code{kappax} (\verb{= 1/sqrt(shape)}, so \code{shape = Inf}
+gives \code{0}). \code{shapex} is the single dispersion of both exclusive
+components, declared by a \code{binegbin} fit made before 0.10.0;
+no shipping family takes it now. A fit of \code{\link[=bipois]{bipois()}} or
+\code{\link[=bipois_partialobs]{bipois_partialobs()}} has no dispersion to pass: read its three
+rates alone.}
 
-\item{shapexone, shapextwo}{Optional per-margin NB2 excess dispersions, as
-taken by both negative-binomial constructors since 0.10.0. If supplied,
-the returned list gains \code{kappaxone}/\code{kappaxtwo}. Mutually exclusive with
-\code{shapex}, which is the same quantity under its older name.}
+\item{shapexone, shapextwo}{Optional NB2 inverse dispersions of the exclusive
+components, as taken by both negative-binomial constructors since 0.10.0.
+If supplied, the returned list gains \code{kappaxone}/\code{kappaxtwo}. Mutually
+exclusive with \code{shapex}, which is the same quantity under its older name.}
 }
 \value{
 A named list of \code{M}, \code{f}, \code{delta}, plus \code{beta} (the bounded bias
 \code{tanh(delta)}), \code{kappas}/\code{kappax} when \code{shapes}/\code{shapex} are supplied, and
-\code{kappaxone}/\code{kappaxtwo} when \code{shapexone}/\code{shapextwo} are.
+\code{kappaxone}/\code{kappaxtwo} when \code{shapexone}/\code{shapextwo} are supplied.
 }
 \description{
 Inverse of \code{\link[=binegbin_mfd_to_dpars]{binegbin_mfd_to_dpars()}}. Reads the rate dpars \code{mu},
 \code{lambdaone}, \code{lambdatwo} back into the interpretable coordinates: the
 midpoint \code{M} of the two expected counts, congruence \code{f}, and source bias
-\code{delta}, optionally converting NB2 dispersions back to the SD scale.
+\code{delta}, optionally converting NB2 inverse dispersions to overdispersions.
 
 As with the forward direction, the three rates are common to \code{\link[=bipois]{bipois()}},
 \code{\link[=bipois_partialobs]{bipois_partialobs()}}, \code{\link[=binegbin]{binegbin()}} and \code{\link[=binegbin_partialobs]{binegbin_partialobs()}}, so this
 serves all four constructors; only the dispersion arguments differ.
 
 This direction reads a \emph{stored fit}, so it accepts \code{shapex} -- the single
-excess dispersion declared by every \code{binegbin} fit made before 0.10.0 -- as well
-as the current \code{shapexone}/\code{shapextwo}. The forward direction writes only
-current names; see its documentation for why the two differ.
+dispersion of both exclusive components, declared by every
+\code{binegbin} fit made before 0.10.0 -- as well as the current
+\code{shapexone}/\code{shapextwo}. The forward direction writes only current names;
+see its documentation for why the two directions differ.
 }
 \details{
 Arguments are recycled to a common length, so this vectorises over posterior
@@ -58,11 +60,11 @@ draws -- e.g. to convert a whole posterior into interpretable coordinates.
 \strong{Boundary behaviour}, which the forward direction does not have:
 \itemize{
 \item \verb{lambdaone == lambdatwo == 0} (perfect congruence, \code{f = 1}): the bias is
-genuinely unidentified -- there is no excess to be biased -- and \code{delta} is
-returned as \code{NA}, not \code{0}. Zero would assert an unbiased source, which the
-data at that point cannot support.
+genuinely unidentified -- there are no exclusive events to be biased -- and
+\code{delta} is returned as \code{NA}, not \code{0}. Zero would assert an unbiased source,
+which the data at that point cannot support.
 \item \code{M == 0} (nothing anywhere): \code{f} is undefined and returned as \code{NA}.
-\item Exactly one excess rate \code{0}: \code{delta} is \verb{+/-Inf}, the well-defined limit
+\item Exactly one exclusive rate \code{0}: \code{delta} is \verb{+/-Inf}, the well-defined limit
 where one source never records an unshared event.
 }
 

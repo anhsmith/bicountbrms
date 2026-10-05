@@ -12,10 +12,9 @@
 # The second entry of `vars` in the plain constructor is not a variable. It is a
 # literal that brms pastes into the generated call, so the fully paired model
 # reaches the same lpmf with y1_obs fixed at 1 and never asks the user for a
-# flag column. The literal is what gives one Stan function instead of two overloaded
-# ones, and with it a package that needs no floor on the Stan version -- user
-# defined function overloading arrived in Stan 2.29, and DESCRIPTION sets no
-# floor on rstan or cmdstanr.
+# flag column. Because of the literal, both constructors call one Stan
+# function, so the package needs no user-defined function overloading (Stan
+# 2.29 or later) and DESCRIPTION sets no minimum version of rstan or cmdstanr.
 #
 # WHY THIS FILE EXISTS. The mechanism depends on brms behaviour that is not a
 # documented guarantee. custom_family() validates `vars` no further than
@@ -142,12 +141,12 @@ test_that("both negative-binomial constructors declare the full six dpars", {
 })
 
 # ---------------------------------------------------------------------------
-# The symmetric special case: tying the two excess dispersions
+# The symmetric special case: tying the two exclusive-component dispersions
 # ---------------------------------------------------------------------------
 #
 # binegbin() declares shapexone and shapextwo separately from 0.10.0. The way
-# back to the single-dispersion model is a FORMULA constraint, routing both
-# through one non-linear parameter:
+# back to the single-dispersion model is a FORMULA constraint, routing
+# both through one non-linear parameter:
 #
 #   nlf(shapexone ~ shapexx), nlf(shapextwo ~ shapexx), shapexx ~ 1
 #

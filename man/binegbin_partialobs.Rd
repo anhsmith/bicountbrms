@@ -38,36 +38,36 @@ same model},
 \verb{P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo)} --
 the joint with the \code{y1} term integrated out over its whole support. It is
 not dropped, and it is not given a different model: it still informs the
-shared component (\code{mu}, \code{shapes}), the rate and dispersion of the second
-source (\code{lambdatwo}, \code{shapextwo}), and any group-level effects.
+shared component (\code{mu}, \code{shapes}), the rate and dispersion of the
+second source (\code{lambdatwo}, \code{shapextwo}), and any group-level effects.
 
 \strong{Imputation after fitting.} The fitted model can impute the unobserved
-first count conditional on the observed second one, which is usually why
-someone wanted this. \code{posterior_predict()} and \code{posterior_epred()} return a
-\code{y1} draw and \code{E[y1 | y2]} for \emph{every} row, paired and unpaired alike --
-\code{y1_obs} selects a likelihood branch, not a prediction.
+first count conditional on the observed second count. \code{posterior_predict()}
+and \code{posterior_epred()} return a \code{y1} draw and \code{E[y1 | y2]} for \emph{every} row,
+paired and unpaired alike -- \code{y1_obs} selects a likelihood branch, not a
+prediction.
 
-\strong{A design consequence, worth knowing before the data are collected.} The
-rate \code{lambdaone} and excess dispersion \code{shapexone} of the first source
-appear only on the paired branch, so they are identified by the paired
-rows \emph{alone}. A design with 20 paired rows in 500 learns them weakly and
-leans on their priors. \code{mu}, \code{shapes}, \code{lambdatwo} and \code{shapextwo} appear
-on both branches and are informed by every row.
+\strong{Parameters identified only by the paired rows.} The rate \code{lambdaone} and
+dispersion \code{shapexone} of the first source appear only on the paired
+branch, so \code{lambdaone} and \code{shapexone} are identified by the paired rows
+alone. With 20 paired rows in 500, the posteriors of \code{lambdaone} and
+\code{shapexone} are wide and depend strongly on their priors. \code{mu}, \code{shapes},
+\code{lambdatwo} and \code{shapextwo} appear on both branches and are informed by
+every row.
 
-\strong{This is not censoring in the brms sense.} The brms \code{cens()} addition term
-means a value known to lie in a set -- \code{left}, \code{right}, \code{interval}. Here the
-first count is not observed at all and the likelihood marginalises over its
-whole support. This family was called \code{binegbin_cens()} up to 0.9.1; the
-name was wrong and was changed at 0.10.0. Do not combine this family with
-\code{cens()}.
+\strong{Relation to censoring in brms.} brms uses the \code{cens()} addition term for a
+value known to lie in a set (\code{left}, \code{right} or \code{interval}). On an unpaired
+row, the first count is not observed at all, and the likelihood marginalises
+over its whole support. \code{binegbin_partialobs()} was called \code{binegbin_cens()}
+up to 0.9.1. Do not combine \code{binegbin_partialobs()} with \code{cens()}.
 
 Use in a brm() call as:
 brm(
 bf(y1 | vint(y2, y1_obs) ~ 1,
 mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
-nlf(lambdaone ~ lamx + methd),
-nlf(lambdatwo ~ lamx - methd),
-lamx ~ 1, methd ~ 1,
+nlf(lambdaone ~ lamx + delta),
+nlf(lambdatwo ~ lamx - delta),
+lamx ~ 1, delta ~ 1,
 shapes ~ 1, shapexone ~ 1, shapextwo ~ 1, nl = TRUE),
 family   = binegbin_partialobs(),
 stanvars = binegbin_partialobs_stanvars(),
@@ -75,20 +75,21 @@ data     = dat
 )
 }
 \details{
-\strong{One likelihood, two constructors.} This returns the same
-\code{custom_family} \code{name} as \code{\link[=binegbin]{binegbin()}}, so brms resolves both to one
-\code{binegbin_lpmf} and one set of \code{log_lik_binegbin()} /
-\code{posterior_predict_binegbin()} / \code{posterior_epred_binegbin()} methods. The
-paired branch of the likelihood is therefore not a second copy that can
-drift from the fully paired one; it is the same code.
+\strong{Shared Stan function and post-processing methods.}
+\code{binegbin_partialobs()} returns the same \code{custom_family} \code{name} as
+\code{\link[=binegbin]{binegbin()}}, so brms resolves both constructors to one \code{binegbin_lpmf} and
+one set of \code{log_lik_binegbin()} / \code{posterior_predict_binegbin()} /
+\code{posterior_epred_binegbin()} methods. The paired branch of
+\code{binegbin_partialobs()} therefore runs the same code as \code{\link[=binegbin]{binegbin()}}.
 
-What differs is \code{vars}. \code{\link[=binegbin]{binegbin()}} declares \code{c("vint1[n]", "1")} and this
-declares \code{c("vint1[n]", "vint2[n]")}. brms pastes those entries into the
-generated call, so the fully paired model reaches the same Stan function
-with the flag fixed at \code{1}. The alternative -- two Stan functions of the
-same name and different arity -- would need user-defined function
-overloading, which arrived in Stan 2.29 (February 2022) and would oblige
-this package to declare a floor on the Stan version. It does not.
+What differs is \code{vars}. \code{\link[=binegbin]{binegbin()}} declares \code{c("vint1[n]", "1")} and
+\code{binegbin_partialobs()} declares \code{c("vint1[n]", "vint2[n]")}. brms pastes
+those entries into the generated call, so the fully paired model reaches
+the same Stan function with the flag fixed at \code{1}. The alternative -- two
+Stan functions of the same name and different arity -- would need
+user-defined function overloading, which arrived in Stan 2.29 (February
+2022) and would oblige this package to declare a minimum Stan version.
+\code{DESCRIPTION} sets no minimum version of rstan or cmdstanr.
 
 \strong{Two \code{vint()} arguments, in declared order.} brms appends \code{vint()}
 integers to the generated lpmf call in the order they are listed in the

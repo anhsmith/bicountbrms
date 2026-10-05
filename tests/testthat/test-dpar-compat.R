@@ -1,7 +1,7 @@
 # Regression tests for the pre-0.7.0 dpar-name fallback (.get_rate).
 #
-# 0.7.0 renamed the excess-rate dpars lambdaem/lambdalb of the joint families to
-# lambdaone/lambdatwo. A brmsfit stores its OWN family object, so
+# 0.7.0 renamed the exclusive-rate dpars lambdaem/lambdalb of the joint families
+# to lambdaone/lambdatwo. A brmsfit stores its OWN family object, so
 # prepare_predictions() on a fit made before the rename hands post-processing a
 # prep whose dpars use the old names. Every rate read in bipois/bipois_partialobs/
 # binegbin/binegbin_partialobs therefore goes through .get_rate(), which resolves the name
@@ -80,10 +80,10 @@ test_that("posterior_epred is identical under old and new rate-dpar names", {
   )
   # binegbin_partialobs gained a posterior_epred at 0.9.0, so a pre-existing fit is
   # post-processed by code it never ran under. It resolves both rates through
-  # .get_rate() and its excess dispersion through .SHAPEXTWO_NAMES, whose last
-  # candidate is the five-dpar `shapex` supplied by mk() -- the same fallback
-  # log_lik and posterior_predict already rely on. bipois_partialobs is not tested
-  # here: it is new at 0.9.0, so no fit can use the old spellings.
+  # .get_rate() and its exclusive-component dispersion through .SHAPEXTWO_NAMES,
+  # whose last candidate is the five-dpar `shapex` supplied by mk() -- the same
+  # fallback log_lik and posterior_predict already rely on. bipois_partialobs is
+  # not tested here: it is new at 0.9.0, so no fit can use the old spellings.
   expect_equal(
     posterior_epred_binegbin(mk(OLD, vint2 = V2)),
     posterior_epred_binegbin(mk(NEW, vint2 = V2))
@@ -135,12 +135,12 @@ test_that("a prep with neither rate-dpar spelling errors informatively", {
 #
 #   mu, lambdaem, lambdalb, shapes, shapex          (vint1 only, no vint2)
 #
-# -- pre-0.7.0 RATE names as well as the single dispersion. Three independent
-# fallbacks have to line up for those to keep working:
+# -- pre-0.7.0 RATE names as well as the single dispersion. Three
+# independent fallbacks have to line up for those to keep working:
 #
 #   1. .get_rate() resolves lambdaem/lambdalb to the one/two positions;
 #   2. .SHAPEXONE_NAMES and .SHAPEXTWO_NAMES both list `shapex` last, so both
-#      per-margin dispersions resolve to the one the fit has;
+#      per-margin dispersions resolve to the single `shapex` of the fit;
 #   3. an absent vint2 selects the paired branch.
 #
 # mk(OLD) is that prep exactly. The blocks above already pin (1); these pin
@@ -170,7 +170,7 @@ test_that("the stored five-dpar answer equals the six-dpar answer with dispersio
   # The composition test. A single `shapex` must mean exactly what supplying
   # shapexone == shapextwo == shapex means, in all three methods. If either
   # .SHAPEX*_NAMES vector stopped falling through to `shapex`, or fell through
-  # to a different dpar, this is what would catch it.
+  # to a different dpar, this test would fail.
   stored <- mk(OLD)
   tied <- make_synthetic_prep(
     dpars = list(mu = v$mu, lambdaone = v$one, lambdatwo = v$two,
@@ -187,9 +187,9 @@ test_that("the stored five-dpar answer equals the six-dpar answer with dispersio
   }
   expect_equal(posterior_epred_binegbin(stored), posterior_epred_binegbin(tied))
 
-  # Not vacuous: untying the two dispersions changes both. shapextwo is taken
-  # two orders below shapex rather than a small multiple above it -- at these
-  # rates the likelihood is nearly flat in the direction of LESS
+  # Not vacuous: untying the two dispersions changes both. shapextwo is
+  # taken two orders below shapex rather than a small multiple above it -- at
+  # these rates the likelihood is nearly flat in the direction of LESS
   # overdispersion (shapex = 5 is already close to the Poisson limit for a
   # mean of 2), so an 8x increase moves log_lik by only ~4e-4 and would make
   # this assertion a coin toss.

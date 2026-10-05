@@ -114,8 +114,7 @@ coverage_floor <- function(R, level = 0.9, alpha = 0.01) {
 # Refit `fit` on R fresh datasets from `sim` and return, per parameter, the
 # proportion of replicates whose `level` interval contained the truth.
 #
-# `fit`    a brmsfit to reuse -- reusing its COMPILED Stan model is what keeps this
-#          affordable. update(recompile = FALSE) re-runs sampling only;
+# `fit`    a brmsfit to reuse. update(recompile = FALSE) re-runs sampling only;
 #          measured on the binegbin model in this package, compiling costs ~66 s
 #          and each refit ~15 s, so R = 10 is ~3.5 min rather than ~11. stanvars
 #          survive the update (verified), which is why a custom family can be

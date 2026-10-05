@@ -1,14 +1,13 @@
 # tests/testthat/test-binegbin-dispersions.R
 #
-# The two source-specific excess dispersions, `shapexone` and `shapextwo`.
+# The dispersions of the two exclusive components, `shapexone` and
+# `shapextwo`.
 #
-# 0.8.0 split the single `shapex` into the pair, for the partially observed
-# family only. 0.10.0 gives the pair to `binegbin()` as well -- which is the
-# right way round, and the reason that release exists. Under partial
-# observation `shapexone` is integrated out of the y2-only branch and so rests
-# on the paired rows alone; under full pairing every row informs both, so that
-# is the case in which they are easiest to identify. It was the case that
-# lacked the capability.
+# 0.8.0 split the single `shapex` into `shapexone` and `shapextwo` in
+# `binegbin_partialobs()` only. 0.10.0 made the same split in `binegbin()`.
+# Under partial observation, `shapexone` is integrated out of the unpaired
+# branch and so is identified by the paired rows alone. Under full pairing,
+# every row informs both `shapexone` and `shapextwo`.
 #
 # Recovery is therefore tested twice at the bottom of this file, once per
 # constructor. Everything above it is shared: the likelihood is the same
@@ -19,13 +18,14 @@
 #   1. The asymmetric likelihood is a proper pmf and keeps the marginal
 #      identity -- i.e. freeing the dispersions did not break the
 #      construction.
-#   2. The STRUCTURE of the split: shapexone governs the y1 excess only, so it
-#      must be absent from the y2-only branch, and swapping the two
-#      dispersions must be equivalent to swapping the two rates.
+#   2. The STRUCTURE of the split: shapexone governs the source-1-exclusive
+#      component only, so it must be absent from the unpaired branch, and
+#      swapping the two dispersions must be equivalent to swapping the
+#      two rates.
 #   3. Non-regression: with shapexone == shapextwo the six-dpar likelihood is
 #      the pre-0.8.0 five-dpar one, and a five-dpar prep still resolves to both
-#      excess dispersions without a shim.
-#   4. Recovery of two genuinely different dispersions from simulated data.
+#      exclusive-component dispersions without a shim.
+#   4. Recovery of two different dispersions from simulated data.
 #
 # Everything here is self-contained: (1)-(3) need only R, (4) needs Stan.
 # Agreement with the project-local family this release absorbs was a one-off
@@ -39,9 +39,9 @@
 # never exceed it. Asserted one-sided for that reason: an upper bound of
 # exactly 1 catches double-counting, which a symmetric tolerance would let
 # through, while the lower bound absorbs the tail beyond K. The allowance has
-# to be loose because a small dispersion is heavy-tailed -- at shapex = 0.4
-# and lambda = 6 the mass past y = 150 is ~2e-5, and pushing K far enough to
-# remove it costs K^2 evaluations of an inner sum.
+# to be loose because a small inverse dispersion is heavy-tailed -- at
+# shapex = 0.4 and lambda = 6 the mass past y = 150 is ~2e-5, and pushing K far
+# enough to remove it costs K^2 evaluations of an inner sum.
 expect_normalises <- function(mass, tol = 1e-4, label = NULL) {
   testthat::expect_lte(mass, 1 + 1e-9, label = label)
   testthat::expect_gt(mass, 1 - tol, label = label)
@@ -66,7 +66,7 @@ test_that("paired branch normalises to 1 with shapexone != shapextwo", {
   }
 })
 
-test_that("y2-only branch normalises to 1 over y2 with shapexone != shapextwo", {
+test_that("unpaired branch normalises to 1 over y2 with shapexone != shapextwo", {
   # One dimension only, so K can be pushed far enough for a tight bound.
   norm_check <- function(mu, ltwo, ss, sx1, sx2, K = 4000) {
     ys <- 0:K
@@ -79,12 +79,12 @@ test_that("y2-only branch normalises to 1 over y2 with shapexone != shapextwo", 
 
 test_that("moment identities hold with shapexone != shapextwo", {
   # The variance structure the README states for the asymmetric family. Each
-  # margin picks up its OWN excess dispersion; the covariance picks up neither,
-  # because only the shared component contributes to it. Computed by exact
-  # summation over the joint pmf rather than by simulation, so this is an
+  # margin picks up its OWN exclusive-component dispersion; the covariance picks
+  # up neither, because only the shared component contributes to it. Computed by
+  # exact summation over the joint pmf rather than by simulation, so this is an
   # identity check to machine precision, not a Monte Carlo one -- the pmf has
   # converged to 1 well inside the grid for these parameters (mass = 1 to
-  # ~1e-16), which is what licenses the tight tolerance.
+  # ~1e-16).
   #
   # A swapped shapexone/shapextwo would show up here as Vy1 and Vy2 trading
   # values, independently of the transposition check further down.
@@ -106,11 +106,13 @@ test_that("moment identities hold with shapexone != shapextwo", {
     expect_equal(sum(p * g$y2^2) - Ey2^2,
                  nb_var(mu, ss) + nb_var(l2, sx2),
                  tolerance = 1e-8, label = paste("Var(y2):", lab))
-    # Cov depends on the shared component alone -- neither excess dispersion.
+    # Cov depends on the shared component alone -- neither exclusive-component
+    # dispersion.
     expect_equal(sum(p * g$y1 * g$y2) - Ey1 * Ey2,
                  nb_var(mu, ss),
                  tolerance = 1e-8, label = paste("Cov:", lab))
-    # Var(d) = the two excess variances summed; the shared count cancels.
+    # Var(d) = the variances of the two exclusive components summed; the shared
+    # count cancels.
     d <- g$y1 - g$y2
     expect_equal(sum(p * d^2) - sum(p * d)^2,
                  nb_var(l1, sx1) + nb_var(l2, sx2),
@@ -122,7 +124,7 @@ test_that("moment identities hold with shapexone != shapextwo", {
 })
 
 test_that("marginal identity holds under asymmetry", {
-  # Integrating the paired branch over all y1 must reproduce the y2-only
+  # Integrating the paired branch over all y1 must reproduce the unpaired
   # branch. This is the identity that makes the unpaired rows coherent with
   # the paired ones, and it must survive the dispersions being freed.
   mu <- 6; lone <- 3; ltwo <- 4; ss <- 2; sx1 <- 0.6; sx2 <- 7
@@ -143,11 +145,11 @@ test_that("marginal identity holds under asymmetry", {
 # 2. Structure of the split
 # -----------------------------------------------------------------------
 
-test_that("shapexone does not enter the y2-only branch", {
+test_that("shapexone does not enter the unpaired branch", {
   # The y1 margin is integrated out on y1_obs == 0 rows, taking its
-  # dispersion with it. If shapexone leaked into that branch the two calls
-  # below would differ -- and shapexone would be spuriously informed by the
-  # unpaired rows, which is exactly the identifiability claim the docs make.
+  # dispersion with it. If shapexone leaked into that branch the two
+  # calls below would differ -- and shapexone would be spuriously informed by
+  # the unpaired rows, which is exactly the identifiability claim the docs make.
   base <- binegbin_lpmf_r(0L, 0:20, y1_obs = 0L, 6, 3, 4, 2, sx1 <- 0.5, 7)
   for (alt in c(0.01, 1, 100, 1e4)) {
     expect_identical(
@@ -179,10 +181,10 @@ test_that("swapping both rates and both dispersions transposes the joint", {
 # -----------------------------------------------------------------------
 
 test_that("shapexone == shapextwo reproduces the five-dpar likelihood exactly", {
-  # The pre-0.8.0 family is this one under the constraint. Checked against
-  # binegbin_lpmf_r (the single-dispersion reference, untouched by 0.8.0) on
-  # the paired branch, and against the defaulted eight-argument call on
-  # both.
+  # The pre-0.8.0 family is binegbin with shapexone == shapextwo. Checked
+  # against binegbin_lpmf_r (the single-dispersion reference, untouched
+  # by 0.8.0) on the paired branch, and against the defaulted eight-argument
+  # call on both branches.
   grid <- expand.grid(mu = c(0.5, 3, 12), lone = c(0.5, 2, 6),
                       ltwo = c(0.5, 2, 6), ss = c(0.8, 3), sx = c(0.8, 3))
   ys <- 0:15
@@ -206,7 +208,7 @@ test_that("shapextwo defaults to shapexone (eight-argument calls are symmetric)"
   )
 })
 
-test_that("a five-dpar prep resolves `shapex` to BOTH excess dispersions", {
+test_that("a five-dpar prep resolves `shapex` to BOTH exclusive-component dispersions", {
   # The stored-fit compatibility path, without needing a stored fit: a prep
   # declaring only the pre-0.8.0 `shapex` must behave exactly like one
   # declaring shapexone == shapextwo == that value. This fallback lets
@@ -255,7 +257,7 @@ test_that("a prep in the project-local ax spelling resolves to the package names
                                 log_lik_binegbin(1, flip))))
 })
 
-test_that("a prep with no recognisable excess dispersion errors informatively", {
+test_that("a prep with no recognisable exclusive-component dispersion errors informatively", {
   bad <- make_synthetic_prep(
     list(mu = 6, lambdaone = 3, lambdatwo = 2, shapes = 4, shapeZ = 5),
     Y = 5L, vint1 = 4L, vint2 = 1L)
@@ -317,7 +319,7 @@ test_that("Stan binegbin_lpmf matches the R reference with shapexone != shapextw
 # the comparison passes it can only change if THIS package changes, and the
 # package-side property is already pinned above without any external dependency
 # (the Stan-vs-R asymmetric grid, the marginal identity, the transposition
-# check, and the absence of shapexone from the y2-only branch).
+# check, and the absence of shapexone from the unpaired branch).
 
 test_that("binegbin_partialobs recovers shapexone and shapextwo when they differ", {
   skip_on_cran()
@@ -335,8 +337,8 @@ test_that("binegbin_partialobs recovers shapexone and shapextwo when they differ
   true_lone       <- 6
   true_ltwo       <- 6
   true_shapes     <- 3
-  true_shapexone  <- 0.7   # y1 excess: strongly overdispersed
-  true_shapextwo  <- 6.0   # y2 excess: mildly overdispersed
+  true_shapexone  <- 0.7   # y1 exclusive component: strongly overdispersed
+  true_shapextwo  <- 6.0   # y2 exclusive component: mildly overdispersed
   # An order of magnitude apart, so "both recovered" is a claim about the
   # split and not about a shared value being found twice.
 
@@ -349,7 +351,7 @@ test_that("binegbin_partialobs recovers shapexone and shapextwo when they differ
   n2       <- rnbinom(n, size = true_shapextwo, mu = true_ltwo)
 
   # shapexone is identified ONLY by the paired rows (it is integrated out of
-  # the y2-only branch), so the design keeps a clear majority paired --
+  # the unpaired branch), so the design keeps a clear majority paired --
   # otherwise this test would measure the prior, not recovery.
   y1_obs <- rep(c(1L, 1L, 1L, 0L), length.out = n)
 
@@ -359,18 +361,22 @@ test_that("binegbin_partialobs recovers shapexone and shapextwo when they differ
   # brms leaves the non-mu dpars of a custom family FLAT AND IMPROPER, and the
   # likelihood for a Negative-Binomial shape is flat towards large values (a
   # big shape is nearly Poisson, so the data cannot distinguish 30 from 300).
-  # With one excess dispersion that is survivable; with two -- one of them,
-  # shapexone, informed only by the paired rows -- it is not: run
-  # unregularised this model produced 680 divergent transitions and a max Rhat
-  # of 1.54, i.e. chains that never mixed. The "Set priors on the dispersions"
-  # section of the README says exactly this.
+  # In the recovery test for the single-dispersion family
+  # (pairedcountbrms 0.7.0; see NEWS), omitting priors produced one divergent
+  # transition and a maximum Rhat of 1.0101, against a gate of 1.01. This model
+  # has two exclusive-component dispersions, of which shapexone is informed only
+  # by the paired rows. Without priors, this model produced 680 divergent
+  # transitions and a maximum Rhat of 1.54: the chains did not mix. The two runs
+  # differ in design as well as in the number of exclusive-component
+  # dispersions, so the comparison is not controlled. The "Choosing priors"
+  # article gives the recommended priors.
   #
   # normal(0, 1.5) on the log scale spans roughly [0.05, 20] at +/- 2 SD,
-  # which contains all three true dispersions (0.7, 3, 6) without favouring
-  # any of them -- it regularises the flat upper tail rather than supplying
-  # the answer. Widening the SD would make it worse, not vaguer: these are log
-  # links, so a wider normal is a heavier-tailed lognormal that puts MORE mass
-  # in the flat region the sampler gets lost in.
+  # which contains all three true dispersions (0.7, 3, 6) without
+  # favouring any of them -- it regularises the flat upper tail rather than
+  # supplying the answer. Widening the SD would make it worse, not vaguer: these
+  # are log links, so a wider normal is a heavier-tailed lognormal that puts
+  # MORE mass in the flat region the sampler gets lost in.
   dispersion_priors <- c(
     brms::prior(normal(2, 1),   class = "Intercept"),
     brms::prior(normal(2, 1),   class = "b",         nlpar = "lamx"),
@@ -444,9 +450,9 @@ test_that("binegbin_partialobs recovers shapexone and shapextwo when they differ
 # The test above fits binegbin_partialobs() on a majority-paired design,
 # because shapexone is identified only by the paired rows there. Under full
 # pairing that constraint is gone: every row enters the paired branch and so
-# informs both dispersions. This is the case the release exists to serve, and
-# before 0.10.0 it could not be expressed at all -- binegbin() had one shapex,
-# so there was nothing to recover separately.
+# informs both dispersions. This is the case the release exists to
+# serve, and before 0.10.0 it could not be expressed at all -- binegbin() had
+# one shapex, so there was nothing to recover separately.
 #
 # Same truths and the same priors as the partially observed fit, so the two are
 # comparable. n is smaller (300 against 400) precisely because full pairing is
@@ -469,8 +475,8 @@ test_that("binegbin recovers shapexone and shapextwo from a fully paired design"
   true_lone       <- 6
   true_ltwo       <- 6
   true_shapes     <- 3
-  true_shapexone  <- 0.7   # y1 excess: strongly overdispersed
-  true_shapextwo  <- 6.0   # y2 excess: mildly overdispersed
+  true_shapexone  <- 0.7   # y1 exclusive component: strongly overdispersed
+  true_shapextwo  <- 6.0   # y2 exclusive component: mildly overdispersed
 
   vessel <- rep(seq_len(n_vessel), each = n_per_vessel)
   z_mu   <- rnorm(n_vessel)
@@ -480,8 +486,8 @@ test_that("binegbin recovers shapexone and shapextwo from a fully paired design"
   n1       <- rnbinom(n, size = true_shapexone, mu = true_lone)
   n2       <- rnbinom(n, size = true_shapextwo, mu = true_ltwo)
 
-  # No y1_obs column anywhere, which is what the plain constructor is for: the
-  # flag reaches Stan as a literal 1 and never enters the data.
+  # The plain constructor passes the flag to Stan as the literal 1, so the data
+  # contain no y1_obs column.
   dat <- data.frame(y1 = n_shared + n1, y2 = n_shared + n2,
                     vessel = factor(vessel))
 
@@ -562,4 +568,5 @@ test_that("binegbin recovers shapexone and shapextwo from a fully paired design"
 # it would mean fitting both at paired n and comparing -- two Stan fits to
 # assert an inequality whose margin is not known in advance. The claim is
 # documented in ?binegbin_partialobs and in the README; what is pinned here is
-# the weaker and more useful fact that both designs recover both dispersions.
+# the weaker and more useful fact that both designs recover both
+# dispersions.

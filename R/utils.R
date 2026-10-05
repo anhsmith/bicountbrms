@@ -6,7 +6,7 @@
 # Reading a rate dpar across the 0.7.0 rename
 # --------------------------------------------------------------------------
 #
-# 0.7.0 renamed the two excess-rate dpars of the joint families,
+# 0.7.0 renamed the two exclusive-rate dpars of the joint families,
 # lambdaem/lambdalb, to lambdaone/lambdatwo (see NEWS). Fits made before that
 # rename declare the OLD names, in a way post-processing cannot route around
 # generically: a brmsfit stores its own family object, so
@@ -25,10 +25,9 @@
 # the fit satisfies both for free.
 #
 # Hence: resolve the name against the fit, then hand that name to brms.
-# Every rate read in every family goes through here -- bipois.R and
-# binegbin.R, under both constructors in each file --
-# which is what lets pre-0.7.0 fits keep working with loo(),
-# posterior_predict() and log_lik() without refitting.
+# Every family reads its rates through this function -- bipois.R and
+# binegbin.R, under both constructors in each file -- so pre-0.7.0 fits work
+# with loo(), posterior_predict() and log_lik() without refitting.
 .get_rate <- function(prep, new, old, i = NULL) {
   .get_dpar_any(prep, c(new, old), i = i)
 }
@@ -38,19 +37,20 @@
 # --------------------------------------------------------------------------
 #
 # The generalisation of .get_rate() to an ordered list of candidate names,
-# needed once 0.8.0 split the single excess dispersion `shapex` of the
-# partially observed family into the per-margin pair `shapexone`/`shapextwo`,
-# and again once 0.10.0 did the same for the fully paired one (see NEWS). A
-# stored fit may spell that dispersion any of three ways, and which one it
-# uses is a property of the fit, not of the attached package:
+# needed once 0.8.0 split the single exclusive-component dispersion `shapex` of
+# the partially observed family into the per-margin pair
+# `shapexone`/`shapextwo`, and again once 0.10.0 did the same for the fully
+# paired one (see NEWS). A stored fit may spell that dispersion any of
+# three ways, and which one it uses is a property of the fit, not of the
+# attached package:
 #
 #   shapexone <- "shapexone" (0.8.0+) | "shapexem" (project-local ax family)
 #                | "shapex"   (any pre-0.10.0 binegbin fit, and pre-0.8.0
 #                              binegbin_cens fits, where one dispersion
 #                              served both margins)
 #
-# Falling back to `shapex` LAST is what lets the symmetric special case work
-# without a shim: a five-dpar fit resolves both shapexone and shapextwo to its
+# Because `shapex` is the LAST fallback, the symmetric special case requires
+# no shim: a five-dpar fit resolves both shapexone and shapextwo to its
 # single `shapex`, which is precisely the constraint shapexone == shapextwo
 # that the five-dpar family imposed.
 #
@@ -94,12 +94,13 @@
 #
 #   E[N_shared | y2] = sum_k k P(N_shared = k | y2)
 #
-# These are the same weights posterior_predict_binegbin() already builds;
-# this helper sums them
-# instead of sampling from them. That makes the epred exact rather than an
+# The weights P(N_shared = k | y2) are the same weights that
+# posterior_predict_binegbin() already builds; this helper sums them instead
+# of sampling from them. That makes the epred exact rather than an
 # approximation, and makes it consistent with the predictions by construction
-# -- the two now differ only by Monte Carlo error, which is what a test can
-# check.
+# -- epred and the mean of posterior_predict draws now differ only by Monte
+# Carlo error. test-epred.R tests that epred equals the mean of the draws to
+# within Monte Carlo error.
 #
 # Until 0.9.0 posterior_epred_binegbin() substituted the MARGINAL shared
 # fraction mu/(mu + lambdatwo) -- the bipois answer -- for the conditional one,
@@ -107,9 +108,9 @@
 # only in the Poisson limit and biased otherwise, in the direction set by which
 # component is the more dispersed. See NEWS for the size of the change.
 #
-# `shapex2` is the dispersion of the excess component in the SECOND margin
-# (`shapextwo`, or the single `shapex` of a pre-0.10.0 fit) -- the y2
-# marginal is what is being conditioned on, so the dispersion of the first
+# `shapex2` is the dispersion of the exclusive component in the SECOND
+# margin (`shapextwo`, or the single `shapex` of a pre-0.10.0 fit) -- the
+# expectation is conditional on y2, so the dispersion of the first
 # margin does not enter.
 #
 # Arguments are ndraws x nobs matrices except `y2`, a length-nobs integer

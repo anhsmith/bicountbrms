@@ -1,8 +1,7 @@
 # (M, f, delta) <-> native dpar coordinate transforms.
 #
 # These are the R-side statement of a map that also appears in the brms nlf()
-# formulas in the project and in illustrative JS. Testing the round trip and the
-# defining identities here is what keeps those in step.
+# formulas in the project and in illustrative JS.
 
 test_that("forward map satisfies its defining identities", {
   M <- 12; f <- 0.67; delta <- 0.2
@@ -10,15 +9,15 @@ test_that("forward map satisfies its defining identities", {
 
   # M is the midpoint: mu + (lambdaone + lambdatwo)/2 == M, for any delta
   expect_equal(d$mu + (d$lambdaone + d$lambdatwo) / 2, M)
-  # f is the shared share
+  # f is the congruence
   expect_equal(d$mu / M, f)
-  # delta is the half log ratio of the excesses
+  # delta is the half log ratio of the exclusive rates
   expect_equal(0.5 * log(d$lambdaone / d$lambdatwo), delta)
 })
 
 test_that("M stays pinned to the midpoint regardless of bias", {
-  # The point of the parameterisation: bias separates the two excess rates but
-  # never moves M.
+  # The point of the parameterisation: bias separates the two exclusive rates
+  # but never moves M.
   for (delta in c(-2, -0.5, 0, 0.5, 2)) {
     d <- binegbin_mfd_to_dpars(M = 10, f = 0.5, delta = delta)
     expect_equal(d$mu + (d$lambdaone + d$lambdatwo) / 2, 10)
@@ -55,14 +54,14 @@ test_that("beta is the fractional imbalance and equals tanh(delta)", {
   expect_equal(m$beta, tanh(m$delta))
 })
 
-test_that("f = 1 gives zero excesses and an unidentified bias", {
+test_that("f = 1 gives zero exclusive rates and an unidentified bias", {
   d <- binegbin_mfd_to_dpars(M = 12, f = 1, delta = 0.5)
   expect_equal(d$lambdaone, 0)
   expect_equal(d$lambdatwo, 0)
   expect_equal(d$mu, 12)
 
   # Reverse: the bias genuinely cannot be recovered. NA, not 0 -- 0 would
-  # assert an unbiased method the data cannot support.
+  # assert an unbiased source the data cannot support.
   back <- binegbin_dpars_to_mfd(d$mu, d$lambdaone, d$lambdatwo)
   expect_equal(back$M, 12)
   expect_equal(back$f, 1)
@@ -84,7 +83,7 @@ test_that("M = 0 leaves f undefined", {
   expect_true(is.na(back$delta))
 })
 
-test_that("one excess at zero is the finite +/-Inf bias limit", {
+test_that("one exclusive rate at zero is the finite +/-Inf bias limit", {
   expect_equal(binegbin_dpars_to_mfd(5, 4, 0)$delta, Inf)
   expect_equal(binegbin_dpars_to_mfd(5, 0, 4)$delta, -Inf)
   expect_equal(binegbin_dpars_to_mfd(5, 4, 0)$beta, 1)
@@ -129,8 +128,8 @@ test_that("the inverse still reads the single `shapex` in a pre-0.10.0 fit", {
   expect_equal(back$kappax, 2)
   expect_null(back$kappaxone)
 
-  # And it agrees with the same fit read through the per-margin names, which
-  # is what .SHAPEXONE_NAMES/.SHAPEXTWO_NAMES do to it at post-processing time.
+  # back$kappax agrees with pair$kappaxone, the same fit read through the
+  # per-margin names.
   pair <- binegbin_dpars_to_mfd(7.2, 2.4, 2.4, shapes = 4,
                                 shapexone = 1 / 2^2, shapextwo = 1 / 2^2)
   expect_equal(back$kappax, pair$kappaxone)
@@ -138,19 +137,20 @@ test_that("the inverse still reads the single `shapex` in a pre-0.10.0 fit", {
 })
 
 # --------------------------------------------------------------------------
-# Per-margin excess dispersions (binegbin_partialobs, 0.8.0+)
+# Per-margin exclusive-component dispersions (binegbin_partialobs, 0.8.0+)
 # --------------------------------------------------------------------------
 
 test_that("kappaxone/kappaxtwo convert to shapexone/shapextwo and round-trip", {
-  # binegbin_partialobs takes one excess dispersion per margin, so the converters
-  # accept and return the pair under the dpar names the family declares rather
-  # than making the caller re-derive shape = 1/kappa^2 by hand.
+  # binegbin_partialobs takes one exclusive-component dispersion per margin, so
+  # the converters accept and return the pair under the dpar names the family
+  # declares rather than making the caller re-derive shape = 1/kappa^2 by hand.
   d <- binegbin_mfd_to_dpars(12, 0.6, 0.2, kappas = 0.5,
                              kappaxone = 2, kappaxtwo = 0.25)
   expect_equal(d$shapes,    1 / 0.5^2)
   expect_equal(d$shapexone, 1 / 2^2)
   expect_equal(d$shapextwo, 1 / 0.25^2)
-  # the single-dispersion spelling must NOT appear when the pair was asked for
+  # the single-dispersion spelling must NOT appear when the pair was
+  # asked for
   expect_null(d$shapex)
 
   back <- binegbin_dpars_to_mfd(d$mu, d$lambdaone, d$lambdatwo,
@@ -279,12 +279,13 @@ test_that("the map agrees with the trivariate-reduction moment identities", {
 })
 
 test_that("the rate half of the map serves bipois unchanged", {
-  # bipois_partialobs takes the same three rates and no dispersion, so only the rate
-  # half of the converters applies to it -- there is no kappa to supply. Rather
-  # than assert that in prose, feed the converted rates to the unpaired bipois
-  # branch and check the resulting distribution has the mean the map predicts:
-  # that branch is Poisson(mu + lambdatwo), so its mean must be E[y2] = mu +
-  # lambdatwo, which by the identity above is M(1 - (1 - f) * tanh(delta)).
+  # bipois_partialobs takes the same three rates and no dispersion, so
+  # only the rate half of the converters applies to it -- there is no kappa to
+  # supply. Rather than assert that in prose, feed the converted rates to the
+  # unpaired bipois branch and check the resulting distribution has the mean the
+  # map predicts: that branch is Poisson(mu + lambdatwo), so its mean must be
+  # E[y2] = mu + lambdatwo, which by the identity above is M(1 - (1 - f) *
+  # tanh(delta)).
   d <- binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = 0.3)
 
   ys <- 0:400
@@ -293,9 +294,7 @@ test_that("the rate half of the map serves bipois unchanged", {
   expect_equal(sum(ys * exp(lp)), d$mu + d$lambdatwo, tolerance = 1e-8)
   expect_equal(d$mu + d$lambdatwo, 12 * (1 - (1 - 0.67) * tanh(0.3)))
 
-  # Supplying a dispersion is what distinguishes the negative-binomial
-  # families; asking for one here would be a caller error, and there is no
-  # bipois-flavoured spelling that would let it through.
+  # Only the negative-binomial families take a dispersion.
   expect_named(binegbin_mfd_to_dpars(M = 12, f = 0.67, delta = 0.3),
                c("mu", "lambdaone", "lambdatwo"))
 })

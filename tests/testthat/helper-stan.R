@@ -9,7 +9,7 @@
 # and no BH, so `brm()` reaches `rstan::stan_model()` and fails with
 # "Boost not found" rather than skipping.
 #
-# That is exactly what happened on the first CI run of this code, when it was
+# This failure occurred on the first CI run of this code, while the code was
 # part of pairedcountbrms: some fitting tests skipped cleanly because they guard
 # on a file-local `stan_ready`, while the joint-family ones had only
 # skip_on_cran() + skip_if_not_installed("brms") and errored. Note also that

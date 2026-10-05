@@ -61,7 +61,7 @@ has been set.
 For `bipois_partialobs()`, the statement needs one qualification. On an
 unpaired row, the likelihood of that family involves `mu` only through the
 sum `mu + lambdatwo`, so those rows constrain the total rate of the observed
-margin without dividing it between the shared and the source-specific
+margin without dividing it between the shared and the source-exclusive
 component. Separating `mu` from `lambdatwo`, and so estimating the congruence
 $f$, is also informed by the paired rows alone.
 
@@ -69,11 +69,11 @@ $f$, is also informed by the paired rows alone.
 
 Left unregularised, the chains explore the flat tail of an improper prior on a
 log-linked positive parameter, where the likelihood is nearly level and the
-posterior therefore follows the prior. The asymmetric-dispersion fit in
-`tests/testthat/test-binegbin-dispersions.R` required priors on the two rates
-and the three dispersions: run without them it produced divergent
-transitions and some high $\hat{R}$ values, which is to say chains that
-never mixed.
+posterior therefore follows the prior. The fit with asymmetric
+dispersions in `tests/testthat/test-binegbin-dispersions.R` required priors on
+the two rates and the three dispersions: run without them it produced
+divergent transitions and some high $\hat{R}$ values, which is to say chains
+that never mixed.
 
 Divergences are the diagnostic to watch here rather than $\hat{R}$ alone.
 This package applies an $\hat{R}$ gate of 1.02.
@@ -99,8 +99,8 @@ prior = c(
 
 On the natural scale `normal(2, 1)` places 95% of its mass in roughly
 $[1, 52]$, which suits rates and dispersions of order 1 to 50.
-`bipois()` and `bipois_partialobs()` have no dispersion parameters, so only the
-three rate lines apply to them.
+`bipois()` and `bipois_partialobs()` have no dispersion parameters, so
+only the three rate lines apply to them.
 
 To adapt these priors to counts on a different scale, shift the **mean** rather
 than widening the standard deviation. Because the link is logarithmic, widening
@@ -113,9 +113,9 @@ informative about what is plausible and better behaved.
 ## The class, dpar and nlpar slots
 
 The slot a prior occupies depends on how the parameter reached the model, not
-on what the parameter means. A dispersion supplied directly as a distributional
-parameter takes `class = "Intercept"` and `dpar`. A rate supplied through
-`nlf()` takes `class = "b"` and `nlpar`.
+on what the parameter means. A dispersion supplied directly as a
+distributional parameter takes `class = "Intercept"` and `dpar`. A rate supplied
+through `nlf()` takes `class = "b"` and `nlpar`.
 
 ```{r}
 #| label: slots
@@ -137,8 +137,8 @@ contain, brms stops with the error that the prior does not correspond to any
 model parameter.
 
 That error has one especially easy instance. To impose
-$\phi_{x1} = \phi_{x2}$, the two excess dispersions are routed through a
-single non-linear parameter, described in
+$\phi_{x1} = \phi_{x2}$, the dispersions of the two exclusive components
+are routed through a single non-linear parameter, described in
 [The families and their parameters](families-and-parameters.html):
 
 ```{r}
@@ -158,7 +158,7 @@ parameter in the tied model, so brms stops with that error rather than fitting.
 
 The three rates can be reparameterised as the midpoint $M$ of the two
 expected counts, congruence $f$ and source bias $\delta$, with each
-dispersion on the standard deviation scale $\kappa = 1/\sqrt{\phi}$. In
+inverse dispersion converted to an overdispersion $\kappa = 1/\sqrt{\phi}$. In
 those coordinates, every
 parameter has a finite null: $\delta = 0$ is no bias between the two
 sources, and $\kappa = 0$ is the Poisson limit exactly, rather than the

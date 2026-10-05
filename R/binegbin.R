@@ -9,12 +9,13 @@
 # RMKdiscrete package on CRAN):
 #
 #   N_shared ~ NB2(mu,        shapes)      (shared component; drives correlation)
-#   N1       ~ NB2(lambdaone, shapexone)   (source-1-only excess)
-#   N2       ~ NB2(lambdatwo, shapextwo)   (source-2-only excess)
+#   N1       ~ NB2(lambdaone, shapexone)   (source-1-exclusive component)
+#   N2       ~ NB2(lambdatwo, shapextwo)   (source-2-exclusive component)
 #
 # NB2(m, phi) is neg_binomial_2 in Stan / dnbinom(size = phi, mu = m) in R:
-# mean m, variance m + m^2/phi. shapes is the shared-component dispersion;
-# shapexone and shapextwo are the two source-specific excess dispersions.
+# mean m, variance m + m^2/phi. shapes is the dispersion of the shared
+# component; shapexone and shapextwo are the dispersions of the two
+# exclusive components.
 #
 # ONE FAMILY, TWO CONSTRUCTORS. binegbin() is for a fully paired design and
 # binegbin_partialobs() for one in which the first count is missing on some
@@ -33,33 +34,35 @@
 # WHAT THE FLAG SELECTS.
 #
 #   y1_obs == 1 (paired row):  full joint lpmf on (y1, y2).
-#   y1_obs == 0 (y2-only row):  the y2 MARGINAL of the SAME bivariate model --
+#   y1_obs == 0 (unpaired row):  the y2 MARGINAL of the SAME bivariate model --
 #       P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo),
 #       i.e. the joint with the y1 (N1) term integrated out over all y1.
 #
-# This is not censoring in the brms sense. The cens() addition term in brms
-# means a value known to lie in a set; here y1 is not observed at all and the
-# likelihood marginalises over its whole support. The families were named
-# `_cens` up to 0.9.1 for that reason and renamed at 0.10.0.
+# brms uses the cens() addition term for a value known to lie in a set. On an
+# unpaired row, y1 is not observed at all, and the likelihood marginalises over
+# its whole support, so cens() does not apply. The partially paired
+# constructors were named `_cens` up to 0.9.1 and renamed at 0.10.0.
 #
-# WHY BOTH DISPERSIONS ARE FREE IN BOTH CONSTRUCTORS. Up to 0.7.0 a single
-# dpar `shapex` governed both excess components, imposing
+# WHY BOTH EXCLUSIVE-COMPONENT DISPERSIONS ARE FREE IN BOTH CONSTRUCTORS. Up to
+# 0.7.0 a single dpar `shapex` governed both exclusive components, imposing
 # shapexone == shapextwo. That constraint is a modelling choice, not a
 # property of the construction: the two sources are different instruments and
-# there is no reason their source-only excess must be equally overdispersed.
-# 0.8.0 freed the two for the partially observed family only; 0.10.0 does so
-# for both, which is the right way round. Every row of a fully paired design
-# informs both dispersions, so that is the case in which they are EASIEST to
-# identify; it was the case that lacked the capability.
+# there is no reason their exclusive components must be equally overdispersed.
+# 0.8.0 allowed shapexone and shapextwo to differ in the partially observed
+# family only. 0.10.0 allows shapexone and shapextwo to differ in binegbin()
+# as well. Every row of a fully paired design informs both dispersions,
+# so a fully paired design identifies shapexone and shapextwo more precisely
+# than a partially paired design of the same size. Before 0.10.0, binegbin()
+# could not estimate shapexone and shapextwo separately.
 #
 # The symmetric model is a FORMULA constraint rather than a separate family --
 # supply both through one non-linear parameter,
 #   nlf(shapexone ~ shapexx), nlf(shapextwo ~ shapexx), shapexx ~ 1
 # and the fit is term-for-term the pre-0.8.0 five-dpar model.
 #
-# Note the asymmetry in what the two dispersions can be identified from under
-# PARTIAL observation. shapextwo appears on both branches (it governs the
-# always-observed margin), so the y2-only rows sharpen it. shapexone appears
+# Note the asymmetry in what the two dispersions can be identified from
+# under PARTIAL observation. shapextwo appears on both branches (it governs the
+# always-observed margin), so the unpaired rows sharpen it. shapexone appears
 # only on the paired branch, so it is identified SOLELY by the paired rows
 # -- the same way lambdaone is. A design with few paired rows will therefore
 # learn shapexone far less sharply than shapextwo, and the prior on it does
@@ -70,17 +73,17 @@
 # real marginal variances badly -- in one motivating dataset by ~10x
 # (Var(y1) fitted 16.6 against 179 observed) and Var(d) by ~3.5x. The
 # obvious fix -- add a per-set observation-level random effect (OLRE) on the
-# excess components -- FAILS synthetic recovery: with one bivariate
-# observation per set but three per-set latent deviates (mu-OLRE + two excess
-# OLREs), the excess deviates act as residual-absorbers, their population SD
-# collapses toward the prior mode, and drawing fresh deviates does NOT
-# regenerate the observed spread (recovered excess SD 0.37 vs true 0.85;
-# fresh-deviate Var(d) 2.9 vs true 19.2). A conditional posterior-predictive
-# check hides this completely -- only a marginal (fresh-deviate) check exposes
-# it. binegbin represents the dispersion with SCALAR shapes/shapexone/shapextwo
-# instead, estimated from aggregate mean-variance mismatch across sets --
-# identifiable, no per-set overfitting, clean marginal PPC, and consistent
-# with the review-track NegBin models.
+# exclusive components -- FAILS synthetic recovery: with one bivariate
+# observation per set but three per-set latent deviates (mu-OLRE + two exclusive
+# OLREs), the exclusive-component deviates act as residual-absorbers, their
+# population SD collapses toward the prior mode, and drawing fresh deviates does
+# NOT regenerate the observed spread (recovered exclusive-component SD 0.37 vs
+# true 0.85; fresh-deviate Var(d) 2.9 vs true 19.2). A conditional
+# posterior-predictive check hides this completely -- only a marginal
+# (fresh-deviate) check exposes it. binegbin represents the overdispersion with
+# SCALAR shapes/shapexone/shapextwo instead, estimated from aggregate
+# mean-variance mismatch across sets -- identifiable, no per-set overfitting,
+# clean marginal PPC, and consistent with the review-track NegBin models.
 #
 # LIKELIHOOD. N_shared is unobserved and marginalised out analytically,
 # exactly as in bipois -- the sum structure is identical, only the component
@@ -93,7 +96,7 @@
 # The Poisson form of this sum is Campbell (1934) eq. (2.2); replacing each
 # Poisson factor with NB2 is the generalisation this package implements.
 #
-# This is NOT a "two stacked marginalisations" problem
+# The NB2 sum is NOT a "two stacked marginalisations" problem
 # (Gamma-mixing a Poisson while keeping it Poisson): the components are
 # DIRECTLY NegBin, so the marginalisation sum is the same finite sum as
 # bipois with neg_binomial_2_lpmf swapped in for poisson_lpmf. The bipois
@@ -105,12 +108,12 @@
 # large-argument branch is needed.
 #
 # WHY A DEDICATED FAMILY AND NOT TWO SEPARATE FITS, under partial observation.
-# The unpaired (y2-only) rows never observe y1, so a paired-only fit could
-# use the paired rows alone. But the y2-only rows are still informative
+# The unpaired rows never observe y1, so a paired-only fit could
+# use the paired rows alone. But the unpaired rows are still informative
 # about the SHARED structure (mu, shapes, lambdatwo, shapextwo) and the
 # vessel/trip random effects: their y2 is a draw from the same bivariate
 # model, merely with its y1 margin unobserved. Integrating y1 out (rather than
-# dropping those rows, or -- worse -- giving them their own single-dispersion
+# dropping those rows, or -- worse -- giving them their own univariate
 # neg_binomial_2 on y2, which is a DIFFERENT model inconsistent with the
 # paired decomposition) lets one brm() call pool all rows under one coherent
 # likelihood. This is the standard partially-observed-margin construction, not
@@ -119,7 +122,7 @@
 # Validation -- grid cross-check of the Stan lpmf against the independent R
 # brute-force reference to ~1e-14, normalisation to 1 on both branches, the
 # moment identities, the marginal identity (summing the paired branch over y1
-# gives the y2-only branch), the Poisson-limit reduction to bipois, the
+# gives the unpaired branch), the Poisson-limit reduction to bipois, the
 # conditional-prediction identity (posterior_predict draws == joint /
 # marginal), and end-to-end parameter recovery with a coverage assessment --
 # is in tests/testthat/test-binegbin.R, test-binegbin-partialobs.R and
@@ -135,8 +138,8 @@
 #' Overdispersed sibling of [bipois()]. Returns a brms custom family for the
 #' joint distribution of a pair of counts `(y1, y2)` via trivariate
 #' reduction with Negative-Binomial (rather than Poisson) latent components:
-#' `y1 = N_shared + N1`, `y2 = N_shared + N2`, with
-#' `N_shared ~ NB2(mu, shapes)`, `N1 ~ NB2(lambdaone, shapexone)`,
+#' `y1 = N_s + N1`, `y2 = N_s + N2`, with
+#' `N_s ~ NB2(mu, shapes)`, `N1 ~ NB2(lambdaone, shapexone)`,
 #' `N2 ~ NB2(lambdatwo, shapextwo)` mutually independent given their rates.
 #' `NB2(m, phi)` has mean `m` and variance `m + m^2/phi` (Stan
 #' `neg_binomial_2`; R `dnbinom(size = phi, mu = m)`).
@@ -147,17 +150,17 @@
 #' same post-processing.
 #'
 #' Six dpars: the three rates (`mu` = shared rate, `lambdaone`/`lambdatwo` =
-#' the two source-specific rates) plus three dispersions -- `shapes` for the
-#' shared component and `shapexone`/`shapextwo` for the two source-specific
-#' excess components. All six use `link = "log"`. Supply the excess rates
-#' through a non-linear formula without an explicit `exp()` (the log link
-#' applies it): `nlf(lambdaone ~ lamx)` gives `lambdaone = exp(lamx)`.
+#' the rates of the two source-exclusive components) plus three
+#' dispersions -- `shapes` for the shared component and `shapexone`/`shapextwo`
+#' for the two exclusive components. All six use `link = "log"`. Supply the
+#' exclusive rates through a non-linear formula without an explicit `exp()` (the
+#' log link applies it): `nlf(lambdaone ~ lamx)` gives `lambdaone = exp(lamx)`.
 #'
 #' See the `binegbin.R` file header for why Negative-Binomial components are
 #' used instead of an observation-level random effect on [bipois()] -- briefly,
 #' the random-effect version fails synthetic recovery, because with one
-#' observed pair but three latent deviates per unit the excess deviates act as
-#' residual absorbers.
+#' observed pair but three latent deviates per unit the exclusive-component
+#' deviates act as residual absorbers.
 #'
 #' Use in a brm() call as:
 #'   brm(
@@ -171,11 +174,12 @@
 #'   )
 #'
 #' @details
-#' **Tying the two excess dispersions.** Up to 0.9.1
-#' this family had a single `shapex` shared by both excess components,
-#' imposing `shapexone == shapextwo`. That is a modelling choice rather than a
-#' property of the construction, and 0.10.0 frees it. To recover the
-#' constraint, route both through one non-linear parameter:
+#' **Tying the dispersions of the two exclusive components.** Up to
+#' 0.9.1, `binegbin()` had a single `shapex`, shared by both exclusive
+#' components, which imposed `shapexone == shapextwo`. Equal dispersions
+#' are a modelling choice rather than a property of the construction. 0.10.0
+#' removes the constraint. To recover the constraint, route `shapexone` and
+#' `shapextwo` through one non-linear parameter:
 #'
 #' ```
 #' bf(y1 | vint(y2) ~ 1,
@@ -205,9 +209,9 @@
 #' shapes[n], shapexone[n], shapextwo[n], vint1[n], 1)` -- dpars in the order
 #' declared here, then the two `vars` entries. `binegbin_stan_funs` declares
 #' `binegbin_lpmf` with exactly this signature; reordering one without the
-#' other silently swaps which rate or dispersion governs which component.
-#' The trailing `1` is the observation flag, supplied as a literal because
-#' every row of a fully paired design has both counts.
+#' other silently swaps which rate or dispersion governs which
+#' component. The trailing `1` is the observation flag, supplied as a literal
+#' because every row of a fully paired design has both counts.
 #'
 #' @return
 #'   `binegbin()` returns a brms `custom_family` object. `binegbin_stanvars()`
@@ -263,36 +267,36 @@ binegbin_stanvars <- function() {
 #' `P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo)` --
 #' the joint with the `y1` term integrated out over its whole support. It is
 #' not dropped, and it is not given a different model: it still informs the
-#' shared component (`mu`, `shapes`), the rate and dispersion of the second
-#' source (`lambdatwo`, `shapextwo`), and any group-level effects.
+#' shared component (`mu`, `shapes`), the rate and dispersion of the
+#' second source (`lambdatwo`, `shapextwo`), and any group-level effects.
 #'
 #' **Imputation after fitting.** The fitted model can impute the unobserved
-#' first count conditional on the observed second one, which is usually why
-#' someone wanted this. `posterior_predict()` and `posterior_epred()` return a
-#' `y1` draw and `E[y1 | y2]` for *every* row, paired and unpaired alike --
-#' `y1_obs` selects a likelihood branch, not a prediction.
+#' first count conditional on the observed second count. `posterior_predict()`
+#' and `posterior_epred()` return a `y1` draw and `E[y1 | y2]` for *every* row,
+#' paired and unpaired alike -- `y1_obs` selects a likelihood branch, not a
+#' prediction.
 #'
-#' **A design consequence, worth knowing before the data are collected.** The
-#' rate `lambdaone` and excess dispersion `shapexone` of the first source
-#' appear only on the paired branch, so they are identified by the paired
-#' rows *alone*. A design with 20 paired rows in 500 learns them weakly and
-#' leans on their priors. `mu`, `shapes`, `lambdatwo` and `shapextwo` appear
-#' on both branches and are informed by every row.
+#' **Parameters identified only by the paired rows.** The rate `lambdaone` and
+#' dispersion `shapexone` of the first source appear only on the paired
+#' branch, so `lambdaone` and `shapexone` are identified by the paired rows
+#' alone. With 20 paired rows in 500, the posteriors of `lambdaone` and
+#' `shapexone` are wide and depend strongly on their priors. `mu`, `shapes`,
+#' `lambdatwo` and `shapextwo` appear on both branches and are informed by
+#' every row.
 #'
-#' **This is not censoring in the brms sense.** The brms `cens()` addition term
-#' means a value known to lie in a set -- `left`, `right`, `interval`. Here the
-#' first count is not observed at all and the likelihood marginalises over its
-#' whole support. This family was called `binegbin_cens()` up to 0.9.1; the
-#' name was wrong and was changed at 0.10.0. Do not combine this family with
-#' `cens()`.
+#' **Relation to censoring in brms.** brms uses the `cens()` addition term for a
+#' value known to lie in a set (`left`, `right` or `interval`). On an unpaired
+#' row, the first count is not observed at all, and the likelihood marginalises
+#' over its whole support. `binegbin_partialobs()` was called `binegbin_cens()`
+#' up to 0.9.1. Do not combine `binegbin_partialobs()` with `cens()`.
 #'
 #' Use in a brm() call as:
 #'   brm(
 #'     bf(y1 | vint(y2, y1_obs) ~ 1,
 #'        mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
-#'        nlf(lambdaone ~ lamx + methd),
-#'        nlf(lambdatwo ~ lamx - methd),
-#'        lamx ~ 1, methd ~ 1,
+#'        nlf(lambdaone ~ lamx + delta),
+#'        nlf(lambdatwo ~ lamx - delta),
+#'        lamx ~ 1, delta ~ 1,
 #'        shapes ~ 1, shapexone ~ 1, shapextwo ~ 1, nl = TRUE),
 #'     family   = binegbin_partialobs(),
 #'     stanvars = binegbin_partialobs_stanvars(),
@@ -300,20 +304,21 @@ binegbin_stanvars <- function() {
 #'   )
 #'
 #' @details
-#' **One likelihood, two constructors.** This returns the same
-#' `custom_family` `name` as [binegbin()], so brms resolves both to one
-#' `binegbin_lpmf` and one set of `log_lik_binegbin()` /
-#' `posterior_predict_binegbin()` / `posterior_epred_binegbin()` methods. The
-#' paired branch of the likelihood is therefore not a second copy that can
-#' drift from the fully paired one; it is the same code.
+#' **Shared Stan function and post-processing methods.**
+#' `binegbin_partialobs()` returns the same `custom_family` `name` as
+#' [binegbin()], so brms resolves both constructors to one `binegbin_lpmf` and
+#' one set of `log_lik_binegbin()` / `posterior_predict_binegbin()` /
+#' `posterior_epred_binegbin()` methods. The paired branch of
+#' `binegbin_partialobs()` therefore runs the same code as [binegbin()].
 #'
-#' What differs is `vars`. [binegbin()] declares `c("vint1[n]", "1")` and this
-#' declares `c("vint1[n]", "vint2[n]")`. brms pastes those entries into the
-#' generated call, so the fully paired model reaches the same Stan function
-#' with the flag fixed at `1`. The alternative -- two Stan functions of the
-#' same name and different arity -- would need user-defined function
-#' overloading, which arrived in Stan 2.29 (February 2022) and would oblige
-#' this package to declare a floor on the Stan version. It does not.
+#' What differs is `vars`. [binegbin()] declares `c("vint1[n]", "1")` and
+#' `binegbin_partialobs()` declares `c("vint1[n]", "vint2[n]")`. brms pastes
+#' those entries into the generated call, so the fully paired model reaches
+#' the same Stan function with the flag fixed at `1`. The alternative -- two
+#' Stan functions of the same name and different arity -- would need
+#' user-defined function overloading, which arrived in Stan 2.29 (February
+#' 2022) and would oblige this package to declare a minimum Stan version.
+#' `DESCRIPTION` sets no minimum version of rstan or cmdstanr.
 #'
 #' **Two `vint()` arguments, in declared order.** brms appends `vint()`
 #' integers to the generated lpmf call in the order they are listed in the
@@ -376,7 +381,7 @@ binegbin_partialobs_stanvars <- function() {
 # binegbin() reaches this function with y1_obs supplied as the literal 1, so a
 # fully paired model always takes the first branch. There is one lpmf rather
 # than two because the paired branch of a partially observed model IS the
-# fully paired likelihood, and keeping a second copy is how the two drift.
+# fully paired likelihood.
 binegbin_stan_funs <- "
   real binegbin_lpmf(int y1, real mu, real lambdaone, real lambdatwo,
                      real shapes, real shapexone, real shapextwo,
@@ -451,9 +456,9 @@ binegbin_lpmf_r <- function(y1, y2, mu, lambdaone, lambdatwo, shapes,
 # brms interface functions -- found by name convention, must be exported
 # --------------------------------------------------------------------------
 
-# Accepted spellings for each excess dispersion, most recent first. A stored
-# fit is post-processed under the names ITS OWN family object declares, so all
-# three eras resolve: 0.8.0+ (shapexone/shapextwo), the project-local
+# Accepted spellings for each exclusive-component dispersion, most recent first.
+# A stored fit is post-processed under the names ITS OWN family object declares,
+# so all three eras resolve: 0.8.0+ (shapexone/shapextwo), the project-local
 # asymmetric family (shapexem/shapexlb), and <= 0.9.1 symmetric binegbin fits,
 # whose single `shapex` correctly serves both margins. See .get_dpar_any() in
 # utils.R.
@@ -488,11 +493,11 @@ posterior_predict_binegbin <- function(i, prep, ...) {
   shapexone <- .get_dpar_any(prep, .SHAPEXONE_NAMES, i = i)
   shapextwo <- .get_dpar_any(prep, .SHAPEXTWO_NAMES, i = i)
   y2 <- prep$data$vint1[i]
-  # y1_obs is deliberately NOT read here: every row gets a y1 draw conditional
-  # on its observed y2, paired and y2-only alike, which is what imputing the
-  # unobserved margin across every row requires. The conditional split
-  # N_shared | y2 is NOT Binomial (a NegBin sum condition is not Binomial); it
-  # is P(N_shared = k | y2) proportional to
+  # y1_obs is deliberately NOT read here: every row, paired or unpaired, gets a
+  # y1 draw conditional on its observed y2. On an unpaired row, that draw is
+  # the imputed first count. The conditional split N_shared | y2 is NOT
+  # Binomial (a NegBin sum condition is not Binomial); it is
+  # P(N_shared = k | y2) proportional to
   # NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo) over k = 0..y2 --
   # the y2 margin, hence shapextwo. Sample that discrete conditional, then add
   # a fresh N1 ~ NB2(lambdaone, shapexone).
@@ -528,12 +533,12 @@ posterior_epred_binegbin <- function(prep) {
   # summed rather than sampled. See .e_shared_given_y2_nb() in utils.R.
   #
   # `shapextwo` and not `shapexone`: the quantity conditioned on is y2, so it
-  # is the excess dispersion of the SECOND margin that enters the conditional
-  # weights.
+  # is the dispersion of the exclusive component of the SECOND margin
+  # that enters the conditional weights.
   #
-  # y1_obs is not read, as it is not in posterior_predict_binegbin(): the
-  # conditional expectation of the first margin is defined on unpaired rows
-  # too, and imputing it there is what the family is for. Returning it
+  # y1_obs is not read here or in posterior_predict_binegbin(). E[y1 | y2] is
+  # defined on paired and unpaired rows alike. On an unpaired row, E[y1 | y2]
+  # is the imputed value of the unrecorded first count. Returning E[y1 | y2]
   # for every row keeps epred and posterior_predict comparable row by row.
   #
   # Before 0.9.0 this substituted the MARGINAL shared fraction

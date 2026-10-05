@@ -19,9 +19,10 @@ knitr::opts_chunk$set(
 
 # The fitting chunks need a working Stan toolchain. Where there isn't one --
 # R CMD check on a machine without cmdstanr/rstan, say -- the code is shown
-# but not run, rather than erroring the build. Presetting has_stan before the
-# knit forces that path, which is how a prose-only preview is rendered without
-# refitting; precompile.R presets nothing, so a real precompile always fits.
+# but not run, rather than erroring the build. With has_stan preset to FALSE
+# before the knit, the chunks are shown but not run, so a prose-only preview
+# renders without refitting; precompile.R presets nothing, so a real
+# precompile always fits.
 if (!exists("has_stan")) {
   has_stan <- requireNamespace("cmdstanr", quietly = TRUE) ||
     requireNamespace("rstan", quietly = TRUE)
@@ -59,18 +60,18 @@ negative binomial:
 
 $$
 \begin{aligned}
-N_{\text{shared}} &\sim \mathrm{NB2}(\mu,\ \phi_s) \\
+N_s &\sim \mathrm{NB2}(\mu,\ \phi_s) \\
 N_1 &\sim \mathrm{NB2}(\lambda_1,\ \phi_{x1}) \qquad
 N_2 \sim \mathrm{NB2}(\lambda_2,\ \phi_{x2}) \\[4pt]
-y_1 &= N_{\text{shared}} + N_1 \qquad
-y_2 = N_{\text{shared}} + N_2
+y_1 &= N_s + N_1 \qquad
+y_2 = N_s + N_2
 \end{aligned}
 $$
 
-$N_{\text{shared}}$ is the latent count recorded by both sources; $N_1$ and $N_2$
-are the two excesses, each recorded by one source only. $N_{\text{shared}}$
-induces the correlation between the pair. It is never observed, and is
-marginalised out analytically in the likelihood.
+$N_s$ is the latent count recorded by both sources; $N_1$ and $N_2$
+are the two source-exclusive components, the counts recorded by one source only.
+$N_s$ induces the correlation between the pair. It is never
+observed, and is marginalised out analytically in the likelihood.
 
 `NB2(m, phi)` is `neg_binomial_2` in Stan and `dnbinom(size = phi, mu = m)` in
 R: mean `m`, variance `m + m^2/phi`. Larger `phi` means *less* overdispersion.
@@ -80,11 +81,11 @@ Six dpars, all with a log link:
 | dpar | role |
 |---|---|
 | `mu` | rate of the shared component, $\mu$ |
-| `lambdaone` | rate of the excess for the first source, $\lambda_1$ |
-| `lambdatwo` | rate of the excess for the second source, $\lambda_2$ |
+| `lambdaone` | rate of the exclusive component of the first source, $\lambda_1$ |
+| `lambdatwo` | rate of the exclusive component of the second source, $\lambda_2$ |
 | `shapes` | dispersion $\phi_s$ of the shared component |
-| `shapexone` | dispersion $\phi_{x1}$ of the excess for the first source |
-| `shapextwo` | dispersion $\phi_{x2}$ of the excess for the second source |
+| `shapexone` | dispersion $\phi_{x1}$ of the exclusive component of the first source |
+| `shapextwo` | dispersion $\phi_{x2}$ of the exclusive component of the second source |
 
 `brms::custom_family()` rejects any family whose dpars do not include one named
 literally `mu`. The requirement is on the name, not on the position: `mu` may
@@ -197,9 +198,9 @@ and `r round(q_nat[2])`.
 
 The six truths span `r round(min(log_tr), 2)` to `r round(max(log_tr), 2)` on the
 log scale, so no single prior sits away from all of them: the true shared rate
-falls near the prior mean, the true second excess rate `r round(abs(z_l2), 1)`
-prior SDs below it. Recovery here is therefore not on its own evidence that the
-prior is uninfluential. The article
+falls near the prior mean, the true second exclusive rate
+`r round(abs(z_l2), 1)` prior SDs below it. Recovery here is therefore not on
+its own evidence that the prior is uninfluential. The article
 [*Mapping native parameters to interpretable coordinates*][anatomy] tests that
 directly, shifting a prior median sevenfold and moving the corresponding
 posterior median by 0.005.
@@ -246,19 +247,20 @@ recovery$covered <- with(recovery, truth >= lower & truth <= upper)
 knitr::kable(recovery, digits = 2)
 ```
 
-The three rates should land tightly on their true values. The three dispersions
-are estimated from an aggregate mean–variance mismatch rather than from any
-directly observed quantity, so their intervals are wider; the two excess
-dispersions especially, since they are identified only through the part of the
-spread in the pair that the shared component cannot explain. Wide but covering
-is the expected result here, not a warning sign.
+The three rates should land tightly on their true values. The three
+dispersions are estimated from an aggregate mean–variance mismatch rather than
+from any directly observed quantity, so their intervals are wider; the
+dispersions of the two exclusive components especially, since they are
+identified only through the part of the spread in the pair that the shared
+component cannot explain. Wide but covering is the expected result here, not a
+warning sign.
 
 ## Predict and score
 
 `posterior_predict()` draws new `y1` **conditional on the observed `y2` in each
-row**. It samples the discrete conditional distribution of $N_{\text{shared}}$
-given `y2`, then adds a fresh excess draw — the exact conditional, not an
-approximation.
+row**. It samples the discrete conditional distribution of $N_s$
+given `y2`, then adds a fresh draw of the exclusive component — the exact
+conditional, not an approximation.
 
 ```{r}
 #| label: predict
@@ -294,14 +296,13 @@ loo(fit)
 Both families return the same quantity:
 
 $$
-\mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_{\text{shared}} \mid y_2] + \lambda_1,
+\mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_s \mid y_2] + \lambda_1,
 $$
 
-the expected first count *given the second one that was actually observed*,
-not a marginal expectation. It is what the second source implies about the
-first.
+the expected first count conditional on the observed second count, not the
+marginal expectation $\mathrm{E}[y_1]$.
 
-For `bipois()`, $\mathrm{E}[N_{\text{shared}} \mid y_2]$ is closed form, because
+For `bipois()`, $\mathrm{E}[N_s \mid y_2]$ is closed form, because
 conditioning a sum of independent Poissons on its total gives a Binomial split.
 For `binegbin()` there is no such shortcut, so the conditional is evaluated over
 its support $k = 0, \ldots, y_2$ and summed. Both are exact, and each agrees
@@ -310,7 +311,8 @@ error.
 
 The conditional expectation is returned for every row, including — under
 `binegbin_partialobs()` and `bipois_partialobs()` — those where $y_1$ was never
-observed. Imputing the unobserved margin is what those two constructors are for.
+observed. Those two constructors exist so that the fitted model can impute
+$y_1$ on those rows.
 
 `posterior_epred(fit)` needs no special handling: it dispatches to the family
 method, as do `fitted()` and `conditional_effects()`.
@@ -320,12 +322,12 @@ method, as do `fitted()` and `conditional_effects()`.
 - `bipois()` — the non-overdispersed Poisson sibling. Same construction, three
   dpars instead of six. Use it when the margins are not overdispersed; compare
   the two with `loo()`.
-- **The symmetric model.** The fit above let the two excess dispersions differ.
-  To impose $\phi_{x1} = \phi_{x2}$ instead, route both through one non-linear
-  parameter — `nlf(shapexone ~ shapexx)`, `nlf(shapextwo ~ shapexx)`,
-  `shapexx ~ 1`, with `nl = TRUE` — and set its prior with
-  `nlpar = "shapexx"`. That is the model this package fitted under a single
-  `shapex` dpar before 0.10.0, term for term.
+- **The symmetric model.** The fit above let the dispersions of the two
+  exclusive components differ. To impose $\phi_{x1} = \phi_{x2}$ instead, route
+  both through one non-linear parameter — `nlf(shapexone ~ shapexx)`,
+  `nlf(shapextwo ~ shapexx)`, `shapexx ~ 1`, with `nl = TRUE` — and set its
+  prior with `nlpar = "shapexx"`. That is the model this package fitted under a
+  single `shapex` dpar before 0.10.0, term for term.
 - `binegbin_partialobs()` — for data where the first count is missing on some
   rows. It is the same family: same name, same six dpars, same likelihood and
   the same post-processing. What it adds is a second `vint()` integer, a 0/1
@@ -338,15 +340,16 @@ method, as do `fitted()` and `conditional_effects()`.
   the brms `cens()` addition term, which means a value known to lie in a set.
 - The $(M, f, \delta)$  **reparameterisation** — the midpoint $M$ of the two
   expected counts, congruence $f$, and source bias $\delta$, with the
-  dispersions on an SD scale $\kappa = 1/\sqrt{\phi}$ where $\kappa = 0$ is the
-  Poisson limit. It is fitted through `nlf()` rather than a separate family, and
+  inverse dispersions converted to overdispersions $\kappa = 1/\sqrt{\phi}$,
+  where $\kappa = 0$ is the Poisson limit. It is fitted through `nlf()` rather
+  than a separate family, and
   [`binegbin_mfd_to_dpars()`](../reference/binegbin_mfd_to_dpars.html) converts
   between the two. Because $\delta = 0$ and $\kappa = 0$ are finite,
   interpretable nulls, these coordinates admit shrinkage priors towards the
   simpler model unless the data support otherwise
   [@simpsonPenalisingModelComponent2017]. The rate parameterisation has no such
-  nulls. Worked end to end in the article
-  [*Mapping native parameters to interpretable coordinates*][anatomy].
+  nulls. Worked end to end in the article [*Mapping native parameters to
+  interpretable coordinates*][anatomy].
 - `bipois_partialobs()` — the same partial observation, equidispersed:
   the Poisson special case of `binegbin_partialobs()`. Its integrated-out
   marginal is closed form, $y_2 \sim \mathrm{Poisson}(\mu + \lambda_2)$, since a

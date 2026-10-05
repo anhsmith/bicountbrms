@@ -22,7 +22,7 @@ test_that("paired (y1_obs==1) joint PMF normalises to 1 across parameter sets", 
   }
 })
 
-test_that("y2-only (y1_obs==0) branch normalises to 1 over y2", {
+test_that("unpaired (y1_obs==0) branch normalises to 1 over y2", {
   # A weak check of the closed form itself -- a Poisson pmf sums to 1 whatever
   # its rate -- but a real check of the BRANCH WIRING: that y1_obs == 0 selects
   # a 1-D pmf in y2 with the y1 margin integrated out, and that it ignores y1
@@ -79,12 +79,11 @@ test_that("the closed form of the unpaired branch equals the brute-force convolu
   }
 })
 
-test_that("marginal identity: sum over y1 of the paired branch == y2-only branch", {
+test_that("marginal identity: sum over y1 of the paired branch == unpaired branch", {
   # Integrating the paired (y1_obs==1) joint over all y1 must reproduce the
-  # y2-only (y1_obs==0) value at that y2. This identity is what makes the two branches
-  # one model rather than two, and here it also confirms that the closed form
-  # is the marginal OF THIS JOINT and not merely a Poisson that happens to sum
-  # to 1.
+  # unpaired (y1_obs==0) value at that y2. The identity also confirms that the
+  # closed form is the marginal OF THIS JOINT and not merely a Poisson that
+  # happens to sum to 1.
   mu <- 6; lone <- 3; ltwo <- 4
   K  <- 200
   for (yl in c(0L, 1L, 3L, 7L, 15L)) {
@@ -131,16 +130,17 @@ test_that("binegbin reduces to bipois in the Poisson limit, on both branches", {
   # binegbin_partialobs is a numerical convolution whose only other test -- the
   # marginal identity -- compares it against the paired branch of the same
   # code, so an error shared by both sums would pass. Driving its three
-  # dispersions to their Poisson limit gives an INDEPENDENT analytic target:
-  # NB2(m, phi) -> Poisson(m) as phi -> Inf, so binegbin_partialobs -> bipois_partialobs,
-  # whose unpaired branch is closed form.
+  # dispersions to their Poisson limit gives an INDEPENDENT analytic
+  # target: NB2(m, phi) -> Poisson(m) as phi -> Inf, so binegbin_partialobs ->
+  # bipois_partialobs, whose unpaired branch is closed form.
   #
   # The approach is O(1/phi) -- measured at 2.53e-3 for phi = 1e5 and 2.53e-5
   # for phi = 1e7 on the grid below, a clean factor of 100 for a factor of 100
   # in phi -- so the bounds are stated at two values of phi two orders of
   # magnitude apart, each a factor of ~4 above the observed error. A failure of
   # the limit shows up as an error that does not shrink with phi, not merely as
-  # a large one, which is what the third assertion catches.
+  # a large error. The third assertion tests whether the error shrinks as phi
+  # increases.
   mu <- 4; lone <- 2.5; ltwo <- 3
   ys <- 0:25
   yg <- expand.grid(y1 = ys, y2 = ys, y1_obs = c(0L, 1L))
@@ -208,8 +208,10 @@ test_that("posterior_predict draws reproduce the joint/marginal conditional y1 |
 
 test_that("the unpaired branch ignores y1_obs only where it should", {
   # posterior_predict and posterior_epred impute y1 on EVERY row, unpaired
-  # included; the likelihood does not. Pin both directions so a later change
-  # cannot quietly align them.
+  # included. The likelihood reads y1_obs: on an unpaired row, the likelihood
+  # term is the marginal probability of y2. The test pins both properties, so a
+  # later change cannot make the predictions read y1_obs or make the likelihood
+  # ignore y1_obs.
   prep <- make_synthetic_prep(
     dpars = list(mu = 5, lambdaone = 3, lambdatwo = 4),
     Y     = 9L,
@@ -305,7 +307,7 @@ test_that("the Stan flag selects the branch that the flag in the R reference sel
   }
 
   # Not vacuous: the two branches are materially different numbers, so a flag
-  # that reached the wrong one could not pass both loops above.
+  # that selected the wrong branch could not pass both loops above.
   paired <- bipois_lpmf(5L, 5, 3, 4, 6L, 1L)
   marg    <- bipois_lpmf(5L, 5, 3, 4, 6L, 0L)
   expect_gt(abs(paired - marg), 0.5)
@@ -337,7 +339,7 @@ test_that("Stan bipois_lpmf is numerically stable at extreme rates", {
 # brms end-to-end: dispatch (loo + posterior_predict) and recovery
 # -----------------------------------------------------------------------
 
-test_that("bipois_partialobs fits a partially observed design, dispatches, and recovers params", {
+test_that("bipois_partialobs fits a partially paired design, dispatches, and recovers params", {
   skip_on_cran()
   skip_if_not_installed("brms")
   skip_if_no_stan()
@@ -350,7 +352,7 @@ test_that("bipois_partialobs fits a partially observed design, dispatches, and r
 
   true_log_mu_int <- log(8)
   true_sd_vessel  <- 0.3
-  true_lone       <- 3           # shared excess rate (lambdaone = lambdatwo)
+  true_lone       <- 3           # lambdaone = lambdatwo
 
   vessel <- rep(seq_len(n_vessel), each = n_per_vessel)
   z_mu   <- rnorm(n_vessel)
@@ -360,10 +362,10 @@ test_that("bipois_partialobs fits a partially observed design, dispatches, and r
   n1       <- rpois(n, true_lone)
   n2       <- rpois(n, true_lone)
 
-  # Half the rows are y2-only (y1 unobserved) -- the partial observation the family
-  # exists to handle. mu and lambdatwo are separated only by the paired rows
-  # (the unpaired branch sees them only through their sum), so the paired
-  # half is what makes lambdaone recoverable; see ?bipois_partialobs.
+  # Half the rows are unpaired (y1 unobserved). The likelihood term for an
+  # unpaired row depends on mu and lambdatwo only through mu + lambdatwo and
+  # does not depend on lambdaone, so mu, lambdatwo and lambdaone are separated
+  # only by the paired half; see ?bipois_partialobs.
   y1_obs <- rep(c(1L, 0L), length.out = n)
 
   dat <- data.frame(

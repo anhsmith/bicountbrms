@@ -109,9 +109,9 @@ test_that("binegbin epred equals the mean of its posterior_predict draws", {
   # The check that does not presume a closed form. Until 0.9.0 this failed:
   # the epred used the MARGINAL shared fraction mu/(mu + lambdatwo) where the
   # CONDITIONAL one belongs, which at these settings is off by ~0.6% and, over
-  # a grid of plausible rates and dispersions, by more than 5% in about half of
-  # them and more than 20% in a third -- in either direction, depending on
-  # which component is the more dispersed.
+  # a grid of plausible rates and dispersions, by more than 5% in about
+  # half of them and more than 20% in a third -- in either direction, depending
+  # on which component is the more dispersed.
   set.seed(20260804)
   draws <- posterior_predict_binegbin(1, nb_prep())
   ep    <- unique(as.vector(posterior_epred_binegbin(nb_prep())))
@@ -145,8 +145,9 @@ test_that("the observation flag does not change the epred of either family", {
 test_that("the binegbin epred is the same with and without the flag on a paired row", {
   # The families share a paired-branch likelihood, so they must share a
   # conditional expectation. binegbin_partialobs resolves its second-margin
-  # dispersion through .SHAPEXTWO_NAMES, whose `shapex` fallback is what lets
-  # the five-dpar prep here serve both.
+  # dispersion through .SHAPEXTWO_NAMES, which falls back to `shapex`,
+  # so the same five-dpar prep gives a value for shapextwo under both
+  # constructors.
   expect_equal(posterior_epred_binegbin(nb_prep()),
                posterior_epred_binegbin(nb_prep(vint2 = 1L)))
 })

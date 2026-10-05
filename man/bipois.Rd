@@ -30,7 +30,7 @@ posterior draws in rows and observations in columns.
 }
 \description{
 Returns a brms custom family for the joint distribution of a pair
-of counts, \verb{(y1, y2)}, constructed via trivariate reduction: \code{y1 = N_shared + N1}, \code{y2 = N_shared + N2}, with \code{N_shared ~ Poisson(mu)}, \code{N1 ~ Poisson(lambdaone)}, \code{N2 ~ Poisson(lambdatwo)}
+of counts, \verb{(y1, y2)}, constructed via trivariate reduction: \code{y1 = N_s + N1}, \code{y2 = N_s + N2}, with \code{N_s ~ Poisson(mu)}, \code{N1 ~ Poisson(lambdaone)}, \code{N2 ~ Poisson(lambdatwo)}
 mutually independent given their rates. All three rates are link = "log".
 Modelling the pair jointly avoids regressing the difference on one of its
 own components (a \code{d = y1 - y2 ~ y2} design), which induces regression to
@@ -60,9 +60,9 @@ data     = dat
 unconditional), whatever the family actually calls that quantity. Here it is
 bound to \code{lambda_shared}, the rate of the
 component shared between \code{y1} and \code{y2} -- not a mean of either
-response individually. \code{lambdaone} (source-1-only rate) and \code{lambdatwo}
-(source-2-only rate) are the other two dpars, plainly named (no forced
-reinterpretation needed for those two).
+response individually. \code{lambdaone} (rate of the source-1-exclusive component)
+and \code{lambdatwo} (rate of the source-2-exclusive component) are the other two
+dpars, plainly named (no forced reinterpretation needed for those two).
 
 \strong{The spelling \code{lambdaone} rather than \code{lambda1}.} \code{custom_family()} rejects dpar names
 ending in a digit (\code{stop2("'dpars' should not end with a number.")}), as

@@ -5,8 +5,8 @@
 # From 0.10.0 each component distribution has one family name and two
 # constructors: binegbin() takes vint(y2) and binegbin_partialobs() takes
 # vint(y2, y1_obs). Both return the same `name`, so brms resolves both to the same lpmf
-# and the same three post-processing methods. What distinguishes them at
-# post-processing time is nothing but the presence of prep$data$vint2.
+# and the same three post-processing methods. At post-processing time, the two
+# constructors are distinguished only by whether prep$data$vint2 exists.
 #
 # The contract this file pins is the one the 0.10.0 work order states as a
 # release criterion: for each of log_lik, posterior_predict and
@@ -25,8 +25,8 @@
 # R-side only -- no Stan compilation, so this runs in the fast suite.
 
 MU <- 5; LONE <- 3; LTWO <- 4; SHAPES <- 2
-SX1 <- 0.6    # y1 excess: strongly overdispersed
-SX2 <- 7      # y2 excess: mildly overdispersed
+SX1 <- 0.6    # y1 exclusive component: strongly overdispersed
+SX2 <- 7      # y2 exclusive component: mildly overdispersed
 Y1  <- 9L     # deliberately != Y2, so a swapped routing is observable
 Y2  <- 6L
 ND  <- 5e4L

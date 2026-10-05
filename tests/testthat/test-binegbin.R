@@ -3,18 +3,19 @@
 # The fully paired constructor: likelihood, Stan-vs-R agreement, and end-to-end
 # recovery.
 #
-# THE FITS HERE TIE THE TWO EXCESS DISPERSIONS. binegbin() has had
-# shapexone and shapextwo separately since 0.10.0, but the generative truth
-# below is symmetric, so the models fitted here impose shapexone == shapextwo
-# through one non-linear parameter:
+# THE FITS HERE TIE THE DISPERSIONS OF THE TWO EXCLUSIVE COMPONENTS. binegbin()
+# has had shapexone and shapextwo separately since 0.10.0, but the generative
+# truth below is symmetric, so the models fitted here impose
+# shapexone == shapextwo through one non-linear parameter:
 #
 #   nlf(shapexone ~ shapexx), nlf(shapextwo ~ shapexx), shapexx ~ 1
 #
-# That is the documented recipe for the symmetric special case, and it keeps
-# these fits term-for-term the ones 0.9.1 ran, so the recovery numbers below
-# remain a non-regression rather than a fresh claim. Recovery of two GENUINELY
-# DIFFERENT dispersions -- the capability 0.10.0 adds to this constructor --
-# is tested in test-binegbin-dispersions.R, where the asymmetric fixtures live.
+# Each model below is fitted with the formula above, the documented recipe for
+# the symmetric special case, and so has the same likelihood, term for term,
+# as the corresponding model in the 0.9.1 tests. The recovery numbers below
+# therefore remain a non-regression rather than a fresh claim. Recovery of two
+# different dispersions, which 0.10.0 made possible in binegbin(), is
+# tested in test-binegbin-dispersions.R, which holds the asymmetric fixtures.
 #
 # The Stan grid checks below do pass shapexone and shapextwo separately, since
 # the Stan signature takes both whatever the formula does with them.
@@ -141,8 +142,9 @@ test_that("Stan binegbin_lpmf is numerically stable at extreme rates and shapes"
 # A. RECOVERY (intercepts only). Validates the binegbin parameterisation and,
 #    critically, the POSITIONAL correspondence between the dpars vector and the
 #    Stan lpmf signature -- a mismatch there does not error, it silently swaps
-#    which rate or dispersion governs which component. Kept well conditioned on
-#    purpose: no group-level terms, n = 400, moderate overdispersion.
+#    which rate or dispersion governs which component. Kept well
+#    conditioned on purpose: no group-level terms, n = 400, moderate
+#    overdispersion.
 #
 # B. COMPOSITION (adds (1 | vessel)). Checks only that the family composes with
 #    the group-level machinery of brms and samples cleanly. It makes NO recovery
@@ -151,10 +153,10 @@ test_that("Stan binegbin_lpmf is numerically stable at extreme rates and shapes"
 # WHY THE SPLIT. One test used to do both jobs at once, with a vessel effect on
 # 8 levels and severe overdispersion (the variance of the shared component was
 # 40 against a mean of 8, i.e. 80% of it overdispersion). Three variance
-# channels -- the group-level SD, the shared dispersion, the private dispersion
-# -- then competed for the same residual, and shapex lost. shapex is identified
-# only through the variance of the difference, and with lambda also unknown the
-# two trade off along a ridge:
+# channels -- the group-level SD, the shared dispersion, the exclusive-component
+# dispersion -- then competed for the same residual, and shapex lost.
+# shapex is identified only through the variance of the difference, and with
+# lambda also unknown the two trade off along a ridge:
 #
 #   Var(d) = 2 (lambda + lambda^2 / shapex)  =>  shapex = lambda^2 / (V - lambda)
 #
@@ -164,8 +166,8 @@ test_that("Stan binegbin_lpmf is numerically stable at extreme rates and shapes"
 # (lambda, shapex) = (2.49, 0.795) against a truth of (3, 1.5). A grid MLE of
 # the exact likelihood agreed to two decimals, so that was the likelihood
 # tracking the data, not a fault: the test was asserting a property of one
-# DRAW, not of the estimator. Calibration of the estimator is what the coverage
-# test at the bottom of this file measures.
+# DRAW, not of the estimator. The coverage test at the bottom of this file
+# measures the calibration of the estimator.
 #
 # The truths below put ~50% of the variance in each component into
 # overdispersion (shapes = 8 gives var 16 vs mean 8; shapex = 3 gives var 6 vs
@@ -175,16 +177,17 @@ test_that("Stan binegbin_lpmf is numerically stable at extreme rates and shapes"
 
 BINEGBIN_TRUTH <- list(
   log_mu_int = log(8),
-  lone       = 3,   # both private rates; tied to one value via nlf(~ lamx)
+  lone       = 3,   # both exclusive rates; tied to one value via nlf(~ lamx)
   shapes     = 8,
   shapex     = 3
 )
 
 # shapes is log-linked, so brms reports it as b_<dpar>_Intercept. "mu" is the
 # canonical dpar of the family, so brms drops its infix (b_Intercept). The
-# excess dispersion arrives through the non-linear parameter `shapexx` (see the
-# fit below), so it is b_shapexx_Intercept rather than b_shapex_Intercept --
-# the spelling changed at 0.10.0 when `shapex` stopped being a dpar.
+# exclusive-component dispersion arrives through the non-linear parameter
+# `shapexx` (see the fit below), so it is b_shapexx_Intercept rather than
+# b_shapex_Intercept -- the spelling changed at 0.10.0 when `shapex` stopped
+# being a dpar.
 BINEGBIN_DRAWS_TRUTH <- c(
   b_Intercept         = BINEGBIN_TRUTH$log_mu_int,
   b_lamx_Intercept    = log(BINEGBIN_TRUTH$lone),
@@ -222,9 +225,9 @@ binegbin_sim_re <- function(seed, n_vessel = 8L, n_per_vessel = 25L) {
 # an intercept -- so `bf(y1 | vint(y2) ~ 1, nl = TRUE)` without a `mu ~ 1` term
 # generates `mu[n] = exp(1);`, pinning the shared rate at e and never estimating
 # it. It does not error; brms just fits a model you did not ask for, and with the
-# level forced into the excess rates the sampler crawls (observed: 150+ minutes
-# without finishing one fit). With `mu ~ 1` present the generated code is
-# `mu += Intercept; mu = exp(mu);` as intended.
+# level forced into the exclusive rates the sampler crawls (observed: 150+
+# minutes without finishing one fit). With `mu ~ 1` present the generated code
+# is `mu += Intercept; mu = exp(mu);` as intended.
 binegbin_fit <- function(dat, mu_re = FALSE, ...) {
   f <- if (mu_re) {
     brms::bf(
@@ -259,8 +262,8 @@ binegbin_fit <- function(dat, mu_re = FALSE, ...) {
   # All four are centred at ZERO while the truths are positive (log 8 = 2.08,
   # log 3 = 1.10), so every prior pulls AWAY from the truth. Recovery therefore
   # remains a genuine test of what the data show, not a prior echo. They are
-  # weak: normal(0, 2) on a log dispersion spans phi in [0.02, 50] at 95%, and
-  # normal(0, 3) on a log rate spans [0.003, 357].
+  # weak: normal(0, 2) on a log dispersion spans phi in [0.02, 50] at
+  # 95%, and normal(0, 3) on a log rate spans [0.003, 357].
   prm <- c(
     brms::prior(normal(0, 3), class = "Intercept"),
     brms::prior(normal(0, 3), class = "b", nlpar = "lamx"),
@@ -306,8 +309,8 @@ test_that("binegbin recovers all five dpars (intercepts only)", {
     )
   }
 
-  # Independent of the point checks: does the fitted model reproduce the spread
-  # shapex actually governs? Var(d) is what identifies it, so a mis-wired
+  # Independent of the point checks: does the fitted model reproduce Var(d)?
+  # Var(d) depends on shapex and identifies shapex, so a mis-wired
   # dispersion shows up here even if a point interval happened to cover.
   yrep  <- brms::posterior_predict(fit, ndraws = 200)
   y2mat <- matrix(dat$y2, nrow = nrow(yrep), ncol = ncol(yrep), byrow = TRUE)

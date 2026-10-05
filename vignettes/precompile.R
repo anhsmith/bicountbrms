@@ -7,8 +7,8 @@
 # source is knitted HERE, on a machine with Stan, and the resulting .Rmd carries
 # the output as static text. Downstream builds only render markdown.
 #
-# This is what lets .github/workflows/pkgdown.yaml use dependencies: '"hard"'
-# and install no Stan backend at all.
+# Because the output is static text, .github/workflows/pkgdown.yaml can use
+# dependencies: '"hard"' and install no Stan backend.
 #
 # Run this by hand after changing either _<name>.Rmd, then commit BOTH files of
 # each pair. The knitr::knit() calls execute every chunk, so the numbers in the

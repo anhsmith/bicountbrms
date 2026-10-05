@@ -12,7 +12,7 @@
 #     NOT_CRAN: false explicitly for exactly that reason.
 #   * brms imports rstan, so rstan is present even under dependencies: 'hard'.
 #     skip_if_not_installed("brms") therefore does not establish that a fit can
-#     run; only attempting a compile does.
+#     run.
 #
 # The first CI run of this code, when it was part of pairedcountbrms, failed
 # because some fits skipped on a file-local stan_ready check while the
@@ -42,9 +42,9 @@
 #               R-side tests pass.
 #
 #   check-stan  weekly, plus on demand. Sets NOT_CRAN=true so the fitting tests
-#               actually run. rstan is what the suite needs -- every family
-#               fits with backend = "rstan" and the Stan-vs-R function
-#               comparisons go through rstan::expose_stan_functions(). cmdstanr
+#               actually run. The suite requires rstan: every fit uses
+#               backend = "rstan", and the comparisons of Stan and R
+#               functions call rstan::expose_stan_functions(). cmdstanr
 #               is installed alongside it because the vignette selects it when
 #               present, so a build that never installs it never exercises that
 #               path.
@@ -135,8 +135,8 @@ jobs:
 
       # BH is named explicitly. rstan lists it in LinkingTo, not Imports, so
       # installing a binary rstan from RSPM does NOT bring it -- and without the
-      # Boost headers rstan cannot compile a model. That is what made the first
-      # run of this job pass in 68 seconds while every fit skipped.
+      # Boost headers rstan cannot compile a model. The first run of this job
+      # lacked BH, so the job passed in 68 seconds with every fit skipped.
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: |

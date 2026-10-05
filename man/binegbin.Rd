@@ -32,8 +32,8 @@ posterior draws in rows and observations in columns.
 Overdispersed sibling of \code{\link[=bipois]{bipois()}}. Returns a brms custom family for the
 joint distribution of a pair of counts \verb{(y1, y2)} via trivariate
 reduction with Negative-Binomial (rather than Poisson) latent components:
-\code{y1 = N_shared + N1}, \code{y2 = N_shared + N2}, with
-\code{N_shared ~ NB2(mu, shapes)}, \code{N1 ~ NB2(lambdaone, shapexone)},
+\code{y1 = N_s + N1}, \code{y2 = N_s + N2}, with
+\code{N_s ~ NB2(mu, shapes)}, \code{N1 ~ NB2(lambdaone, shapexone)},
 \code{N2 ~ NB2(lambdatwo, shapextwo)} mutually independent given their rates.
 \code{NB2(m, phi)} has mean \code{m} and variance \code{m + m^2/phi} (Stan
 \code{neg_binomial_2}; R \code{dnbinom(size = phi, mu = m)}).
@@ -44,17 +44,17 @@ with an observation flag -- same \code{name}, same six dpars, same likelihood,
 same post-processing.
 
 Six dpars: the three rates (\code{mu} = shared rate, \code{lambdaone}/\code{lambdatwo} =
-the two source-specific rates) plus three dispersions -- \code{shapes} for the
-shared component and \code{shapexone}/\code{shapextwo} for the two source-specific
-excess components. All six use \code{link = "log"}. Supply the excess rates
-through a non-linear formula without an explicit \code{exp()} (the log link
-applies it): \code{nlf(lambdaone ~ lamx)} gives \code{lambdaone = exp(lamx)}.
+the rates of the two source-exclusive components) plus three
+dispersions -- \code{shapes} for the shared component and \code{shapexone}/\code{shapextwo}
+for the two exclusive components. All six use \code{link = "log"}. Supply the
+exclusive rates through a non-linear formula without an explicit \code{exp()} (the
+log link applies it): \code{nlf(lambdaone ~ lamx)} gives \code{lambdaone = exp(lamx)}.
 
 See the \code{binegbin.R} file header for why Negative-Binomial components are
 used instead of an observation-level random effect on \code{\link[=bipois]{bipois()}} -- briefly,
 the random-effect version fails synthetic recovery, because with one
-observed pair but three latent deviates per unit the excess deviates act as
-residual absorbers.
+observed pair but three latent deviates per unit the exclusive-component
+deviates act as residual absorbers.
 
 Use in a brm() call as:
 brm(
@@ -68,11 +68,12 @@ data     = dat
 )
 }
 \details{
-\strong{Tying the two excess dispersions.} Up to 0.9.1
-this family had a single \code{shapex} shared by both excess components,
-imposing \code{shapexone == shapextwo}. That is a modelling choice rather than a
-property of the construction, and 0.10.0 frees it. To recover the
-constraint, route both through one non-linear parameter:
+\strong{Tying the dispersions of the two exclusive components.} Up to
+0.9.1, \code{binegbin()} had a single \code{shapex}, shared by both exclusive
+components, which imposed \code{shapexone == shapextwo}. Equal dispersions
+are a modelling choice rather than a property of the construction. 0.10.0
+removes the constraint. To recover the constraint, route \code{shapexone} and
+\code{shapextwo} through one non-linear parameter:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{bf(y1 | vint(y2) ~ 1,
    mu ~ 1 + (1 | vessel),
@@ -100,9 +101,9 @@ the full explanation, including why the rates are spelled \code{lambdaone}/
 \verb{target += binegbin_lpmf(Y[n] | mu[n], lambdaone[n], lambdatwo[n], shapes[n], shapexone[n], shapextwo[n], vint1[n], 1)} -- dpars in the order
 declared here, then the two \code{vars} entries. \code{binegbin_stan_funs} declares
 \code{binegbin_lpmf} with exactly this signature; reordering one without the
-other silently swaps which rate or dispersion governs which component.
-The trailing \code{1} is the observation flag, supplied as a literal because
-every row of a fully paired design has both counts.
+other silently swaps which rate or dispersion governs which
+component. The trailing \code{1} is the observation flag, supplied as a literal
+because every row of a fully paired design has both counts.
 }
 \seealso{
 \code{\link[=binegbin_partialobs]{binegbin_partialobs()}} for partially observed pairs; \code{\link[=bipois]{bipois()}}

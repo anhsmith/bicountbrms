@@ -10,7 +10,8 @@ template:
 # Everything under vignettes/articles/ must be named with its `articles/`
 # prefix here. pkgdown evaluates a bare entry as an R expression, so
 # `families-and-parameters` is parsed as subtraction and the build fails with
-# "unused argument (parameters)". Quoting does not help; the prefix does.
+# "unused argument (parameters)". Quoting the entry does not prevent the
+# error.
 articles:
 - title: Using the families
   navbar: ~
@@ -32,9 +33,10 @@ reference:
     Model the pair of counts jointly via trivariate reduction, capturing its
     correlation, marginal overdispersion, and difference together rather than
     the difference alone. Each component distribution has one family name and
-    two constructors: the plain one for a fully paired design, and the
-    _partialobs one for a design in which the first count is missing on some
-    rows. Both share a likelihood and a set of post-processing methods.
+    two constructors: the plain constructor for a fully paired design, and the
+    _partialobs constructor for a design in which the first count is missing
+    on some rows. The two constructors of a family share a likelihood and a
+    set of post-processing methods.
   contents:
   - bipois
   - binegbin

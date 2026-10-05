@@ -3,16 +3,16 @@
 #
 # The motif is the model itself. Counts come in pairs. Within a pair the grey
 # blocks are the shared latent component -- equal in both columns by
-# construction. Above them sit the two private components, blue for the first
-# source and orange for the second; their difference is the disagreement the
-# families estimate.
+# construction. Above them sit the two source-exclusive components, blue for the
+# first source and orange for the second; their difference is the disagreement
+# the families estimate.
 
 W <- 519.6   # hex width  (1.732 : 2, the hexb.in ratio)
 H <- 600     # hex height
 
 col_shared <- "#B4AA98"  # warm grey -- shared latent component
-col_src1   <- "#5BA5C7"  # blue      -- source 1, private
-col_src2   <- "#E28A45"  # orange    -- source 2, private
+col_src1   <- "#5BA5C7"  # blue      -- source 1, exclusive
+col_src2   <- "#E28A45"  # orange    -- source 2, exclusive
 col_ink    <- "#2F5F7A"
 col_bg     <- "#FCFAF6"
 
@@ -26,7 +26,7 @@ hex_pts <- paste(
 )
 
 # ---- the pairs --------------------------------------------------------------
-# one row per pair: shared blocks, then the private blocks of each source
+# one row per pair: shared blocks, then the exclusive blocks of each source
 
 pairs <- list(
   c(shared = 1, src1 = 1, src2 = 3),
@@ -64,8 +64,8 @@ for (p in seq_along(pairs)) {
     for (i in seq_len(s[["shared"]])) {
       blocks <- c(blocks, blk(x, i, col_shared))
     }
-    private <- if (m == 0) s[["src1"]] else s[["src2"]]
-    for (i in seq_len(private)) {
+    exclusive <- if (m == 0) s[["src1"]] else s[["src2"]]
+    for (i in seq_len(exclusive)) {
       blocks <- c(blocks, blk(x, s[["shared"]] + i, if (m == 0) col_src1 else col_src2))
     }
   }

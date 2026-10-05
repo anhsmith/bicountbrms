@@ -184,14 +184,13 @@ test_that("Stan binegbin_lpmf matches R brute-force reference (both branches)", 
 })
 
 test_that("the Stan paired branch routes the two dispersions the way R does", {
-  # The Stan-vs-Stan equivalence check this replaces compared binegbin_lpmf
-  # with the 0.9.1 binegbin_partialobs_lpmf; there is now one function, so it would compare a
-  # function to itself. The hazard it guarded against -- the two
-  # implementations disagreeing -- is gone, but a sharper one remains: the Stan
-  # signature and the argument order of the R reference can be reordered
-  # independently, silently swapping which dispersion governs which component.
-  # Checked here with shapexone far from shapextwo, which the grid above does
-  # not do.
+  # The Stan signature and the argument order of the R reference can be
+  # reordered independently, so that shapexone sets the dispersion of
+  # the source-2-exclusive component and shapextwo sets the dispersion
+  # of the source-1-exclusive component. The test "Stan binegbin_lpmf matches R
+  # brute-force reference (both branches)" passes a single sx for both
+  # dispersions, so that test cannot detect an exchange of shapexone and
+  # shapextwo. This test sets shapexone = 0.6 and shapextwo = 7.
   skip_if_not(stan_ready, "rstan unavailable or Stan compilation failed")
 
   grid <- expand.grid(
@@ -215,8 +214,8 @@ test_that("the Stan paired branch routes the two dispersions the way R does", {
   diffs <- mapply(check_one, grid$mu, grid$lone, grid$ltwo, grid$ss)
   expect_true(max(diffs) < 1e-12, label = paste("max diff =", max(diffs)))
 
-  # Not vacuous: handing Stan the two dispersions the other way round is a
-  # materially different number, so the agreement above is a real constraint
+  # Not vacuous: handing Stan the two dispersions the other way round is
+  # a materially different number, so the agreement above is a real constraint
   # on the argument order rather than an artefact of the two being close.
   swapped <- mapply(function(r, s) binegbin_lpmf(r, 5, 2, 3, 2, SX2, SX1, s, 1L),
                     c(9L, 4L, 12L), c(6L, 7L, 3L))
@@ -251,12 +250,12 @@ test_that("Stan binegbin_lpmf is numerically stable at extreme rates and shapes"
 # -----------------------------------------------------------------------
 
 test_that("binegbin_partialobs fits the SYMMETRIC model via nlf, dispatches, and recovers params", {
-  # Since 0.8.0 the two excess dispersions are separate dpars, so the
-  # symmetric model -- one dispersion for both excess components, which is
-  # what this simulation generates -- is expressed as a formula constraint:
-  # both dpars routed through a single non-linear parameter `shapexx`. This
-  # is the idiom the 0.8.0 migration introduced, so the test doubles as a check
-  # that it fits and recovers.
+  # Since 0.8.0 the two exclusive-component dispersions are separate dpars, so
+  # the symmetric model -- one dispersion for both exclusive components,
+  # which is what this simulation generates -- is expressed as a formula
+  # constraint: both dpars routed through a single non-linear parameter
+  # `shapexx`. This is the idiom the 0.8.0 migration introduced, so the test
+  # doubles as a check that it fits and recovers.
   skip_on_cran()
   skip_if_not_installed("brms")
   skip_if_no_stan()
@@ -269,7 +268,7 @@ test_that("binegbin_partialobs fits the SYMMETRIC model via nlf, dispatches, and
 
   true_log_mu_int <- log(8)
   true_sd_vessel  <- 0.3
-  true_lone        <- 3           # shared excess rate (lambdaone = lambdatwo)
+  true_lone        <- 3           # lambdaone = lambdatwo
   true_shapes     <- 2
   true_shapex     <- 1.5
 
