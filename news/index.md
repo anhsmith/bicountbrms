@@ -1,5 +1,20 @@
 # Changelog
 
+## bicountbrms 1.0.1
+
+### Documentation
+
+- The examples for
+  [`posterior_predict_y1_and_y2()`](https://anhsmith.github.io/bicountbrms/reference/posterior_predict_y1_and_y2.md)
+  and
+  [`posterior_predict_y1_given_y2()`](https://anhsmith.github.io/bicountbrms/reference/posterior_predict_y1_given_y2.md)
+  now fit the model with
+  [`bf_mfd()`](https://anhsmith.github.io/bicountbrms/reference/bf_mfd.md)
+  and a prior on each coordinate, as in
+  [`vignette("prediction")`](https://anhsmith.github.io/bicountbrms/articles/prediction.md).
+  Under the brms default priors, each example took 50 to 60 minutes to
+  fit on four cores, and 28% of transitions were divergent.
+
 ## bicountbrms 1.0.0
 
 ### Breaking changes

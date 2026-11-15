@@ -147,17 +147,26 @@ dat$y1_true <- dat$y1
 dat$y1[dat$y1_obs == 0] <- -1L
 
 fit <- brm(
-  bf(
-    y1 | vint(y2, y1_obs) ~ 1,
-    lambdaone ~ 1,
-    lambdatwo ~ 1,
-    shapes    ~ 1,
-    shapexone ~ 1,
-    shapextwo ~ 1
+  bf_mfd(
+    y1 | vint(y2, y1_obs),
+    logM      ~ 1,
+    logitf    ~ 1,
+    delta     ~ 1,
+    kappas    ~ 1,
+    kappaxone ~ 1,
+    kappaxtwo ~ 1
   ),
   family   = binegbin_partialobs(),
   stanvars = binegbin_partialobs_stanvars(),
-  data     = dat
+  data     = dat,
+  prior    = c(
+    prior(normal(1.5, 1), class = "b", nlpar = "logM"),
+    prior(normal(0, 1.5), class = "b", nlpar = "logitf"),
+    prior(normal(0, 0.5), class = "b", nlpar = "delta"),
+    prior(normal(0, 1),   class = "b", nlpar = "kappas",    lb = 0),
+    prior(normal(0, 1),   class = "b", nlpar = "kappaxone", lb = 0),
+    prior(normal(0, 1),   class = "b", nlpar = "kappaxtwo", lb = 0)
+  )
 )
 
 # Predictive check of the variance of the difference, on the paired rows
