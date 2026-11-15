@@ -81,18 +81,31 @@
 #' `lambdaone = exp(lamx)`.
 #'
 #' `shapexone` and `shapextwo` are estimated separately. To constrain them to
-#' be equal, route both through one non-linear parameter, and set its prior
-#' with `nlpar = "shapexx"`:
+#' be equal in the congruence–bias parameterisation, give [bf_mfd()] the
+#' single formula `kappax ~ 1` in place of `kappaxone ~ 1` and
+#' `kappaxtwo ~ 1`:
+#'
+#' ```r
+#' bf_mfd(
+#'   y1 | vint(y2),
+#'   logM   ~ 1,
+#'   logitf ~ 1,
+#'   delta  ~ 1,
+#'   kappas ~ 1,
+#'   kappax ~ 1
+#' )
+#' ```
+#'
+#' In the native parameterisation, route both dispersions through one
+#' non-linear parameter, and set the prior on `shapexx` with
+#' `nlpar = "shapexx"`:
 #'
 #' ```r
 #' bf(y1 | vint(y2) ~ 1,
 #'    nlf(shapexone ~ shapexx),
 #'    nlf(shapextwo ~ shapexx),
-#'    shapexx ~ 1, ..., nl = TRUE)
+#'    shapexx ~ 1, lambdaone ~ 1, lambdatwo ~ 1, shapes ~ 1)
 #' ```
-#'
-#' In the congruence–bias parameterisation, the single formula `kappax ~ 1` in
-#' [bf_mfd()] imposes the same constraint.
 #'
 #' @return
 #'   `binegbin()` returns a brms `custom_family` object. `binegbin_stanvars()`

@@ -79,17 +79,29 @@ written on the log scale, without \code{exp()}: \code{nlf(lambdaone ~ lamx)} giv
 \code{lambdaone = exp(lamx)}.
 
 \code{shapexone} and \code{shapextwo} are estimated separately. To constrain them to
-be equal, route both through one non-linear parameter, and set its prior
-with \code{nlpar = "shapexx"}:
+be equal in the congruence–bias parameterisation, give \code{\link[=bf_mfd]{bf_mfd()}} the
+single formula \code{kappax ~ 1} in place of \code{kappaxone ~ 1} and
+\code{kappaxtwo ~ 1}:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{bf_mfd(
+  y1 | vint(y2),
+  logM   ~ 1,
+  logitf ~ 1,
+  delta  ~ 1,
+  kappas ~ 1,
+  kappax ~ 1
+)
+}\if{html}{\out{</div>}}
+
+In the native parameterisation, route both dispersions through one
+non-linear parameter, and set the prior on \code{shapexx} with
+\code{nlpar = "shapexx"}:
 
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{bf(y1 | vint(y2) ~ 1,
    nlf(shapexone ~ shapexx),
    nlf(shapextwo ~ shapexx),
-   shapexx ~ 1, ..., nl = TRUE)
+   shapexx ~ 1, lambdaone ~ 1, lambdatwo ~ 1, shapes ~ 1)
 }\if{html}{\out{</div>}}
-
-In the congruence–bias parameterisation, the single formula \code{kappax ~ 1} in
-\code{\link[=bf_mfd]{bf_mfd()}} imposes the same constraint.
 }
 \seealso{
 \code{\link[=binegbin_partialobs]{binegbin_partialobs()}} for partially observed pairs; \code{\link[=bipois]{bipois()}}
