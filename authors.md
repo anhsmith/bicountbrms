@@ -14,7 +14,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/anhsmith/bicountbrms/blob/master/inst/CITATION)
+[`inst/CITATION`](https://github.com/anhsmith/bicountbrms/blob/v1.0.0/inst/CITATION)
 
 Smith, A. N. H. (2026). bicountbrms: Custom brms Families for Paired
 Counts. R package version 1.0.0. https://doi.org/10.5281/zenodo.22239120
