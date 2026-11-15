@@ -47,8 +47,8 @@ takes all three latent counts to be independent and negative binomial:
 
 \begin{aligned} N_s &\sim \mathrm{NB2}(\mu,\\ \phi_s) \\ N_1 &\sim
 \mathrm{NB2}(\lambda_1,\\ \phi\_{x1}) \qquad N_2 \sim
-\mathrm{NB2}(\lambda_2,\\ \phi\_{x2}) \\\[4pt\] y_1 &= N_s + N_1 \qquad
-y_2 = N_s + N_2 \end{aligned}
+\mathrm{NB2}(\lambda_2,\\ \phi\_{x2}) \\ y_1 &= N_s + N_1 \qquad y_2 =
+N_s + N_2 \end{aligned}
 
 N_s, the shared component, is the latent count recorded by both sources.
 N_1 and N_2, the source-exclusive components, are the latent counts

@@ -42,9 +42,9 @@
 
 <p>Proposed additions to bicountbrms, not yet scheduled. Each entry states the change and the design questions it raises. Move an entry to <code>NEWS.md</code> when it is released.</p>
 <div class="section level2">
-<h2 id="native-and-m-f-δ-parameterisations-throughout-the-documentation">Native and (M, f, δ) parameterisations throughout the documentation<a class="anchor" aria-label="anchor" href="#native-and-m-f-%CE%B4-parameterisations-throughout-the-documentation"></a></h2>
-<p>The get-started vignette would introduce both parameterisations: the native rates and dispersions (<code>mu</code>, <code>lambdaone</code>, <code>lambdatwo</code>, <code>shapes</code>, <code>shapexone</code>, <code>shapextwo</code>), and the midpoint <span class="math inline">M</span>, congruence <span class="math inline">f</span> and source bias <span class="math inline">\delta</span> converted by <code><a href="reference/mfd_to_dpars.html">mfd_to_dpars()</a></code> and <code><a href="reference/dpars_to_mfd.html">dpars_to_mfd()</a></code>. The remaining articles would then give each formula, prior and summary in both parameterisations, as tabs (<code>## Heading {.tabset}</code> in R Markdown, which pkgdown renders).</p>
-<ul><li>Decide whether each Mfd tab fits its own model, which adds one fit per tab to the precompile, or converts the posterior draws of the native fit.</li>
+<h2 id="both-parameterisations-in-the-articles">Both parameterisations in the articles<a class="anchor" aria-label="anchor" href="#both-parameterisations-in-the-articles"></a></h2>
+<p>Getting started introduces both parameterisations. The articles would give each formula, prior and summary in both the congruence–bias coordinates and the native parameters, as tabs (<code>## Heading {.tabset}</code> in R Markdown, which pkgdown renders).</p>
+<ul><li>Decide whether each congruence–bias tab fits its own model, which adds one fit per tab to the precompile, or converts the posterior draws of the native fit.</li>
 <li>Priors written on one scale induce a different density on the other, so the two tabs are not the same model unless the prior is converted as well.</li>
 </ul></div>
 <div class="section level2">
@@ -56,16 +56,16 @@
 <div class="section level2">
 <h2 id="both-sources-partially-observed">Both sources partially observed<a class="anchor" aria-label="anchor" href="#both-sources-partially-observed"></a></h2>
 <p>At present only the first count may be unrecorded. Allowing the second to be unrecorded as well adds a third kind of row, in which only the first count is observed, scored by the marginal of the first count.</p>
-<ul><li>The observation flags would become two <code>vint()</code> integers, so the plain constructors would pass two literals (<code>"1"</code>, <code>"1"</code>) rather than one. Every constructor changes its <code>vars</code>, and <code>tests/testthat/test-stancode-shape.R</code> must be updated for all four.</li>
+<ul><li>The observation indicators would become two <code>vint()</code> integers, so the plain constructors would pass two literals (<code>"1"</code>, <code>"1"</code>) rather than one. Every constructor changes its <code>vars</code>, and <code>tests/testthat/test-stancode-shape.R</code> must be updated for all four.</li>
 <li>
-<code>.y1_obs_at()</code> in <code>R/utils.R</code> generalises to a lookup for either flag, and <code>posterior_epred_*</code> needs <span class="math inline">E[y_2 \mid y_1]</span> for rows where only the first count was recorded.</li>
-<li>The split between the shared and excess components is estimated mainly from the paired rows, as it is now, so the number of paired rows remains the effective sample size for the bias and the congruence.</li>
+<code>.y1_obs_at()</code> in <code>R/utils.R</code> generalises to a lookup for either indicator, and new functions <code>posterior_predict_y2_given_y1()</code> and <code>posterior_epred_y2_given_y1()</code> would impute <span class="math inline">y_2</span> on rows where only <span class="math inline">y_1</span> was recorded.</li>
+<li>The split between the shared and exclusive components is estimated mainly from the paired rows, as it is now, so the number of paired rows remains the effective sample size for the bias and the congruence.</li>
 </ul></div>
 <div class="section level2">
 <h2 id="citation-section-in-the-readme">Citation section in the README<a class="anchor" aria-label="anchor" href="#citation-section-in-the-readme"></a></h2>
 <p>The Citation section was removed from <code>README.md</code> on 14 November 2026, before the paper describing the package was submitted to <em>Methods in Ecology and Evolution</em>, because the reviewers receive an anonymised copy of the repository. Restore the Citation section once the paper is published.</p>
 <ul><li>Point the restored section and <code>inst/CITATION</code> to the paper, and keep the <code>citation("bicountbrms")</code> call and the concept DOI (10.5281/zenodo.22239120).</li>
-<li>Add Kirkpatrick and Neale (2016) and Kirkpatrick (2022) to the <code>citHeader</code> in <code>inst/CITATION</code>, which at present asks users to cite only Holgate (1964) and Karlis and Ntzoufras (2003).</li>
+<li>Add Kirkpatrick (2022) to the <code>citHeader</code> in <code>inst/CITATION</code>, which at present cites Holgate (1964), Karlis and Ntzoufras (2003), and Kirkpatrick and Neale (2016).</li>
 </ul></div>
 </div>
 
