@@ -17,94 +17,54 @@ Stan code for the corresponding \verb{_lpmf}. The returned family has the same
 apply to a fit made with either constructor.
 }
 \description{
-\code{\link[=binegbin]{binegbin()}} for a design in which the first count is missing on some rows.
-Same generative model, same \code{name}, same six dpars, same likelihood and the
-same post-processing methods -- the only difference is that each row supplies
-a second supplementary integer, an observation flag, through \code{vint()}:
+Returns a version of \code{\link[=binegbin]{binegbin()}} for partially paired designs, in which source 1
+has missing values. The generative model, family name, dpars, and
+post-processing methods are the same as for \code{\link[=binegbin]{binegbin()}}. Each row also
+supplies an observation indicator as the second argument of \code{vint()}, after \code{y2}:
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{bf(y1 | vint(y2, y1_obs) ~ ...)
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{brm(
+  bf(y1 | vint(y2, y1_obs) ~ ...),
+  family   = binegbin_partialobs(),
+  stanvars = binegbin_partialobs_stanvars(),
+  data     = dat
+)
 }\if{html}{\out{</div>}}
 
-\code{y1_obs} is a 0/1 integer column: \code{1} where both counts were recorded, \code{0}
-where the first was not. \code{y1} may hold any non-negative integer on those
-rows -- \code{0} is the conventional placeholder -- because the likelihood does
-not read it. Do not use \code{NA}, which brms drops before fitting, taking the
-observed \code{y2} on that row with it.
+This template is for the native parameterisation. To fit the model in the
+congruence–bias parameterisation, which we recommend, write the formula
+with \code{\link[=bf_mfd]{bf_mfd()}}.
 
-\strong{Contribution of a paired row and of an unpaired row.} A paired row (\code{y1_obs == 1}) uses the
-full joint lpmf on \verb{(y1, y2)}. A row whose first count was never recorded
-(\code{y1_obs == 0}) contributes the marginal of the second count \emph{from the
-same model},
-\verb{P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo)} --
-the joint with the \code{y1} term integrated out over its whole support. It is
-not dropped, and it is not given a different model: it still informs the
-shared component (\code{mu}, \code{shapes}), the rate and dispersion of the
-second source (\code{lambdatwo}, \code{shapextwo}), and any group-level effects.
+\code{y1_obs} is \code{1} on rows where both counts were recorded and \code{0} on rows where
+only \code{y2} was recorded. An indicator other than \code{0} or \code{1} makes the
+sampler fail at initialisation, with a message in the chain output that
+names the cause. The check also catches the two \code{vint()} arguments written
+in reverse order.
 
-\strong{Imputation after fitting.} The fitted model can impute the unobserved
-first count conditional on the observed second count. \code{posterior_predict()}
-and \code{posterior_epred()} return a \code{y1} draw and \code{E[y1 | y2]} for \emph{every} row,
-paired and unpaired alike -- \code{y1_obs} selects a likelihood branch, not a
-prediction.
+\strong{Do not use \code{NA} for missing \code{y1} values.} brms drops any row with a
+missing response with only a warning. On a row with \code{y1_obs == 0}, the
+likelihood term does not depend on \code{y1}, so \code{y1} can be any integer. We
+suggest \code{-1}, because it cannot be confused with a recorded count:
 
-\strong{Parameters identified only by the paired rows.} The rate \code{lambdaone} and
-dispersion \code{shapexone} of the first source appear only on the paired
-branch, so \code{lambdaone} and \code{shapexone} are identified by the paired rows
-alone. With 20 paired rows in 500, the posteriors of \code{lambdaone} and
-\code{shapexone} are wide and depend strongly on their priors. \code{mu}, \code{shapes},
-\code{lambdatwo} and \code{shapextwo} appear on both branches and are informed by
-every row.
-
-\strong{Relation to censoring in brms.} brms uses the \code{cens()} addition term for a
-value known to lie in a set (\code{left}, \code{right} or \code{interval}). On an unpaired
-row, the first count is not observed at all, and the likelihood marginalises
-over its whole support. \code{binegbin_partialobs()} was called \code{binegbin_cens()}
-up to 0.9.1. Do not combine \code{binegbin_partialobs()} with \code{cens()}.
-
-Use in a brm() call as:
-brm(
-bf(y1 | vint(y2, y1_obs) ~ 1,
-mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
-nlf(lambdaone ~ lamx + delta),
-nlf(lambdatwo ~ lamx - delta),
-lamx ~ 1, delta ~ 1,
-shapes ~ 1, shapexone ~ 1, shapextwo ~ 1, nl = TRUE),
-family   = binegbin_partialobs(),
-stanvars = binegbin_partialobs_stanvars(),
-data     = dat
-)
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{dat$y1[dat$y1_obs == 0] <- -1L
+}\if{html}{\out{</div>}}
 }
 \details{
-\strong{Shared Stan function and post-processing methods.}
-\code{binegbin_partialobs()} returns the same \code{custom_family} \code{name} as
-\code{\link[=binegbin]{binegbin()}}, so brms resolves both constructors to one \code{binegbin_lpmf} and
-one set of \code{log_lik_binegbin()} / \code{posterior_predict_binegbin()} /
-\code{posterior_epred_binegbin()} methods. The paired branch of
-\code{binegbin_partialobs()} therefore runs the same code as \code{\link[=binegbin]{binegbin()}}.
+On a paired row, the likelihood term is the joint probability of
+\verb{(y1, y2)} under \code{\link[=binegbin]{binegbin()}}. On an unpaired row, the likelihood term is
+the marginal probability of \code{y2}, the joint probability summed over every
+possible value of the unrecorded \code{y1}:
+\verb{P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo)}
+over \verb{k = 0, ..., y2}.
 
-What differs is \code{vars}. \code{\link[=binegbin]{binegbin()}} declares \code{c("vint1[n]", "1")} and
-\code{binegbin_partialobs()} declares \code{c("vint1[n]", "vint2[n]")}. brms pastes
-those entries into the generated call, so the fully paired model reaches
-the same Stan function with the flag fixed at \code{1}. The alternative -- two
-Stan functions of the same name and different arity -- would need
-user-defined function overloading, which arrived in Stan 2.29 (February
-2022) and would oblige this package to declare a minimum Stan version.
-\code{DESCRIPTION} sets no minimum version of rstan or cmdstanr.
+To impute \code{y1} on the unpaired rows, use \code{\link[=posterior_predict_y1_given_y2]{posterior_predict_y1_given_y2()}}
+or \code{\link[=posterior_epred_y1_given_y2]{posterior_epred_y1_given_y2()}}; see \code{vignette("prediction")}.
 
-\strong{Two \code{vint()} arguments, in declared order.} brms appends \code{vint()}
-integers to the generated lpmf call in the order they are listed in the
-\code{vint()} term of the formula, matching the \code{vars} declared here: so
-\code{vint(y2, y1_obs)} binds \code{vint1 = y2} and \code{vint2 = y1_obs}. Reordering the
-two \code{vint()} terms without matching the Stan signature silently swaps the
-second count with the branch flag.
-
-\strong{Distinguishing the two constructors in a stored fit.} \code{family$name} is \code{"binegbin"}
-either way. What distinguishes them is the presence of the second
-supplementary integer:
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{"vint2" \%in\% names(brms::standata(fit))   # TRUE for a partially observed fit
-fit$family$vars     # c("vint1[n]", "vint2[n]") or c("vint1[n]", "1")
-}\if{html}{\out{</div>}}
+\code{lambdaone} and \code{shapexone} do not appear in the likelihood term for an
+unpaired row, so \code{lambdaone} and \code{shapexone} are estimated from the paired
+rows alone. With few paired rows, the posteriors of \code{lambdaone} and
+\code{shapexone} are wide and depend strongly on their priors. \code{mu}, \code{shapes},
+\code{lambdatwo}, and \code{shapextwo} appear in both likelihood terms and are
+informed by every row.
 }
 \seealso{
 \code{\link[=binegbin]{binegbin()}} for the fully paired case; \code{\link[=bipois_partialobs]{bipois_partialobs()}} for

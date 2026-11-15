@@ -27,7 +27,6 @@ if (!exists("has_stan")) {
   has_stan <- requireNamespace("cmdstanr", quietly = TRUE) ||
     requireNamespace("rstan", quietly = TRUE)
 }
-backend <- if (requireNamespace("cmdstanr", quietly = TRUE)) "cmdstanr" else "rstan"
 ```
 
 ```{r}
@@ -36,24 +35,31 @@ backend <- if (requireNamespace("cmdstanr", quietly = TRUE)) "cmdstanr" else "rs
 #| warning: false
 library(brms)
 library(bicountbrms)
+library(posterior)
+library(dplyr)
 ```
 
-This vignette demonstrates how to use one family, `binegbin()`, from simulation
-to prediction: counts are simulated from known parameters, fitted, and the
-credible intervals checked against the values that generated them. The other
-joint families (`bipois()`, and the partially observed `binegbin_partialobs()`
-and `bipois_partialobs()`) follow the same pattern; the README compares them.
+bicountbrms models pairs of counts of the same events recorded by two sources,
+such as two observers or two survey methods. The quantities usually of interest
+are the amount recorded by the two sources, the extent to which their records
+agree, and the direction and size of any imbalance between them. This vignette
+simulates paired counts with known values of these quantities, fits a model
+that estimates them, and checks the estimates against the true values.
 
-Everything here is a brms custom family [@burkner2017], so the fitting,
-prediction and model-comparison interfaces are those of brms. The non-linear
-formula syntax used further down is documented in @burkner2018.
+The package has two brms custom families [@burkner2017], `binegbin`, with
+negative-binomial components, and `bipois`, with Poisson components, so models
+are fitted, used for prediction, and compared with the usual brms functions.
+Each family has two constructors: `binegbin()` and `bipois()` for data in
+which both counts were recorded on every row, and `binegbin_partialobs()` and
+`bipois_partialobs()` for partially paired data, in which source 1 has
+missing values. This vignette uses `binegbin()`.
 
 ## The generative model
 
-Each observed count is the sum of a latent count that both sources recorded and
-one that only that source recorded. This construction is **trivariate
-reduction**: @holgate1964 and @karlis2003 use it with Poisson components,
-@kirkpatrickApplyingMultivariateDiscrete2016 and
+Each observed count is the sum of a latent count recorded by both sources and a
+latent count recorded by that source alone, a construction known as 'trivariate
+reduction'. @holgate1964 and @karlis2003 use this construction with Poisson
+components, @kirkpatrickApplyingMultivariateDiscrete2016 and
 @kirkpatrickRMKdiscreteSundryDiscrete2022 with negative-binomial components.
 `binegbin()` takes all three latent counts to be independent and
 negative binomial:
@@ -68,83 +74,112 @@ y_2 = N_s + N_2
 \end{aligned}
 $$
 
-$N_s$ is the latent count recorded by both sources; $N_1$ and $N_2$
-are the two source-exclusive components, the counts recorded by one source only.
-$N_s$ induces the correlation between the pair. It is never
-observed, and is marginalised out analytically in the likelihood.
+$N_s$, the shared component, is the latent count recorded by both sources.
+$N_1$ and $N_2$, the source-exclusive components, are the latent counts
+recorded by one source only. The shared component induces the positive
+correlation between $y_1$ and $y_2$. $N_s$ is never observed, and the
+likelihood sums over its possible values $k = 0, \dots, \min(y_1, y_2)$.
 
 `NB2(m, phi)` is `neg_binomial_2` in Stan and `dnbinom(size = phi, mu = m)` in
 R: mean `m`, variance `m + m^2/phi`. Larger `phi` means *less* overdispersion.
 
-Six dpars, all with a log link:
+In the native parameterisation, `binegbin()` has six distributional parameters
+(dpars), all with a log link:
 
-| dpar | role |
-|---|---|
-| `mu` | rate of the shared component, $\mu$ |
-| `lambdaone` | rate of the exclusive component of the first source, $\lambda_1$ |
-| `lambdatwo` | rate of the exclusive component of the second source, $\lambda_2$ |
-| `shapes` | dispersion $\phi_s$ of the shared component |
-| `shapexone` | dispersion $\phi_{x1}$ of the exclusive component of the first source |
-| `shapextwo` | dispersion $\phi_{x2}$ of the exclusive component of the second source |
+| Parameter | Meaning | Name in brms |
+|---|---|---|
+| $\mu$ | rate of the shared component | `mu` |
+| $\lambda_1$, $\lambda_2$ | rates of the two source-exclusive components | `lambdaone`, `lambdatwo` |
+| $\phi_s$ | NB2 dispersion of the shared component | `shapes` |
+| $\phi_{x1}$, $\phi_{x2}$ | NB2 dispersions of the two exclusive components | `shapexone`, `shapextwo` |
 
-`brms::custom_family()` rejects any family whose dpars do not include one named
-literally `mu`. The requirement is on the name, not on the position: `mu` may
-appear anywhere in the vector. Here it is bound to the *rate* of the shared
-component, so it is not the mean of either response, nor the mean of their
-difference. `E[y1] = mu + lambdaone`.
+The dpar `mu` is the rate of the shared component rather than the mean of
+either count, so that $E[y_1] = \mu + \lambda_1$. brms requires every custom
+family to have a dpar named `mu`.
 
-The two rates are spelled `lambdaone`/`lambdatwo` rather than `lambda1`/`lambda2`
-because `custom_family()` rejects dpar names ending in a digit. The maths below
-writes them $\lambda_1$ and $\lambda_2$.
+## The congruence–bias parameterisation
 
-All six use a log link, the conventional log-linear rate parameterisation for
-this construction [@karlis2003].
+bicountbrms provides an interpretable reparameterisation of the model, the
+congruence–bias parameterisation, in which the coordinates
+directly represent the quantities usually of interest in a comparison of two
+sources: the midpoint $M$, the average amount recorded by the two sources; the congruence
+$f$, the extent to which their records agree; and the source bias $\beta$, the
+direction and size of any imbalance between them. The three dispersions are
+replaced by overdispersions $\kappa$, for which
+$\kappa = 0$ is a Poisson component. The helper function `bf_mfd()` returns the
+brms formula for this model, and takes one argument for each coordinate in the
+table below.
 
-## Simulate from known parameters
+| Coordinate | Meaning | Definition | Name in brms |
+|---|---|---|---|
+| $M$ | midpoint of the expected counts of the two sources | $M = \mu + (\lambda_1 + \lambda_2)/2$ | `logM`, for $\log M$ |
+| $f$ | congruence, the proportion of $M$ recorded by both sources | $f = \mu / M$ | `logitf`, for $\operatorname{logit} f$ |
+| $\beta$ | source bias, zero when the two exclusive rates are equal | $\beta = (\lambda_1 - \lambda_2)/(\lambda_1 + \lambda_2)$ | `delta`, for $\operatorname{artanh}\beta$ |
+| $\kappa_s$, $\kappa_{x1}$, $\kappa_{x2}$ | overdispersions | $\kappa = 1/\sqrt{\phi}$ | `kappas`, `kappaxone`, `kappaxtwo` |
+
+The interactive widget in the article
+[*The congruence–bias parameterisation*][reparameterisation] simulates pairs of
+counts from one model and shows both parameterisations side by side: moving a
+slider for one parameterisation moves the sliders for the other, and the plot
+shows the expected decomposition of each count and the simulated pairs.
+
+We generally recommend the congruence–bias parameterisation. The native
+parameterisation might be useful when a predictor is expected to
+affect one latent component only, such as a change in the equipment used by one
+source (see [Models with predictors](#models-with-predictors)).
+
+## A worked example
+
+### Simulate data from known parameters
+
+The true values are set as midpoint, congruence, source bias, and
+overdispersions. `mfd_to_dpars()` converts them to the six native dpars, and
+`rbicount()` draws the three latent counts and returns them with the two
+observed counts.
 
 ```{r}
 #| label: simulate
 set.seed(20260724)
 
-n <- 400
 truth <- list(
-  mu        = 8,
-  lambdaone = 3,
-  lambdatwo = 2,
-  shapes    = 4,
-  shapexone = 6,
-  shapextwo = 2
+  M         = 10,
+  f         = 0.75,
+  beta      = 0.2,
+  kappas    = 0.5,
+  kappaxone = 0.4,
+  kappaxtwo = 0.7
 )
 
-n_shared <- rnbinom(n, size = truth$shapes, mu = truth$mu)
-n1       <- rnbinom(n, size = truth$shapexone, mu = truth$lambdaone)
-n2       <- rnbinom(n, size = truth$shapextwo, mu = truth$lambdatwo)
-
-dat <- data.frame(
-  y1 = n_shared + n1,
-  y2 = n_shared + n2
+dpars <- mfd_to_dpars(
+  M         = truth$M,
+  f         = truth$f,
+  delta     = atanh(truth$beta),
+  kappas    = truth$kappas,
+  kappaxone = truth$kappaxone,
+  kappaxtwo = truth$kappaxtwo
 )
 
-str(dat)
+dat <- do.call(rbicount, c(list(n = 400), dpars))
+
+head(dat)
 cor(dat$y1, dat$y2)
 ```
 
 The correlation is positive and substantial because both counts include the same
-`n_shared`.
+`Ns`.
 
+### A model with intercepts only
 
-## Fit
-
-Two things are specific to this package.
-
-**The second count is supplied through `vint()`.** `brms::custom_family()` declares a
-single response column, so only `y1` can be the response. `y2` is passed
-alongside as supplementary integer data, and the Stan signature of the family
-reads it from there.
-
-**`stanvars` is not optional.** `binegbin_stanvars()` injects the
-`binegbin_lpmf` Stan function into the `functions` block of the model. Without
-it, the generated model will not compile.
+A model in the congruence–bias parameterisation is fitted by specifying its
+formula with the helper
+function `bf_mfd()`. The first argument of `bf_mfd()` is the response,
+`y1 | vint(y2)`: a brms custom family has one response, so `y1` is the response
+and `y2` is passed to the family as supplementary integer data through
+`vint()`. Each further argument is the formula of one parameter in the table
+above, here `~ 1` for all six, so that each coordinate is the same on every
+row. The argument `stanvars = binegbin_stanvars()` adds the Stan function
+`binegbin_lpmf` to the `functions` block of the model; without it, the model
+does not compile.
 
 ```{r}
 #| label: fit
@@ -152,29 +187,30 @@ it, the generated model will not compile.
 #| results: hide
 #| message: false
 fit <- brm(
-  bf(
-    y1 | vint(y2) ~ 1,
-    lambdaone     ~ 1,
-    lambdatwo     ~ 1,
-    shapes        ~ 1,
-    shapexone     ~ 1,
-    shapextwo     ~ 1
+  bf_mfd(
+    y1 | vint(y2),
+    logM      ~ 1,
+    logitf    ~ 1,
+    delta     ~ 1,
+    kappas    ~ 1,
+    kappaxone ~ 1,
+    kappaxtwo ~ 1
   ),
   family   = binegbin(),
   stanvars = binegbin_stanvars(),
   data     = dat,
   prior    = c(
-    prior(normal(2, 1), class = "Intercept"),
-    prior(normal(2, 1), class = "Intercept", dpar = "lambdaone"),
-    prior(normal(2, 1), class = "Intercept", dpar = "lambdatwo"),
-    prior(normal(2, 1), class = "Intercept", dpar = "shapes"),
-    prior(normal(2, 1), class = "Intercept", dpar = "shapexone"),
-    prior(normal(2, 1), class = "Intercept", dpar = "shapextwo")
+    prior(normal(2, 1),   class = "b", nlpar = "logM"),
+    prior(normal(0, 1.5), class = "b", nlpar = "logitf"),
+    prior(normal(0, 0.5), class = "b", nlpar = "delta"),
+    prior(normal(0, 1),   class = "b", nlpar = "kappas",    lb = 0),
+    prior(normal(0, 1),   class = "b", nlpar = "kappaxone", lb = 0),
+    prior(normal(0, 1),   class = "b", nlpar = "kappaxtwo", lb = 0)
   ),
   chains  = 2,
   iter    = 1500,
   refresh = 0,
-  backend = backend,
+  backend = "cmdstanr",  # or "rstan"
   seed    = 1
 )
 ```
@@ -184,187 +220,295 @@ fit <- brm(
 #| include: false
 # The prose below quotes these; computing them keeps the text and the prior in
 # step when either changes.
-pr_mean <- 2
-pr_sd   <- 1
-q_nat   <- qlnorm(c(0.025, 0.975), pr_mean, pr_sd)
-log_tr  <- log(unlist(truth))
-z_l2    <- (log(truth$lambdatwo) - pr_mean) / pr_sd
+q_M <- qlnorm(c(0.025, 0.975), 2, 1)
 ```
 
-One weakly-informative prior serves all six, since **every dpar here is a
-log-linked positive quantity** of similar magnitude. On the natural scale
-`normal(2, 1)` is lognormal, with 95% of its mass between `r round(q_nat[1])`
-and `r round(q_nat[2])`.
+Unless a prior is specified, brms gives each non-linear parameter a flat,
+improper prior, so we recommend setting a prior on every coordinate. Each prior has `class = "b"` and
+the name of its parameter. The prior `normal(2, 1)` on `logM` places 95% of its
+mass between `r round(q_M[1])` and `r round(q_M[2])` on the scale of $M$, which
+suits these simulated counts. For other data, we suggest centring it on the log
+of a plausible midpoint rather than widening its SD, because a wider normal
+prior on the log scale places more mass on implausibly small and large values
+[@smithInstantaneousVsNoninstantaneous2020, supplement 3, Fig. S3-1]. With an
+intercept alone in the formula for `logitf`, the prior `normal(0, 1.5)` gives a
+density for $f$ within 10% of uniform between 0.1 and 0.9 [@mcelreath2020]. The
+source bias and the overdispersions each have a finite null, $\delta = 0$ for
+no source bias and $\kappa = 0$ for a Poisson component, so their priors have
+their mode at zero and shrink the estimates towards the simpler model unless
+the data support otherwise [@simpsonPenalisingModelComponent2017]. In the
+native parameterisation, a Poisson component is the limit $\phi \to \infty$,
+which no prior on $\phi$ can have as its mode. The bound `lb = 0` makes each
+prior on an overdispersion half-normal.
 
-The six truths span `r round(min(log_tr), 2)` to `r round(max(log_tr), 2)` on the
-log scale, so no single prior sits away from all of them: the true shared rate
-falls near the prior mean, the true second exclusive rate
-`r round(abs(z_l2), 1)` prior SDs below it. Recovery here is therefore not on
-its own evidence that the prior is uninfluential. The article
-[*Mapping native parameters to interpretable coordinates*][anatomy] tests that
-directly, shifting a prior median sevenfold and moving the corresponding
-posterior median by 0.005.
+### Convergence
 
-[anatomy]: https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html
+```{r}
+#| label: summary
+#| eval: !expr has_stan
+summary(fit)
+```
 
-To adapt these priors, shift the **mean** to the scale of the counts rather than
-increasing the SD. All six dpars are log-linked, so a normal prior is lognormal
-on the natural scale, and increasing its SD moves mass to implausible values
-rather than making the prior neutral
-[@smithInstantaneousVsNoninstantaneous2020, supplement 3, Fig. S3-1].
+`summary(fit)` reports, for each parameter, the potential scale reduction
+factor $\hat{R}$ and the bulk and tail effective sample sizes, and brms warns
+after sampling if any transitions diverged. A value of $\hat{R}$ above 1.01
+indicates that the chains have not converged to the same distribution, and an
+effective sample size below about 100 per chain indicates too few effectively
+independent draws for reliable estimates of the posterior quantiles
+[@vehtari2021]. The summary gives each parameter on the scale of its formula:
+$\log M$, $\operatorname{logit} f$, $\operatorname{artanh}\beta$, and $\kappa$.
 
-## Recovery of the generating values
+### Recovery of the generating values
 
-All six dpars are log-linked, so each posterior intercept exponentiates back
-onto the natural scale.
+The table gives the posterior median (`est`) and the 95% credible interval
+(`q2.5` to `q97.5`) of each parameter on its natural scale, with the true value
+that generated the counts.
 
 ```{r}
 #| label: recovery
 #| eval: !expr has_stan
-draws <- as_draws_df(fit)
-
-pars <- c(
-  mu        = "b_Intercept",
-  lambdaone = "b_lambdaone_Intercept",
-  lambdatwo = "b_lambdatwo_Intercept",
-  shapes    = "b_shapes_Intercept",
-  shapexone = "b_shapexone_Intercept",
-  shapextwo = "b_shapextwo_Intercept"
-)
-
-recovery <- do.call(rbind, lapply(names(pars), function(p) {
-  x <- exp(draws[[pars[[p]]]])
-  data.frame(
-    dpar  = p,
-    truth = truth[[p]],
-    est   = median(x),
-    lower = unname(quantile(x, 0.025)),
-    upper = unname(quantile(x, 0.975))
+recovery <- as_draws_df(fit) |>
+  mutate_variables(
+    M         = exp(b_logM_Intercept),
+    f         = plogis(b_logitf_Intercept),
+    beta      = tanh(b_delta_Intercept),
+    kappas    = b_kappas_Intercept,
+    kappaxone = b_kappaxone_Intercept,
+    kappaxtwo = b_kappaxtwo_Intercept
+  ) |>
+  subset_draws(variable = names(truth)) |>
+  summarise_draws(
+    est = median,
+    ~ quantile2(.x, probs = c(0.025, 0.975))
+  ) |>
+  mutate(
+    truth   = unlist(truth)[variable],
+    covered = truth >= q2.5 & truth <= q97.5
   )
-}))
-recovery$covered <- with(recovery, truth >= lower & truth <= upper)
 
 knitr::kable(recovery, digits = 2)
 ```
 
-The three rates should land tightly on their true values. The three
-dispersions are estimated from an aggregate mean–variance mismatch rather than
-from any directly observed quantity, so their intervals are wider; the
-dispersions of the two exclusive components especially, since they are
-identified only through the part of the spread in the pair that the shared
-component cannot explain. Wide but covering is the expected result here, not a
-warning sign.
+`r if (all(recovery$covered)) "All six" else paste(sum(recovery$covered), "of the six")`
+95% intervals contain the true value. The intervals for `kappaxone` and
+`kappaxtwo` are the widest, because the overdispersion of each exclusive
+component is identified only by the variance of each count beyond that of the
+shared component.
 
-## Predict and score
+### Prediction
 
-`posterior_predict()` draws new `y1` **conditional on the observed `y2` in each
-row**. It samples the discrete conditional distribution of $N_s$
-given `y2`, then adds a fresh draw of the exclusive component — the exact
-conditional, not an approximation.
+`posterior_predict()` and `posterior_epred()` predict the response $y_1$ only,
+as for any brms family: `posterior_predict()` draws $y_1$ from its marginal
+distribution, and `posterior_epred()` returns $E[y_1] = \mu + \lambda_1$.
+$y_2$ is passed to the model as data through `vint()`, so neither
+function returns draws of $y_2$, and `pp_check()`, `fitted()`, and
+`conditional_effects()`, which call these two functions, show $y_1$ alone.
+
+`posterior_predict_y1_and_y2()` draws both counts, and returns an array with
+one row per draw, one column per row of the data, and one slice for each count.
+Within each drawn pair, $y_1$ and $y_2$ have the same value of $N_s$, so the
+correlation between the drawn counts is the correlation under the model.
+`posterior_epred_y1_and_y2()` returns the expectations of both counts,
+$\mu + \lambda_1$ and $\mu + \lambda_2$. The table compares the mean, standard
+deviation, and maximum of each count, and the correlation between the two
+counts, with the averages of the same quantities over 200 drawn datasets.
 
 ```{r}
 #| label: predict
 #| eval: !expr has_stan
-yrep <- posterior_predict(fit, ndraws = 200)
+yrep <- posterior_predict_y1_and_y2(fit, ndraws = 200)
 dim(yrep)
 
+pair_stats <- function(y1, y2) {
+  c(
+    mean_y1 = mean(y1),
+    mean_y2 = mean(y2),
+    sd_y1   = sd(y1),
+    sd_y2   = sd(y2),
+    max_y1  = max(y1),
+    max_y2  = max(y2),
+    cor     = cor(y1, y2)
+  )
+}
+
+stats_observed <- pair_stats(dat$y1, dat$y2)
+
+stats_predicted <- yrep |>
+  apply(1, \(draw) pair_stats(draw[, "y1"], draw[, "y2"])) |>
+  rowMeans()
+
 data.frame(
-  quantity = c("mean", "sd", "max"),
-  observed = c(mean(dat$y1), sd(dat$y1), max(dat$y1)),
-  predicted = c(mean(yrep), mean(apply(yrep, 1, sd)), mean(apply(yrep, 1, max)))
+  observed  = stats_observed,
+  predicted = stats_predicted
 ) |>
   knitr::kable(digits = 2)
 ```
 
-`log_lik()` gives the pointwise log-likelihood of the *joint* pair, evaluated by
-an independent R implementation of the same marginalisation sum that the Stan
-function computes. It feeds `loo()` and `waic()` in the usual way
-[@vehtari2017]. The Pareto $k$ diagnostic reported alongside the estimate flags
-observations whose importance weights are unreliable [@vehtari2024].
+[*Prediction and imputation*][prediction] describes the other prediction
+functions, including `posterior_predict_y1_given_y2()`, which draws $y_1$
+conditional on the recorded $y_2$, and so imputes $y_1$ on rows where $y_1$
+was not recorded.
+
+### Model comparison
+
+`log_lik()` returns, for each row, the log of the joint probability of
+$(y_1, y_2)$, so `loo()` estimates the expected log predictive density (elpd)
+of the pair [@vehtari2017], and models of the same pair can be compared by
+their elpd. To compare negative-binomial with Poisson components, we fit
+`bipois()`, which has the same construction as `binegbin()` but with Poisson
+components (and therefore no overdispersions), to the same data and compare
+the two fits with `loo_compare()`. Without the three overdispersions,
+`bf_mfd()` returns the formula for `bipois()`.
 
 ```{r}
-#| label: loglik
+#| label: compare
 #| eval: !expr has_stan
-ll <- log_lik(fit)
-dim(ll)
-
-loo(fit)
+#| results: hide
+#| message: false
+fit_pois <- brm(
+  bf_mfd(
+    y1 | vint(y2),
+    logM   ~ 1,
+    logitf ~ 1,
+    delta  ~ 1
+  ),
+  family   = bipois(),
+  stanvars = bipois_stanvars(),
+  data     = dat,
+  prior    = c(
+    prior(normal(2, 1),   class = "b", nlpar = "logM"),
+    prior(normal(0, 1.5), class = "b", nlpar = "logitf"),
+    prior(normal(0, 0.5), class = "b", nlpar = "delta")
+  ),
+  chains  = 2,
+  iter    = 1500,
+  refresh = 0,
+  backend = "cmdstanr",  # or "rstan"
+  seed    = 1
+)
 ```
 
-## Quantities returned by `posterior_epred()`
+```{r}
+#| label: compare-loo
+#| eval: !expr has_stan
+fit      <- add_criterion(fit, "loo")
+fit_pois <- add_criterion(fit_pois, "loo")
+loo(fit)
 
-Both families return the same quantity:
+comparison <- loo_compare(fit, fit_pois)
+comparison
+```
 
-$$
-\mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_s \mid y_2] + \lambda_1,
-$$
+`loo(fit)` prints the elpd estimate of the negative-binomial model and a table
+of Pareto $k$ estimates. A row with a Pareto $k$ estimate above about 0.7 has an
+unreliable estimate of its elpd [@vehtari2024]. `loo_compare()` lists the model
+with the higher elpd first. `elpd_diff` is the difference in elpd between each
+model and the first model, and `se_diff` is the standard error of that
+difference. The elpd of the Poisson model is lower by
+`r round(-comparison[2, "elpd_diff"])` (SE
+`r round(comparison[2, "se_diff"])`), so negative-binomial components describe
+these counts much better than Poisson components, as expected from counts
+simulated with overdispersions between 0.4 and 0.7.
 
-the expected first count conditional on the observed second count, not the
-marginal expectation $\mathrm{E}[y_1]$.
+## Models with predictors
 
-For `bipois()`, $\mathrm{E}[N_s \mid y_2]$ is closed form, because
-conditioning a sum of independent Poissons on its total gives a Binomial split.
-For `binegbin()` there is no such shortcut, so the conditional is evaluated over
-its support $k = 0, \ldots, y_2$ and summed. Both are exact, and each agrees
-with the mean of its own `posterior_predict()` draws to within Monte Carlo
-error.
+Each coordinate has its own formula. A predictor in the formula for `logM`
+multiplies all three rates by the same factor, and a predictor in the formula
+for `logitf` or `delta` changes the congruence or the source bias. The
+formulas below are for data with a factor `source1_type`, such as the type of
+equipment used by source 1, and a grouping factor `group` with many levels; the
+simulated data above have neither.
 
-The conditional expectation is returned for every row, including — under
-`binegbin_partialobs()` and `bipois_partialobs()` — those where $y_1$ was never
-observed. Those two constructors exist so that the fitted model can impute
-$y_1$ on those rows.
+In the model below, the formula for `logM` alone includes a group-level effect
+of `group`, so the groups differ in how much the two sources record but not
+in the extent to which their records agree. The formula for `delta` includes
+`source1_type`, so `source1_type` changes the balance of exclusive records
+between the two sources with $M$ and $f$ held fixed. Each coefficient has a
+prior with `class = "b"`, as in the model with intercepts only, and the SD of
+the group-level effect on `logM` has a prior with `class = "sd"`.
 
-`posterior_epred(fit)` needs no special handling: it dispatches to the family
-method, as do `fitted()` and `conditional_effects()`.
+```{r}
+#| label: fit-mfd-predictors
+#| eval: false
+fit_groups <- brm(
+  bf_mfd(
+    y1 | vint(y2),
+    logM      ~ 1 + (1 | group),
+    logitf    ~ 1,
+    delta     ~ source1_type,
+    kappas    ~ 1,
+    kappaxone ~ 1,
+    kappaxtwo ~ 1
+  ),
+  family   = binegbin(),
+  stanvars = binegbin_stanvars(),
+  data     = my_data,
+  prior    = c(
+    prior(normal(2, 1),   class = "b",  nlpar = "logM"),
+    prior(normal(0, 1),   class = "sd", nlpar = "logM"),
+    prior(normal(0, 1.5), class = "b",  nlpar = "logitf"),
+    prior(normal(0, 0.5), class = "b",  nlpar = "delta"),
+    prior(normal(0, 1),   class = "b",  nlpar = "kappas",    lb = 0),
+    prior(normal(0, 1),   class = "b",  nlpar = "kappaxone", lb = 0),
+    prior(normal(0, 1),   class = "b",  nlpar = "kappaxtwo", lb = 0)
+  ),
+  backend = "cmdstanr",  # or "rstan"
+  seed    = 1
+)
+```
 
-## Related families and further reading
+```{r}
+#| label: summary-predictors
+#| eval: false
+summary(fit_groups)
+```
 
-- `bipois()` — the non-overdispersed Poisson sibling. Same construction, three
-  dpars instead of six. Use it when the margins are not overdispersed; compare
-  the two with `loo()`.
-- **The symmetric model.** The fit above let the dispersions of the two
-  exclusive components differ. To impose $\phi_{x1} = \phi_{x2}$ instead, route
-  both through one non-linear parameter — `nlf(shapexone ~ shapexx)`,
-  `nlf(shapextwo ~ shapexx)`, `shapexx ~ 1`, with `nl = TRUE` — and set its
-  prior with `nlpar = "shapexx"`. That is the model this package fitted under a
-  single `shapex` dpar before 0.10.0, term for term.
-- `binegbin_partialobs()` — for data where the first count is missing on some
-  rows. It is the same family: same name, same six dpars, same likelihood and
-  the same post-processing. What it adds is a second `vint()` integer, a 0/1
-  flag saying whether $y_1$ was recorded. Rows where it was not are scored by
-  the integrated-out marginal of this same joint rather than dropped, so they
-  still inform $\mu$, $\phi_s$, $\lambda_2$, $\phi_{x2}$ and any group-level
-  effects; afterwards the fit imputes the missing count conditional on the
-  observed one. Note that $\lambda_1$ and $\phi_{x1}$ are then identified by the
-  paired rows alone. Despite its former name, this is unrelated to
-  the brms `cens()` addition term, which means a value known to lie in a set.
-- The $(M, f, \delta)$  **reparameterisation** — the midpoint $M$ of the two
-  expected counts, congruence $f$, and source bias $\delta$, with the
-  inverse dispersions converted to overdispersions $\kappa = 1/\sqrt{\phi}$,
-  where $\kappa = 0$ is the Poisson limit. It is fitted through `nlf()` rather
-  than a separate family, and
-  [`binegbin_mfd_to_dpars()`](../reference/binegbin_mfd_to_dpars.html) converts
-  between the two. Because $\delta = 0$ and $\kappa = 0$ are finite,
-  interpretable nulls, these coordinates admit shrinkage priors towards the
-  simpler model unless the data support otherwise
-  [@simpsonPenalisingModelComponent2017]. The rate parameterisation has no such
-  nulls. Worked end to end in the article [*Mapping native parameters to
-  interpretable coordinates*][anatomy].
-- `bipois_partialobs()` — the same partial observation, equidispersed:
-  the Poisson special case of `binegbin_partialobs()`. Its integrated-out
-  marginal is closed form, $y_2 \sim \mathrm{Poisson}(\mu + \lambda_2)$, since a
-  sum of independent Poissons is Poisson. Use it when the margins are not
-  overdispersed, rather than fitting `binegbin_partialobs()` with its
-  dispersions pressed against the Poisson boundary.
-- **Modelling the difference instead.** Where only the disagreement
-  $d = y_1 - y_2$ is of interest, or where truncation via `resp_trunc()` is
-  required, the Skellam and discrete Laplace/normal families in the companion
-  package `skellambrms` [@smithSkellambrmsSkellamDiscreteDifference2026] model
-  $d$ directly. The difference of two independent Poisson counts is
-  Skellam-distributed [@skellam1946]; for the Bayesian treatment of count
-  differences generally, see @karlis2006. Note what that reduction discards:
-  the shared component cancels out of $d$, so the midpoint and the congruence
-  are no longer estimable.
+In `summary(fit_groups)`, the row `delta_source1_typeB` is the difference in
+$\operatorname{artanh}\beta$ between level `B` of `source1_type` and the
+reference level, and the row `sd(logM_Intercept)`, under `~group`, is the SD of
+the group-level effects on $\log M$.
+
+### Native parameterisation
+
+Where a predictor changes one latent component alone, the native
+parameterisation describes it more simply. In the formula below,
+only the formula for `lambdaone` includes `source1_type`, so `source1_type`
+changes the
+exclusive rate of source 1 and no other rate, and so changes $M$, $f$, and
+$\beta$ together. In this parameterisation, the three rates can be linked
+across groups only through a group-level effect with a shared ID in each rate
+formula, `(1 | s | group)`, under which the three effects of a group are
+correlated rather than equal [@burkner2018].
+
+```{r}
+#| label: formula-native
+#| eval: false
+bf(
+  y1 | vint(y2) ~ 1 + (1 | s | group),
+  lambdaone     ~ 1 + (1 | s | group) + source1_type,
+  lambdatwo     ~ 1 + (1 | s | group),
+  shapes        ~ 1,
+  shapexone     ~ 1,
+  shapextwo     ~ 1
+)
+```
+
+## Further reading
+
+`binegbin_partialobs()` and `bipois_partialobs()` fit partially paired designs,
+in which $y_1$ was not recorded on some rows, with the response
+`y1 | vint(y2, y1_obs)`. A partially paired design is fitted in the article
+[*Partially paired designs*][partial], and
+[*Prediction and imputation*][prediction] describes the imputation of the
+unrecorded values of $y_1$.
+
+The package `skellambrms` [@smithSkellambrmsSkellamDiscreteDifference2026]
+models the difference $d = y_1 - y_2$ directly. The shared component cancels
+from $d$, so a model of $d$ cannot estimate the midpoint or the congruence.
+
+[reparameterisation]: https://anhsmith.github.io/bicountbrms/articles/reparameterisation.html
+[partial]: https://anhsmith.github.io/bicountbrms/articles/partially-paired-designs.html
+[prediction]: https://anhsmith.github.io/bicountbrms/articles/prediction.html
 
 ## References
 

@@ -2,7 +2,7 @@
   "upload_type": "software",
   "access_right": "open",
   "license": "mit",
-  "title": "bicountbrms: Joint Bivariate-Count brms Custom Families for Paired Counts",
+  "title": "bicountbrms: Custom brms Families for Paired Counts",
   "creators": [
     {
       "name": "Smith, Adam N. H.",

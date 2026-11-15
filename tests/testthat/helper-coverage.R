@@ -1,73 +1,26 @@
 # ==========================================================================
-# Recovery checks: smoke gates vs calibration
+# Recovery checks: smoke gate and calibration
 # ==========================================================================
 #
-# WHY THIS EXISTS. The recovery tests used to assert that the true value falls
-# inside the 90% credible interval from a single fit. For a CORRECT model with a
-# well-calibrated posterior that assertion is a Bernoulli(0.9) draw, so it
-# fails 10% of the time by construction -- and across the ~18 such assertions
-# in this suite roughly 1.8 spurious failures per run were expected. Two were
-# observed on every run -- the binegbin recovery assertions on b_lamx_Intercept
-# and b_shapex_Intercept -- identically before and after the 0.7.0 dpar rename,
-# and went unnoticed from the day they were written because skip_on_cran() keeps
-# the fitting tests out of R CMD check and nothing in CI ever set NOT_CRAN.
+# A single-fit check that a 90% interval contains the true value fails with
+# probability 0.1 for a correct model. recovery_ok() is therefore a smoke gate
+# with a 99% interval, which detects a grossly wrong fit. coverage_recovery()
+# is the calibration check: it refits on R fresh simulated datasets and
+# reports the proportion of replicates in which the interval contains the
+# true value.
 #
-# The two jobs were conflated, so they are now separated:
-#
-#   recovery_ok()        -- a SMOKE gate. Wide interval (99% by default). Cheap,
-#                           runs with the rest of the fitting tests, and answers
-#                           "is this fit grossly wrong?". It is deliberately NOT
-#                           a calibration statement.
-#
-#   coverage_recovery()  -- the CALIBRATION instrument. Refits on fresh
-#                           simulated data R times and measures how often the
-#                           truth lands inside the nominal interval, which is
-#                           what a recovery claim actually asserts. Gated behind
-#                           an explicit environment variable because it costs
-#                           minutes, not seconds.
-#
-# THE Rhat GATE IS 1.02, NOT 1.01, FOR THE SAME REASON. Each fitting test ends
-# with `expect_true(max_rhat < 1.02)`. Vehtari et al. (2021) recommend 1.01 for
-# inference, and this suite used it until 0.9.0. It is too tight for a gate on
-# a 4-chain 1000-draw fit: max Rhat at that sample size moves by more than the
-# margin of the gate itself for reasons unrelated to convergence. Two
-# observations, both on the bipois_partialobs partially observed fit and both
-# with zero divergences and every recovery assertion passing:
-#
-#   * 1.008 locally, 1.012 on Linux CI -- the same code, seed and data, differing
-#     only in the floating-point trajectory the platform produces.
-#   * 1.0056 without priors, 1.0117 with weak priors that shifted the posterior
-#     mean of lamx by 0.01. A perturbation that changes the answer negligibly
-#     moved max Rhat by three times the amount CI failed by.
-#
-# Varying only the Stan seed on that fit, data held fixed, gives max Rhat
-# 1.0023 1.0079 1.0055 1.0032 1.0023 -- a span of 0.006 with zero divergences
-# throughout. A platform change is a larger perturbation than a seed change:
-# the 1.012 on Linux CI exceeds every one of those. test-binegbin.R records
-# an earlier near-miss at 1.0101.
-#
-# MORE DRAWS IS NOT THE FIX EITHER. At iter = 6000, warmup = 2000 the same five
-# seeds give 1.0016-1.0029, tighter as expected -- but produce 5 divergent
-# transitions where warmup = 1000 produced none, because the longer warmup
-# adapts to a different step size. That trades a gate this suite tolerates for
-# one it asserts at exactly zero.
-#
-# A gate that fires on platform noise reports nothing about the package, and
-# retuning the model to clear it -- priors, adapt_delta, more draws -- is
-# fitting the diagnostic rather than fixing anything. 1.02 clears the worst
-# observation (1.012) by 0.008, and is still far below the 1.05 at which brms
-# itself warns, so gross sampling failure is still caught. Divergent
-# transitions, asserted separately at exactly zero, are the sharper instrument
-# here in any case. If 1.02 ever fires on noise too, raise it to 1.05 rather
-# than tuning the models.
+# Each fitting test asserts max Rhat < 1.02 rather than the 1.01 recommended
+# for inference (Vehtari et al. 2021). On the bipois_partialobs() fit, with
+# the data held fixed, max Rhat ranged from 1.0023 to 1.0079 across Stan seeds
+# and reached 1.012 on Linux CI, with zero divergent transitions in every run.
+# The gate of 1.02 lies below the value of 1.05 at which brms warns, and
+# divergent transitions are asserted separately at exactly zero.
 
 # --------------------------------------------------------------------------
 # Smoke gate
 # --------------------------------------------------------------------------
 
-# Shared replacement for the three near-identical local check_recovery()
-# definitions that used to live in test-bipois.R, test-binegbin.R and
-# test-binegbin-partialobs.R. `level` is wide on purpose: see above.
+# TRUE when the central `level` interval of `draws_col` contains `true_val`.
 recovery_ok <- function(draws, true_val, draws_col, level = 0.99) {
   stopifnot(draws_col %in% names(draws))
   a <- (1 - level) / 2
@@ -79,14 +32,8 @@ recovery_ok <- function(draws, true_val, draws_col, level = 0.99) {
 # Calibration
 # --------------------------------------------------------------------------
 
-# The full coverage assessment is minutes of sampling per family. Opt in with
-#
-#   BICOUNTBRMS_COVERAGE=true
-#
-# Run it before a release, or when changing a likelihood, a link, or a
-# parameterisation -- not on every save. Using a named variable rather than
-# leaning on skip_on_cran() means "this did not run" is a deliberate,
-# inspectable state instead of the default nobody notices.
+# The coverage assessment takes several minutes of sampling per family and
+# runs only when BICOUNTBRMS_COVERAGE=true.
 coverage_enabled <- function() {
   isTRUE(as.logical(Sys.getenv("BICOUNTBRMS_COVERAGE", "false")))
 }
@@ -99,14 +46,10 @@ skip_unless_coverage <- function() {
 }
 
 # Smallest number of covering replicates out of R that a correctly-calibrated
-# model clears with probability >= 1 - alpha. Derived from the Binomial(R,
-# level) null rather than picked by eye, so the false-failure rate is a stated
-# quantity: at R = 10, level = 0.9, alpha = 0.01 this returns 6, and
-# P(X < 6) = P(X <= 5) = 0.0016 -- a 0.16% false-failure rate, against 10% per
-# assertion for the single-fit check it replaces.
-#
-# The floor stays sensitive to real breakage: a mis-specified likelihood or a
-# swapped parameter drives coverage towards 0, nowhere near 6/10.
+# model clears with probability >= 1 - alpha, from the Binomial(R, level)
+# distribution. At R = 10, level = 0.9 and alpha = 0.01, the floor is 6, and
+# P(X <= 5) = 0.0016. A mis-specified likelihood or a swapped parameter drives
+# coverage towards 0.
 coverage_floor <- function(R, level = 0.9, alpha = 0.01) {
   stats::qbinom(alpha, size = R, prob = level)
 }
@@ -114,19 +57,15 @@ coverage_floor <- function(R, level = 0.9, alpha = 0.01) {
 # Refit `fit` on R fresh datasets from `sim` and return, per parameter, the
 # proportion of replicates whose `level` interval contained the truth.
 #
-# `fit`    a brmsfit to reuse. update(recompile = FALSE) re-runs sampling only;
-#          measured on the binegbin model in this package, compiling costs ~66 s
-#          and each refit ~15 s, so R = 10 is ~3.5 min rather than ~11. stanvars
-#          survive the update (verified), which is why a custom family can be
-#          driven this way at all.
+# `fit`    a brmsfit to reuse. update(recompile = FALSE) re-runs sampling
+#          without recompiling, and the stanvars of the custom family are kept.
 # `sim`    function(i) -> data.frame with the same columns as the original data.
-# `truths` named numeric; names are draws-column names, values the true values
-#          ON THE SCALE OF THOSE COLUMNS (i.e. already log-transformed for
-#          log-linked dpars).
+# `truths` named numeric; names are draws-column names, and values are the
+#          true values on the scale of those columns (log scale for log-linked
+#          dpars).
 # Extra arguments in `...` are passed to update(), so the replicates can run
-# shorter chains than the original fit: coverage needs the 5%/95% quantiles of
-# each marginal, not high-precision means, so a couple of thousand draws is
-# ample and costs a fraction of the parent fit.
+# shorter chains than the original fit; coverage requires only the 5% and 95%
+# quantiles of each marginal posterior.
 coverage_recovery <- function(fit, sim, truths, R = 10L, level = 0.9,
                               verbose = TRUE, ...) {
   a <- (1 - level) / 2

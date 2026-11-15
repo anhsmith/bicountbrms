@@ -1,4 +1,8 @@
 # tests/testthat/test-bipois.R
+#
+# The fully paired constructor bipois(): normalisation and marginals of the
+# likelihood, agreement of Stan with the R reference, and recovery from
+# simulated grouped data.
 
 # -----------------------------------------------------------------------
 # R-side tests -- no Stan compilation required
@@ -31,9 +35,8 @@ test_that("R brute-force lpmf reproduces Poisson(mu+lambdaone) marginal for y1",
 })
 
 test_that("N_shared cancels: d = y1 - y2 marginal matches Skellam(lambdaone, lambdatwo)", {
-  # `skellam` is a Suggests, not an Imports, since 0.9.0 -- no function in R/
-  # calls it. It is still the right independent reference for this identity,
-  # so the test guards rather than dropping it.
+  # The skellam package, listed in Suggests, gives an independent reference
+  # for the distribution of d.
   skip_if_not_installed("skellam")
   mu <- 4; lambdaone <- 2; lambdatwo <- 3
   K <- 60
@@ -112,31 +115,31 @@ test_that("Stan bipois_lpmf is numerically stable at near-zero and large rates",
 # Parameter recovery from simulated hierarchical data (brms end-to-end)
 # -----------------------------------------------------------------------
 
-test_that("bipois parameter recovery from simulated vessel-level data", {
+test_that("bipois parameter recovery from simulated group-level data", {
   skip_on_cran()
   skip_if_not_installed("brms")
   skip_if_no_stan()
 
   set.seed(20260704)
 
-  n_vessel     <- 8L
-  n_per_vessel <- 25L
-  n            <- n_vessel * n_per_vessel
+  n_group     <- 8L
+  n_per_group <- 25L
+  n            <- n_group * n_per_group
 
   true_log_mu_int       <- log(3)
   true_log_lambdaone_int <- log(1.5)
   true_log_lambdatwo_int <- log(4)
-  true_sd_vessel        <- 0.4
+  true_sd_group        <- 0.4
 
-  vessel <- rep(seq_len(n_vessel), each = n_per_vessel)
+  group <- rep(seq_len(n_group), each = n_per_group)
 
-  z_mu       <- rnorm(n_vessel)
-  z_lambdaone <- rnorm(n_vessel)
-  z_lambdatwo <- rnorm(n_vessel)
+  z_mu       <- rnorm(n_group)
+  z_lambdaone <- rnorm(n_group)
+  z_lambdatwo <- rnorm(n_group)
 
-  mu_i       <- exp(true_log_mu_int       + true_sd_vessel * z_mu[vessel])
-  lambdaone_i <- exp(true_log_lambdaone_int + true_sd_vessel * z_lambdaone[vessel])
-  lambdatwo_i <- exp(true_log_lambdatwo_int + true_sd_vessel * z_lambdatwo[vessel])
+  mu_i       <- exp(true_log_mu_int       + true_sd_group * z_mu[group])
+  lambdaone_i <- exp(true_log_lambdaone_int + true_sd_group * z_lambdaone[group])
+  lambdatwo_i <- exp(true_log_lambdatwo_int + true_sd_group * z_lambdatwo[group])
 
   n_shared <- rpois(n, mu_i)
   n1      <- rpois(n, lambdaone_i)
@@ -145,16 +148,16 @@ test_that("bipois parameter recovery from simulated vessel-level data", {
   dat <- data.frame(
     y1   = n_shared + n1,
     y2   = n_shared + n2,
-    vessel = factor(vessel)
+    group = factor(group)
   )
 
   suppressMessages({
     fit <- brms::brm(
       brms::bf(
         y1 | vint(y2) ~ 1,
-        mu       ~ 1 + (1 | vessel),
-        lambdaone ~ 1 + (1 | vessel),
-        lambdatwo ~ 1 + (1 | vessel)
+        mu       ~ 1 + (1 | group),
+        lambdaone ~ 1 + (1 | group),
+        lambdatwo ~ 1 + (1 | group)
       ),
       family   = bipois(),
       stanvars = bipois_stanvars(),
@@ -171,24 +174,20 @@ test_that("bipois parameter recovery from simulated vessel-level data", {
 
   draws <- as.data.frame(fit)
 
-  # Smoke gate at a wide interval, not a calibration claim: a 90% interval
-  # fails 10% of the time on a CORRECT model, which across the six assertions
-  # below is a ~46% chance of a spurious failure. See helper-coverage.R.
+  # Smoke gates at a wide interval; see helper-coverage.R.
   check_recovery <- function(true_val, draws_col) {
     recovery_ok(draws, true_val, draws_col)
   }
 
-  # brms treats "mu" as the canonical/default dpar of the family and drops its
-  # infix from generated column names (b_Intercept, sd_vessel__Intercept),
-  # unlike the other two, plainly-named dpars (b_lambdaone_Intercept, etc.)
-  # -- so "mu" here reads as b_Intercept even though it stands in for the
-  # shared rate rather than any mean.
+  # brms omits the dpar name of mu, the first dpar of the family, from the
+  # column names (b_Intercept, sd_group__Intercept). Here mu is the rate of
+  # the shared component.
   expect_true(check_recovery(true_log_mu_int,       "b_Intercept"))
   expect_true(check_recovery(true_log_lambdaone_int, "b_lambdaone_Intercept"))
   expect_true(check_recovery(true_log_lambdatwo_int, "b_lambdatwo_Intercept"))
-  expect_true(check_recovery(true_sd_vessel, "sd_vessel__Intercept"))
-  expect_true(check_recovery(true_sd_vessel, "sd_vessel__lambdaone_Intercept"))
-  expect_true(check_recovery(true_sd_vessel, "sd_vessel__lambdatwo_Intercept"))
+  expect_true(check_recovery(true_sd_group, "sd_group__Intercept"))
+  expect_true(check_recovery(true_sd_group, "sd_group__lambdaone_Intercept"))
+  expect_true(check_recovery(true_sd_group, "sd_group__lambdatwo_Intercept"))
 
   n_div <- sum(brms::nuts_params(fit, pars = "divergent__")$Value)
   expect_equal(n_div, 0, label = paste0(n_div, " divergent transitions"))

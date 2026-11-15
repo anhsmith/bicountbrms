@@ -1,4 +1,9 @@
 # tests/testthat/test-binegbin-partialobs.R
+#
+# The binegbin likelihood on paired and unpaired rows: normalisation, the
+# marginal identity, the default branch, conditional draws of y1 given y2,
+# agreement of the Stan lpmf with the R reference, and a brms fit of
+# binegbin_partialobs().
 
 # -----------------------------------------------------------------------
 # R-side tests -- no Stan compilation required
@@ -22,9 +27,9 @@ test_that("paired (y1_obs==1) joint PMF normalises to 1 across parameter sets", 
   }
 })
 
-test_that("LB-only (y1_obs==0) branch normalises to 1 over y2", {
-  # The y1_obs==0 branch is a 1-D pmf in y2 (the y1 margin is integrated
-  # out), so it must sum to 1 over y2 alone.
+test_that("the unpaired branch (y1_obs == 0) normalises to 1 over y2", {
+  # The unpaired branch (y1_obs == 0) is a pmf in y2 alone, because the y1
+  # margin is summed out.
   norm_check <- function(mu, lone, ltwo, ss, sx, K = 200) {
     ys <- 0:K
     lp <- binegbin_lpmf_r(rep(0L, length(ys)), ys, y1_obs = 0L, mu, lone, ltwo, ss, sx)
@@ -41,10 +46,9 @@ test_that("LB-only (y1_obs==0) branch normalises to 1 over y2", {
   }
 })
 
-test_that("marginal identity: sum over y1 of the paired branch == LB-only branch", {
-  # Integrating the paired (y1_obs==1) joint over all y1 must reproduce the
-  # LB-only (y1_obs==0) branch value for that y2, exactly (both are the
-  # y1-integrated marginal of the same bivariate model).
+test_that("marginal identity: the sum over y1 of the paired branch equals the unpaired branch", {
+  # The paired branch (y1_obs == 1) summed over y1 must equal the unpaired
+  # branch (y1_obs == 0) at the same y2.
   mu <- 6; lone <- 3; ltwo <- 4; ss <- 2; sx <- 1.5
   K  <- 300
   y2_vals <- c(0L, 1L, 3L, 7L, 15L)
@@ -58,15 +62,10 @@ test_that("marginal identity: sum over y1 of the paired branch == LB-only branch
   }
 })
 
-# Up to 0.9.1 a block here checked that the paired branch of
-# binegbin_partialobs was byte-for-byte the binegbin lpmf, because they were two
-# separate implementations that could drift. Since 0.10.0 there is one lpmf and
-# the identity is structural, so that check would compare a function to itself.
-# What is still worth pinning is which branch an UNFLAGGED call selects --
-# that is a default, not a structural fact, and getting it wrong would silently
-# score every fully paired row against the marginal.
+# A call without y1_obs must evaluate the paired branch. A wrong default
+# would score every row of a fully paired design against the marginal of y2.
 
-test_that("an unflagged call is the paired branch, not the marginal", {
+test_that("a call without the indicator evaluates the paired branch, not the marginal", {
   grid <- expand.grid(
     mu   = c(0.5, 3, 12),
     lone = c(0.5, 2, 6),
@@ -84,7 +83,8 @@ test_that("an unflagged call is the paired branch, not the marginal", {
     expect_equal(default, explicit, tolerance = 1e-14,
                  label = paste(unlist(g), collapse = ","))
   }
-  # Not vacuous: the other branch is a different number on almost every row.
+  # The unpaired branch differs from the paired branch on more than 90% of
+  # the grid, so the check above is not vacuous.
   g <- grid[1, ]
   marg <- binegbin_lpmf_r(yg$y1, yg$y2, y1_obs = 0L,
                           g$mu, g$lone, g$ltwo, g$ss, g$sx)
@@ -92,10 +92,11 @@ test_that("an unflagged call is the paired branch, not the marginal", {
   expect_gt(mean(abs(marg - base) > 1e-8), 0.9)
 })
 
-test_that("posterior_predict draws reproduce the joint/marginal conditional y1 | y2", {
-  # posterior_predict_binegbin samples N_shared | y2 then adds a fresh
-  # N10. Its distribution must equal P(y1 | y2) = joint(y1, y2) /
-  # marginal(y2) -- the exact discrete conditional. Checked by Monte Carlo.
+test_that("conditional draws reproduce the joint/marginal conditional y1 | y2", {
+  # .impute_draw_binegbin() draws N_shared given y2 and adds a new draw of the
+  # exclusive count N_1. The distribution of the draws must equal
+  # P(y1 | y2) = joint(y1, y2) / marginal(y2), computed exactly. The
+  # tolerances allow for Monte Carlo error with 2e5 draws.
   set.seed(20260706)
   mu <- 5; lone <- 3; ltwo <- 4; ss <- 2; sx <- 1.5
   y2 <- 6L
@@ -109,11 +110,11 @@ test_that("posterior_predict draws reproduce the joint/marginal conditional y1 |
       shapes   = rep(ss,  ndraws),
       shapex   = rep(sx,  ndraws)
     ),
-    Y     = 0L,          # response value is unused by posterior_predict
+    Y     = 0L,          # response value is unused by the conditional draw
     vint1 = y2,
     vint2 = 1L
   )
-  draws <- posterior_predict_binegbin(1, prep)
+  draws <- .impute_draw_binegbin(1, prep)
   expect_length(draws, ndraws)
 
   # Analytic conditional P(y1 = x | y2) = joint(x, y2) / marginal(y2).
@@ -124,7 +125,7 @@ test_that("posterior_predict draws reproduce the joint/marginal conditional y1 |
   p_cond   <- exp(lp_joint - lp_marg)
 
   emp <- tabulate(draws + 1L, nbins = K + 1L) / ndraws
-  # Compare on the well-populated support; MC error ~ 1/sqrt(ndraws).
+  # The comparison is restricted to values with probability above 1e-3.
   keep <- p_cond > 1e-3
   expect_lt(max(abs(emp[keep] - p_cond[keep])), 0.01)
   expect_equal(mean(draws), sum(xs * p_cond), tolerance = 0.05)
@@ -134,13 +135,8 @@ test_that("posterior_predict draws reproduce the joint/marginal conditional y1 |
 # Stan tests -- require rstan; skipped silently if unavailable
 # -----------------------------------------------------------------------
 
-# One lpmf, so one function to compile. Up to 0.9.1 this compiled binegbin and
-# binegbin_partialobs together, because the paired branch of the second was a second
-# copy of the first and the two could drift; the Stan-level equivalence check
-# existed to stop that. Since 0.10.0 both constructors call this one function,
-# so the equivalence holds by construction and there is nothing to compare.
-# What remains is the grid check of Stan against the independent R reference,
-# on both branches.
+# binegbin() and binegbin_partialobs() call the same Stan lpmf, which is
+# compared with the R reference on both branches.
 stan_code <- paste0("functions {\n", binegbin_stan_funs, "}\nmodel {}\n")
 
 stan_ready <- FALSE
@@ -169,9 +165,8 @@ test_that("Stan binegbin_lpmf matches R brute-force reference (both branches)", 
     means <- c(mu + lone, mu + ltwo)
     ys <- unique(pmax(c(0L, 1L, round(means), round(means) + 4L), 0L))
     yg <- expand.grid(y1 = ys, y2 = ys, y1_obs = c(0L, 1L))
-    # Symmetric case: the single `sx` is passed for BOTH shapexone and
-    # shapextwo, which is the constraint the pre-0.8.0 five-dpar family
-    # imposed. The asymmetric grid is in test-binegbin-dispersions.R.
+    # The single `sx` is passed for both shapexone and shapextwo. The grid
+    # with unequal dispersions is in test-binegbin-dispersions.R.
     stan_vals <- mapply(
       function(r, s, e) binegbin_lpmf(r, mu, lone, ltwo, ss, sx, sx, s, e),
       yg$y1, yg$y2, yg$y1_obs)
@@ -184,13 +179,9 @@ test_that("Stan binegbin_lpmf matches R brute-force reference (both branches)", 
 })
 
 test_that("the Stan paired branch routes the two dispersions the way R does", {
-  # The Stan signature and the argument order of the R reference can be
-  # reordered independently, so that shapexone sets the dispersion of
-  # the source-2-exclusive component and shapextwo sets the dispersion
-  # of the source-1-exclusive component. The test "Stan binegbin_lpmf matches R
-  # brute-force reference (both branches)" passes a single sx for both
-  # dispersions, so that test cannot detect an exchange of shapexone and
-  # shapextwo. This test sets shapexone = 0.6 and shapextwo = 7.
+  # The previous test passes one value for both dispersions and so cannot
+  # detect an exchange of shapexone and shapextwo between the Stan signature
+  # and the R reference. This test sets shapexone = 0.6 and shapextwo = 7.
   skip_if_not(stan_ready, "rstan unavailable or Stan compilation failed")
 
   grid <- expand.grid(
@@ -199,7 +190,7 @@ test_that("the Stan paired branch routes the two dispersions the way R does", {
     ltwo = c(0.2, 1, 5),
     ss   = c(0.5, 2, 50)
   )
-  SX1 <- 0.6; SX2 <- 7      # an order of magnitude apart, deliberately
+  SX1 <- 0.6; SX2 <- 7      # an order of magnitude apart
 
   check_one <- function(mu, lone, ltwo, ss) {
     means <- c(mu + lone, mu + ltwo)
@@ -214,9 +205,8 @@ test_that("the Stan paired branch routes the two dispersions the way R does", {
   diffs <- mapply(check_one, grid$mu, grid$lone, grid$ltwo, grid$ss)
   expect_true(max(diffs) < 1e-12, label = paste("max diff =", max(diffs)))
 
-  # Not vacuous: handing Stan the two dispersions the other way round is
-  # a materially different number, so the agreement above is a real constraint
-  # on the argument order rather than an artefact of the two being close.
+  # Exchanging the two dispersions in the Stan call changes the log density by
+  # more than 0.05, so the agreement above constrains the argument order.
   swapped <- mapply(function(r, s) binegbin_lpmf(r, 5, 2, 3, 2, SX2, SX1, s, 1L),
                     c(9L, 4L, 12L), c(6L, 7L, 3L))
   straight <- binegbin_lpmf_r(c(9L, 4L, 12L), c(6L, 7L, 3L), 5, 2, 3, 2, SX1, SX2)
@@ -250,52 +240,48 @@ test_that("Stan binegbin_lpmf is numerically stable at extreme rates and shapes"
 # -----------------------------------------------------------------------
 
 test_that("binegbin_partialobs fits the SYMMETRIC model via nlf, dispatches, and recovers params", {
-  # Since 0.8.0 the two exclusive-component dispersions are separate dpars, so
-  # the symmetric model -- one dispersion for both exclusive components,
-  # which is what this simulation generates -- is expressed as a formula
-  # constraint: both dpars routed through a single non-linear parameter
-  # `shapexx`. This is the idiom the 0.8.0 migration introduced, so the test
-  # doubles as a check that it fits and recovers.
+  # The simulation uses one dispersion for both exclusive components. The
+  # model ties shapexone and shapextwo to the single non-linear parameter
+  # `shapexx`.
   skip_on_cran()
   skip_if_not_installed("brms")
   skip_if_no_stan()
 
   set.seed(20260706)
 
-  n_vessel     <- 8L
-  n_per_vessel <- 30L
-  n            <- n_vessel * n_per_vessel
+  n_group     <- 8L
+  n_per_group <- 30L
+  n            <- n_group * n_per_group
 
   true_log_mu_int <- log(8)
-  true_sd_vessel  <- 0.3
+  true_sd_group  <- 0.3
   true_lone        <- 3           # lambdaone = lambdatwo
   true_shapes     <- 2
   true_shapex     <- 1.5
 
-  vessel <- rep(seq_len(n_vessel), each = n_per_vessel)
-  z_mu   <- rnorm(n_vessel)
-  mu_i   <- exp(true_log_mu_int + true_sd_vessel * z_mu[vessel])
+  group <- rep(seq_len(n_group), each = n_per_group)
+  z_mu   <- rnorm(n_group)
+  mu_i   <- exp(true_log_mu_int + true_sd_group * z_mu[group])
 
   n_shared <- rnbinom(n, size = true_shapes, mu = mu_i)
   n1      <- rnbinom(n, size = true_shapex, mu = true_lone)
   n2      <- rnbinom(n, size = true_shapex, mu = true_lone)
 
-  # Half the rows are LB-only (y1 unobserved) -- the partial observation the family
-  # exists to handle.
+  # Half the rows are unpaired.
   y1_obs <- rep(c(1L, 0L), length.out = n)
 
   dat <- data.frame(
     y1   = n_shared + n1,
     y2   = n_shared + n2,
     y1_obs = y1_obs,
-    vessel = factor(vessel)
+    group = factor(group)
   )
 
   suppressMessages({
     fit <- brms::brm(
       brms::bf(
         y1 | vint(y2, y1_obs) ~ 1,
-        mu ~ 1 + (1 | vessel),
+        mu ~ 1 + (1 | group),
         brms::nlf(lambdaone ~ lamx),
         brms::nlf(lambdatwo ~ lamx),
         brms::nlf(shapexone ~ shapexx),
@@ -316,8 +302,8 @@ test_that("binegbin_partialobs fits the SYMMETRIC model via nlf, dispatches, and
     )
   })
 
-  # Dispatch: both must resolve the log_lik_/posterior_predict_ methods in this
-  # package by name without "no applicable method" errors.
+  # brms must find the log_lik_binegbin() and posterior_predict_binegbin()
+  # methods of this package.
   ll <- brms::log_lik(fit)
   expect_equal(dim(ll)[2], n)
   expect_true(all(is.finite(ll)))
@@ -330,16 +316,14 @@ test_that("binegbin_partialobs fits the SYMMETRIC model via nlf, dispatches, and
   expect_true(all(pp >= 0))
 
   draws <- as.data.frame(fit)
-  # Smoke gate at a wide interval, not a calibration claim. See
-  # helper-coverage.R; the calibration assessment is in test-binegbin.R and
-  # applies to the paired branch of this family, which is binegbin
-  # term for term.
+  # Smoke gates at a wide interval; see helper-coverage.R. The calibration
+  # assessment of the paired branch is in test-binegbin.R.
   check_recovery <- function(true_val, draws_col) {
     recovery_ok(draws, true_val, draws_col)
   }
   expect_true(check_recovery(true_log_mu_int,  "b_Intercept"))
   expect_true(check_recovery(log(true_lone),    "b_lamx_Intercept"))
-  expect_true(check_recovery(true_sd_vessel,   "sd_vessel__Intercept"))
+  expect_true(check_recovery(true_sd_group,   "sd_group__Intercept"))
   expect_true(check_recovery(log(true_shapes), "b_shapes_Intercept"))
   expect_true(check_recovery(log(true_shapex), "b_shapexx_Intercept"))
 

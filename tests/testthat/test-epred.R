@@ -1,48 +1,39 @@
 # tests/testthat/test-epred.R
 #
-# THE EPRED CONVENTION, STATED ONCE FOR BOTH FAMILIES.
+# posterior_epred_<family>() returns the marginal mean of the first count,
 #
-# Every joint family returns the same quantity from posterior_epred_<family>():
+#   E[y1] = mu + lambdaone,
 #
-#   E[y1 | y2] = E[N_shared | y2] + lambdaone
+# on every row, and posterior_predict_<family>() draws y1 from the marginal
+# distribution of y1. Neither method reads the recorded y2 or the observation
+# indicator. The conditional mean E[y1 | y2] is tested in test-impute.R.
 #
-# -- the conditional expectation of the first margin given the observed second
-# one, exactly, for every row including those whose first count was never
-# recorded.
-#
-# Before 0.9.0 the three families then shipping answered three different ways.
-# bipois returned the exact conditional expectation. binegbin substituted the
-# marginal shared fraction for the conditional one. The partially observed
-# family had no posterior_epred method at all. This file pins the convention so
-# that the two families now shipping cannot drift apart again.
-#
-# The standard applied to each is the same and does not depend on knowing the
-# closed form: the epred must equal the mean of a large posterior_predict
-# sample, because posterior_predict simulates precisely the distribution the
-# epred is the mean of. Where a closed form does exist (the Poisson families),
-# it is checked against that too, to machine precision rather than to Monte
-# Carlo error.
-#
-# R-side only -- no Stan compilation, so this runs in the fast suite.
+# For each family, the epred must equal the mean of a large posterior_predict
+# sample, and the variance of the sample must equal Var(N_shared) + Var(N_1).
+# The source-exclusive dispersions differ by an order of magnitude, so a draw
+# that read shapextwo in place of shapexone would fail. No Stan compilation
+# is required.
 
-MU <- 5; LONE <- 3; LTWO <- 4; SHAPES <- 2; SHAPEX <- 1.5
+MU <- 5; LONE <- 3; LTWO <- 4; SHAPES <- 2
+SX1 <- 0.6    # y1 exclusive component: strongly overdispersed
+SX2 <- 7      # y2 exclusive component: mildly overdispersed
 Y2 <- 9L
-ND <- 5e4L   # MC standard error on the mean is ~0.02 at these settings
+ND <- 1e5L    # MC standard error on the mean is ~0.02 at these settings
 
-pois_prep <- function(vint2 = NULL) {
+pois_prep <- function(vint2 = NULL, y2 = Y2, ndraws = ND) {
   make_synthetic_prep(
-    dpars = list(mu = rep(MU, ND), lambdaone = rep(LONE, ND),
-                 lambdatwo = rep(LTWO, ND)),
-    Y = 0L, vint1 = Y2, vint2 = vint2
+    dpars = list(mu = rep(MU, ndraws), lambdaone = rep(LONE, ndraws),
+                 lambdatwo = rep(LTWO, ndraws)),
+    Y = 0L, vint1 = y2, vint2 = vint2
   )
 }
 
-nb_prep <- function(vint2 = NULL, shapex = SHAPEX) {
+nb_prep <- function(vint2 = NULL, y2 = Y2, ndraws = ND) {
   make_synthetic_prep(
-    dpars = list(mu = rep(MU, ND), lambdaone = rep(LONE, ND),
-                 lambdatwo = rep(LTWO, ND), shapes = rep(SHAPES, ND),
-                 shapex = rep(shapex, ND)),
-    Y = 0L, vint1 = Y2, vint2 = vint2
+    dpars = list(mu = rep(MU, ndraws), lambdaone = rep(LONE, ndraws),
+                 lambdatwo = rep(LTWO, ndraws), shapes = rep(SHAPES, ndraws),
+                 shapexone = rep(SX1, ndraws), shapextwo = rep(SX2, ndraws)),
+    Y = 0L, vint1 = y2, vint2 = vint2
   )
 }
 
@@ -51,14 +42,9 @@ nb_prep <- function(vint2 = NULL, shapex = SHAPEX) {
 # ---------------------------------------------------------------------------
 
 test_that("both joint families export a posterior_epred method", {
-  # brms locates these by name convention, so their existence IS the interface.
-  # A family without one silently falls back to the dispatch in brms itself and
-  # errors at call time rather than at load time, which is why this is asserted
-  # directly rather than left to the end-to-end tests.
-  #
-  # There are two names, not four: from 0.10.0 each component distribution has
-  # one custom_family name and two constructors sharing it, so a partially
-  # observed fit dispatches to exactly these.
+  # brms finds posterior_epred_<name>() by name, and a missing method errors
+  # only when called. Each family has one name, shared by its two
+  # constructors.
   for (fam in c("bipois", "binegbin")) {
     expect_true(
       is.function(get0(paste0("posterior_epred_", fam),
@@ -67,8 +53,8 @@ test_that("both joint families export a posterior_epred method", {
     )
   }
 
-  # And the _partialobs constructors really do route here, rather than to a
-  # method of their own that no longer exists.
+  # The _partialobs() constructors return the family names "bipois" and
+  # "binegbin", and no methods exist under the removed names.
   expect_identical(bipois_partialobs()$name,   "bipois")
   expect_identical(binegbin_partialobs()$name, "binegbin")
   for (fam in c("bipois_cens", "binegbin_cens", "binegbin_joint")) {
@@ -79,126 +65,83 @@ test_that("both joint families export a posterior_epred method", {
 })
 
 # ---------------------------------------------------------------------------
-# bipois: exact, and equal to the closed form
+# The marginal mean, exactly, under every prep shape
 # ---------------------------------------------------------------------------
 
-test_that("the bipois epred equals the Binomial-split closed form, either prep shape", {
-  # Conditioning a sum of independent Poissons on its total gives a Binomial,
-  # so E[N_shared | y2] = y2 * mu/(mu + lambdatwo) with no sum to evaluate.
-  closed <- Y2 * MU / (MU + LTWO) + LONE
+test_that("the epred of both families is mu + lambdaone under every prep shape", {
+  for (v2 in list(NULL, 1L, 0L)) {
+    expect_equal(unique(as.vector(posterior_epred_bipois(pois_prep(v2, ndraws = 2L)))),
+                 MU + LONE, tolerance = 1e-12)
+    expect_equal(unique(as.vector(posterior_epred_binegbin(nb_prep(v2, ndraws = 2L)))),
+                 MU + LONE, tolerance = 1e-12)
+  }
+})
 
-  expect_equal(unique(as.vector(posterior_epred_bipois(pois_prep()))),
-               closed, tolerance = 1e-12)
-  expect_equal(unique(as.vector(posterior_epred_bipois(pois_prep(1L)))),
-               closed, tolerance = 1e-12)
+test_that("the epred does not depend on the recorded y2", {
+  # The conditional expectation changes by more than 1 between y2 = 0 and
+  # y2 = 20, so a method that conditioned on y2 would fail.
+  for (y2 in c(0L, 3L, 20L)) {
+    expect_equal(posterior_epred_bipois(pois_prep(y2 = y2, ndraws = 2L)),
+                 posterior_epred_bipois(pois_prep(ndraws = 2L)))
+    expect_equal(posterior_epred_binegbin(nb_prep(y2 = y2, ndraws = 2L)),
+                 posterior_epred_binegbin(nb_prep(ndraws = 2L)))
+  }
+  expect_gt(
+    abs(.impute_mean_binegbin(nb_prep(y2 = 20L, ndraws = 2L))[1, 1] -
+          .impute_mean_binegbin(nb_prep(y2 = 0L, ndraws = 2L))[1, 1]),
+    1
+  )
+})
 
-  # And the three prep shapes agree with each other: bipois_partialobs
-  # is bipois with the observation flag attached, and the conditional expectation
-  # does not depend on that flag.
-  expect_equal(posterior_epred_bipois(pois_prep(1L)),
-               posterior_epred_bipois(pois_prep(0L)))
-  expect_equal(posterior_epred_bipois(pois_prep()),
-               posterior_epred_bipois(pois_prep(1L)))
+test_that("posterior_predict does not read the recorded y2 or the indicator", {
+  # The seed is the same for both calls, so the draws must be identical.
+  set.seed(11); a <- posterior_predict_binegbin(1, nb_prep(NULL, y2 = 0L,  ndraws = 500L))
+  set.seed(11); b <- posterior_predict_binegbin(1, nb_prep(0L,   y2 = 20L, ndraws = 500L))
+  expect_identical(a, b)
+  set.seed(11); a <- posterior_predict_bipois(1, pois_prep(NULL, y2 = 0L,  ndraws = 500L))
+  set.seed(11); b <- posterior_predict_bipois(1, pois_prep(0L,   y2 = 20L, ndraws = 500L))
+  expect_identical(a, b)
 })
 
 # ---------------------------------------------------------------------------
-# binegbin: exact, checked against its own predictions
+# epred equals the mean of the draws, and the draws have the marginal variance
 # ---------------------------------------------------------------------------
 
-test_that("binegbin epred equals the mean of its posterior_predict draws", {
-  # The check that does not presume a closed form. Until 0.9.0 this failed:
-  # the epred used the MARGINAL shared fraction mu/(mu + lambdatwo) where the
-  # CONDITIONAL one belongs, which at these settings is off by ~0.6% and, over
-  # a grid of plausible rates and dispersions, by more than 5% in about
-  # half of them and more than 20% in a third -- in either direction, depending
-  # on which component is the more dispersed.
-  set.seed(20260804)
+test_that("the bipois epred and variance match its posterior_predict draws", {
+  set.seed(20261114)
+  draws <- posterior_predict_bipois(1, pois_prep())
+  ep    <- unique(as.vector(posterior_epred_bipois(pois_prep(ndraws = 2L))))
+  expect_equal(mean(draws), ep, tolerance = 0.01)
+  # y1 ~ Poisson(mu + lambdaone), so Var(y1) = E[y1].
+  expect_equal(var(draws), MU + LONE, tolerance = 0.03)
+})
+
+test_that("the binegbin epred and variance match its posterior_predict draws", {
+  set.seed(20261114)
   draws <- posterior_predict_binegbin(1, nb_prep())
-  ep    <- unique(as.vector(posterior_epred_binegbin(nb_prep())))
-  expect_length(ep, 1L)
-  expect_equal(mean(draws), ep, tolerance = 0.1)
+  ep    <- unique(as.vector(posterior_epred_binegbin(nb_prep(ndraws = 2L))))
+  expect_equal(mean(draws), ep, tolerance = 0.01)
 
-  # The superseded approximation, for the record: it must NOT reproduce the
-  # exact value, or this test would be vacuous.
-  approx <- Y2 * MU / (MU + LTWO) + LONE
-  expect_gt(abs(approx - ep), 0.01)
+  # Var(y1) = Var(N_shared) + Var(N1), each NB2 variance m + m^2 / phi.
+  var_y1 <- MU + MU^2 / SHAPES + LONE + LONE^2 / SX1
+  expect_equal(var(draws), var_y1, tolerance = 0.05)
+
+  # Reading shapextwo for N_1 would give a variance of 21.8 rather than 35.5,
+  # far outside the tolerance.
+  var_swapped <- MU + MU^2 / SHAPES + LONE + LONE^2 / SX2
+  expect_gt(abs(var_swapped - var_y1) / var_y1, 0.3)
 })
 
-test_that("the binegbin epred equals the mean of its draws on a two-vint prep", {
-  set.seed(20260804)
-  draws <- posterior_predict_binegbin(1, nb_prep(vint2 = 1L))
-  ep    <- unique(as.vector(posterior_epred_binegbin(nb_prep(vint2 = 1L))))
-  expect_length(ep, 1L)
-  expect_equal(mean(draws), ep, tolerance = 0.1)
-})
-
-test_that("the observation flag does not change the epred of either family", {
-  # posterior_predict imputes y1 on every row, unpaired included; epred must
-  # match that convention, or the two become incomparable row by row exactly
-  # where imputation matters.
-  expect_equal(posterior_epred_binegbin(nb_prep(vint2 = 1L)),
-               posterior_epred_binegbin(nb_prep(vint2 = 0L)))
-  expect_equal(posterior_epred_bipois(pois_prep(1L)),
-               posterior_epred_bipois(pois_prep(0L)))
-})
-
-test_that("the binegbin epred is the same with and without the flag on a paired row", {
-  # The families share a paired-branch likelihood, so they must share a
-  # conditional expectation. binegbin_partialobs resolves its second-margin
-  # dispersion through .SHAPEXTWO_NAMES, which falls back to `shapex`,
-  # so the same five-dpar prep gives a value for shapextwo under both
-  # constructors.
-  expect_equal(posterior_epred_binegbin(nb_prep()),
-               posterior_epred_binegbin(nb_prep(vint2 = 1L)))
-})
-
-# ---------------------------------------------------------------------------
-# The two families agree in the limit where they should
-# ---------------------------------------------------------------------------
-
-test_that("the negative-binomial epreds reduce to the Poisson ones as shapes grow", {
-  # NB2(m, phi) -> Poisson(m) as phi -> Inf, so the exact binegbin conditional
-  # expectation must approach the Binomial closed form for bipois. This would
-  # NOT have held for the superseded approximation, which equalled the bipois
-  # answer at every phi -- it was the Poisson-limit value used everywhere.
-  ref <- posterior_epred_bipois(pois_prep())
-
-  err <- function(phi) {
-    p <- make_synthetic_prep(
-      dpars = list(mu = rep(MU, 2L), lambdaone = rep(LONE, 2L),
-                   lambdatwo = rep(LTWO, 2L), shapes = rep(phi, 2L),
-                   shapex = rep(phi, 2L)),
-      Y = 0L, vint1 = Y2
-    )
-    max(abs(posterior_epred_binegbin(p) - ref[1:2, , drop = FALSE]))
-  }
-
-  e5 <- err(1e5)
-  e7 <- err(1e7)
-  expect_lt(e5, 1e-2)
-  expect_lt(e7, 1e-4)
-  expect_lt(e7, e5)          # a limit, not a coincidence
-})
-
-test_that("y2 = 0 leaves the conditional expectation at lambdaone alone", {
-  # N_shared | y2 = 0 is degenerate at 0 for every family, so the epred reduces
-  # to lambdaone exactly. This is the branch .e_shared_given_y2_nb() short-
-  # circuits, and getting it wrong would be invisible in the grid checks above.
-  zero_pois <- make_synthetic_prep(
-    dpars = list(mu = rep(MU, 2L), lambdaone = rep(LONE, 2L),
-                 lambdatwo = rep(LTWO, 2L)),
-    Y = 0L, vint1 = 0L, vint2 = 1L
+test_that("the binegbin marginal draws reduce to the Poisson ones as the dispersions grow", {
+  # NB2(m, phi) -> Poisson(m) as phi -> Inf, so the marginal variance of the
+  # binegbin draw must approach mu + lambdaone.
+  p <- make_synthetic_prep(
+    dpars = list(mu = rep(MU, ND), lambdaone = rep(LONE, ND),
+                 lambdatwo = rep(LTWO, ND), shapes = rep(1e7, ND),
+                 shapexone = rep(1e7, ND), shapextwo = rep(1e7, ND)),
+    Y = 0L, vint1 = Y2
   )
-  zero_nb <- make_synthetic_prep(
-    dpars = list(mu = rep(MU, 2L), lambdaone = rep(LONE, 2L),
-                 lambdatwo = rep(LTWO, 2L), shapes = rep(SHAPES, 2L),
-                 shapex = rep(SHAPEX, 2L)),
-    Y = 0L, vint1 = 0L, vint2 = 1L
-  )
-  for (ep in list(posterior_epred_bipois(zero_pois),
-                  posterior_epred_bipois(zero_pois),
-                  posterior_epred_binegbin(zero_nb),
-                  posterior_epred_binegbin(zero_nb))) {
-    expect_equal(unique(as.vector(ep)), LONE, tolerance = 1e-12)
-  }
+  set.seed(20261114)
+  draws <- posterior_predict_binegbin(1, p)
+  expect_equal(var(draws), MU + LONE, tolerance = 0.03)
 })

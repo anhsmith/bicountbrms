@@ -1,33 +1,19 @@
 # tests/testthat/test-unified-vint.R
 #
-# THE TWO SHAPES AGREE.
-#
-# From 0.10.0 each component distribution has one family name and two
-# constructors: binegbin() takes vint(y2) and binegbin_partialobs() takes
-# vint(y2, y1_obs). Both return the same `name`, so brms resolves both to the same lpmf
-# and the same three post-processing methods. At post-processing time, the two
-# constructors are distinguished only by whether prep$data$vint2 exists.
-#
-# The contract this file pins is the one the 0.10.0 work order states as a
-# release criterion: for each of log_lik, posterior_predict and
-# posterior_epred, the one-vint path on paired data equals the two-vint path
-# on the same data with the flag set to 1.
-#
-# WHY IT NEEDS NON-VACUITY ASSERTIONS. Two of the three methods ignore y1_obs
-# by design -- posterior_predict and posterior_epred impute y1 on every row,
-# paired or not (see the convention in CLAUDE.md). For those two, "one-vint
-# equals two-vint at flag 1" would hold even if vint2 were never read at all,
-# so it is asserted alongside the fact that flag 0 gives the same answer too,
-# which is the actual specification. log_lik is the method that must branch,
-# and there the flag-0 answer must DIFFER -- otherwise the equality above is
-# vacuous.
-#
-# R-side only -- no Stan compilation, so this runs in the fast suite.
+# Agreement between a prep with no vint2, from binegbin() or bipois(), and a
+# prep with vint2, from the _partialobs() constructors. The two constructors
+# of a family share one name, so brms calls the same methods for both. For
+# log_lik, the conditional draw of y1 (.impute_draw_<family>()), and the
+# conditional expectation E[y1 | y2] (.impute_mean_<family>()), the prep with
+# no vint2 must give the same result as the prep with y1_obs = 1. log_lik
+# must give a different result at y1_obs = 0. The conditional draw and
+# expectation do not depend on y1_obs, so they must give the same result at
+# y1_obs = 0. No Stan compilation is required.
 
 MU <- 5; LONE <- 3; LTWO <- 4; SHAPES <- 2
 SX1 <- 0.6    # y1 exclusive component: strongly overdispersed
 SX2 <- 7      # y2 exclusive component: mildly overdispersed
-Y1  <- 9L     # deliberately != Y2, so a swapped routing is observable
+Y1  <- 9L     # differs from Y2, so exchanged dispersions change log_lik
 Y2  <- 6L
 ND  <- 5e4L
 
@@ -57,7 +43,7 @@ pois_prep <- function(vint2, ndraws = ND, y1 = Y1, y2 = Y2) {
 }
 
 # ---------------------------------------------------------------------------
-# log_lik -- the one method that must read the flag
+# log_lik, which depends on y1_obs
 # ---------------------------------------------------------------------------
 
 test_that("binegbin log_lik: one-vint equals two-vint at y1_obs = 1", {
@@ -66,9 +52,8 @@ test_that("binegbin log_lik: one-vint equals two-vint at y1_obs = 1", {
   expect_length(one, 1L)
   expect_equal(one, two, tolerance = 1e-12)
 
-  # Not vacuous: an absent vint2 must select the PAIRED branch, so the
-  # y1_obs = 0 answer has to be a different number. If it were not, the
-  # equality above would hold for a method that never read the flag.
+  # The unpaired branch (y1_obs = 0) differs by more than 0.5, so the
+  # equality above would fail for a method that ignored y1_obs.
   cens <- unique(as.vector(log_lik_binegbin(1, nb_prep(0L, ndraws = 2L))))
   expect_gt(abs(cens - one), 0.5)
 })
@@ -84,8 +69,7 @@ test_that("bipois log_lik: one-vint equals two-vint at y1_obs = 1", {
 })
 
 test_that("the one-vint log_lik is the joint, not the marginal", {
-  # Fixes WHICH branch an absent vint2 selects, against the R reference rather
-  # than against the other path. Both families.
+  # With no vint2, log_lik must equal the paired branch of the R reference.
   nb <- unique(as.vector(log_lik_binegbin(1, nb_prep(NULL, ndraws = 2L))))
   expect_equal(
     nb,
@@ -98,55 +82,54 @@ test_that("the one-vint log_lik is the joint, not the marginal", {
 })
 
 # ---------------------------------------------------------------------------
-# posterior_predict -- the flag is ignored, and that IS the specification
+# Conditional draws, which do not depend on y1_obs
 # ---------------------------------------------------------------------------
 
-test_that("binegbin posterior_predict: all three prep shapes give one answer", {
-  set.seed(101); one  <- posterior_predict_binegbin(1, nb_prep(NULL, ndraws = 500L))
-  set.seed(101); two  <- posterior_predict_binegbin(1, nb_prep(1L,   ndraws = 500L))
-  set.seed(101); cens <- posterior_predict_binegbin(1, nb_prep(0L,   ndraws = 500L))
+test_that("binegbin conditional draws: all three prep shapes give one answer", {
+  set.seed(101); one  <- .impute_draw_binegbin(1, nb_prep(NULL, ndraws = 500L))
+  set.seed(101); two  <- .impute_draw_binegbin(1, nb_prep(1L,   ndraws = 500L))
+  set.seed(101); cens <- .impute_draw_binegbin(1, nb_prep(0L,   ndraws = 500L))
   expect_identical(one, two)
   expect_identical(one, cens)
 })
 
-test_that("bipois posterior_predict: all three prep shapes give one answer", {
-  set.seed(101); one  <- posterior_predict_bipois(1, pois_prep(NULL, ndraws = 500L))
-  set.seed(101); two  <- posterior_predict_bipois(1, pois_prep(1L,   ndraws = 500L))
-  set.seed(101); cens <- posterior_predict_bipois(1, pois_prep(0L,   ndraws = 500L))
+test_that("bipois conditional draws: all three prep shapes give one answer", {
+  set.seed(101); one  <- .impute_draw_bipois(1, pois_prep(NULL, ndraws = 500L))
+  set.seed(101); two  <- .impute_draw_bipois(1, pois_prep(1L,   ndraws = 500L))
+  set.seed(101); cens <- .impute_draw_bipois(1, pois_prep(0L,   ndraws = 500L))
   expect_identical(one, two)
   expect_identical(one, cens)
 })
 
 # ---------------------------------------------------------------------------
-# posterior_epred -- likewise
+# Conditional expectation, which does not depend on y1_obs
 # ---------------------------------------------------------------------------
 
-test_that("binegbin posterior_epred: all three prep shapes give one answer", {
-  ep <- function(v2) unique(as.vector(posterior_epred_binegbin(nb_prep(v2, ndraws = 2L))))
+test_that("binegbin conditional expectation: all three prep shapes give one answer", {
+  ep <- function(v2) unique(as.vector(.impute_mean_binegbin(nb_prep(v2, ndraws = 2L))))
   expect_equal(ep(NULL), ep(1L), tolerance = 1e-12)
   expect_equal(ep(NULL), ep(0L), tolerance = 1e-12)
 
-  # Not vacuous: the epred is a real conditional expectation, not a constant
-  # that any routing would reproduce.
+  # The expectation exceeds lambdaone, so it includes the shared component.
   expect_gt(ep(NULL), LONE)
 })
 
-test_that("bipois posterior_epred: all three prep shapes give one answer", {
-  ep <- function(v2) unique(as.vector(posterior_epred_bipois(pois_prep(v2, ndraws = 2L))))
+test_that("bipois conditional expectation: all three prep shapes give one answer", {
+  ep <- function(v2) unique(as.vector(.impute_mean_bipois(pois_prep(v2, ndraws = 2L))))
   expect_equal(ep(NULL), ep(1L), tolerance = 1e-12)
   expect_equal(ep(NULL), ep(0L), tolerance = 1e-12)
   expect_equal(ep(NULL), Y2 * MU / (MU + LTWO) + LONE, tolerance = 1e-12)
 })
 
 # ---------------------------------------------------------------------------
-# The epred convention survives the unification
+# Conditional expectation against the conditional draws
 # ---------------------------------------------------------------------------
 
-test_that("epred equals the mean of posterior_predict draws on the one-vint path", {
-  # test-epred.R states this convention for all families; it is repeated here
-  # on the prep shape with no vint2, and the two dispersions apart.
+test_that("the conditional expectation equals the mean of the conditional draws on the one-vint path", {
+  # The check in test-impute.R, repeated on a prep with no vint2 and unequal
+  # dispersions.
   set.seed(20260825)
-  draws <- posterior_predict_binegbin(1, nb_prep(NULL))
-  ep    <- unique(as.vector(posterior_epred_binegbin(nb_prep(NULL, ndraws = 2L))))
+  draws <- .impute_draw_binegbin(1, nb_prep(NULL))
+  ep    <- unique(as.vector(.impute_mean_binegbin(nb_prep(NULL, ndraws = 2L))))
   expect_equal(mean(draws), ep, tolerance = 0.1)
 })

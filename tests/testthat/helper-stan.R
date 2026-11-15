@@ -1,25 +1,11 @@
 # ==========================================================================
-# Is there a working Stan toolchain?
+# Stan toolchain check
 # ==========================================================================
 #
-# `skip_if_not_installed("brms")` is NOT sufficient to guard a test that fits a
-# model. brms imports rstan, so both are present whenever brms is, but rstan
-# still cannot COMPILE a model without the Boost headers (package BH) and a C++
-# toolchain. A CI runner installing hard dependencies only gets brms and rstan
-# and no BH, so `brm()` reaches `rstan::stan_model()` and fails with
-# "Boost not found" rather than skipping.
-#
-# This failure occurred on the first CI run of this code, while the code was
-# part of pairedcountbrms: some fitting tests skipped cleanly because they guard
-# on a file-local `stan_ready`, while the joint-family ones had only
-# skip_on_cran() + skip_if_not_installed("brms") and errored. Note also that
-# r-lib/actions/check-r-package sets NOT_CRAN=true, so skip_on_cran() does NOT
-# fire in that workflow.
-#
-# The check below compiles the smallest possible Stan program, which is the only
-# way to establish that compilation actually works rather than that rstan is
-# merely installed. The result is cached, so the cost is paid once per test run
-# rather than once per file.
+# An installed rstan does not imply a working C++ toolchain, so
+# skip_if_not_installed("brms") does not guard a test that fits a model. The
+# check below compiles an empty Stan program once per test run and caches the
+# result.
 
 .stan_toolchain_ok <- local({
   cached <- NULL
@@ -52,30 +38,16 @@ skip_if_no_stan <- function() {
 }
 
 # --------------------------------------------------------------------------
-# Whether to ATTEMPT Stan compilation at all
+# Opt-in switch for Stan compilation
 # --------------------------------------------------------------------------
 #
-# The two guards above decide whether a Stan test can run. This one decides
-# whether it is worth asking, and it exists because the expensive part of this
-# suite is not the sampling -- it is compilation.
-#
-# Several test files compile a model at FILE level, outside any test_that(), so
-# that rstan::expose_stan_functions() can expose an lpmf for comparison against
-# the R reference. Being outside a test, no skip_*() can reach them: they run
-# whenever the file is sourced, and they cost minutes each.
-#
-# That was tolerable while CI could not compile at all. It cannot be relied on:
-# `dependencies: '"hard"'` installs brms -> rstan, and rstan declares
-# `LinkingTo: BH, StanHeaders, ...` -- LinkingTo IS a hard dependency, so the
-# Boost headers arrive with it and rstan compiles fine. The fast CI job was
-# therefore compiling every model and running every fit, taking ~40 minutes
-# against the ~5 its comments claimed.
-#
-# So compilation is now opt-in, on the same switch that governs the fits
-# (NOT_CRAN), which keeps "did the Stan tests run?" a single question with a
-# single answer rather than two that can disagree. Set NOT_CRAN=true to compile;
-# leave it unset and every Stan block skips without attempting a compile, so a
-# push gets the analytic and R-side signal in a couple of minutes.
+# Several test files compile a model at file level, outside any test_that(),
+# so that rstan::expose_stan_functions() can expose an lpmf for comparison
+# with the R reference. No skip_*() reaches such a block, so the block is
+# guarded by stan_tests_enabled(), which reads the same NOT_CRAN switch as
+# skip_on_cran(). With NOT_CRAN unset, every Stan block is skipped without
+# compiling. Rstan declares BH in LinkingTo, so a CI job that installs hard
+# dependencies only can still compile Stan.
 #
 # Use as the condition on a file-level compile block:
 #

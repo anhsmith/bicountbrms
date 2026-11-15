@@ -3,31 +3,21 @@
 # ==========================================================================
 
 # --------------------------------------------------------------------------
-# Reading a rate dpar across the 0.7.0 rename
+# Reading a rate dpar under its current or pre-0.7.0 name
 # --------------------------------------------------------------------------
 #
-# 0.7.0 renamed the two exclusive-rate dpars of the joint families,
-# lambdaem/lambdalb, to lambdaone/lambdatwo (see NEWS). Fits made before that
-# rename declare the OLD names, in a way post-processing cannot route around
-# generically: a brmsfit stores its own family object, so
-# prepare_predictions() builds prep$dpars from THAT family, not from
-# whatever the currently-attached package declares. An old fit therefore
-# arrives here with prep$dpars$lambdaem populated and prep$dpars$lambdaone
-# absent.
+# Fits made before 0.7.0 declare the exclusive rates as lambdaem and lambdalb
+# rather than lambdaone and lambdatwo. A brmsfit stores its own family object,
+# and prepare_predictions() builds prep$dpars from that stored family, so the
+# prep of such a fit has prep$dpars$lambdaem and no prep$dpars$lambdaone.
 #
-# brms::get_dpar() does `x <- prep$dpars[[dpar]]; stopifnot(!is.null(x))`,
-# so asking an old fit for the new name fails on a bare `!is.null(x) is not
-# TRUE` with nothing pointing at the cause. Worse, brms:::apply_dpar_inv_link()
-# resolves the LINK of the dpar by looking the name up in prep$family -- so the
-# name passed to get_dpar() must match the family object stored in the fit,
-# not merely be present in prep$dpars. Rewriting prep, or aliasing at the
-# family level, would have to satisfy both; reading under the name stored in
-# the fit satisfies both for free.
-#
-# Hence: resolve the name against the fit, then hand that name to brms.
-# Every family reads its rates through this function -- bipois.R and
-# binegbin.R, under both constructors in each file -- so pre-0.7.0 fits work
-# with loo(), posterior_predict() and log_lik() without refitting.
+# The name passed to brms::get_dpar() must be declared by the stored family,
+# not merely present in prep$dpars, because brms:::apply_dpar_inv_link()
+# finds the link of a dpar by looking its name up in prep$family. For a name
+# that is absent, brms::get_dpar() stops with the bare message
+# `!is.null(x) is not TRUE`. .get_rate() therefore passes brms the first name
+# that the stored family declares. Every post-processing method in bipois.R,
+# binegbin.R, and predict.R reads the exclusive rates through .get_rate().
 .get_rate <- function(prep, new, old, i = NULL) {
   .get_dpar_any(prep, c(new, old), i = i)
 }
@@ -36,29 +26,22 @@
 # Reading a dpar under any of several accepted spellings
 # --------------------------------------------------------------------------
 #
-# The generalisation of .get_rate() to an ordered list of candidate names,
-# needed once 0.8.0 split the single exclusive-component dispersion `shapex` of
-# the partially observed family into the per-margin pair
-# `shapexone`/`shapextwo`, and again once 0.10.0 did the same for the fully
-# paired one (see NEWS). A stored fit may spell that dispersion any of
-# three ways, and which one it uses is a property of the fit, not of the
-# attached package:
+# .get_rate() generalised to an ordered list of candidate names, for the
+# dispersions of the exclusive components. A stored binegbin fit declares
+# the dispersion of the first exclusive component under one of three names:
 #
-#   shapexone <- "shapexone" (0.8.0+) | "shapexem" (project-local ax family)
-#                | "shapex"   (any pre-0.10.0 binegbin fit, and pre-0.8.0
-#                              binegbin_cens fits, where one dispersion
-#                              served both margins)
+#   "shapexone"  current fits
+#   "shapexem"   fits from an earlier asymmetric family that declared
+#                shapexem and shapexlb
+#   "shapex"     binegbin fits made before 0.10.0, with one dispersion for
+#                both exclusive components
 #
-# Because `shapex` is the LAST fallback, the symmetric special case requires
-# no shim: a five-dpar fit resolves both shapexone and shapextwo to its
-# single `shapex`, which is precisely the constraint shapexone == shapextwo
-# that the five-dpar family imposed.
-#
-# The rationale for resolving names against the fit rather than rewriting prep
-# or aliasing at the family level is given at .get_rate() above and applies
-# unchanged here: brms resolves the LINK of a dpar by looking its name up in
-# prep$family, so the name handed to brms::get_dpar() must be one declared by
-# the family object stored in the fit.
+# `shapex` is the last candidate in both .SHAPEXONE_NAMES and
+# .SHAPEXTWO_NAMES (binegbin.R), so a five-dpar fit reads its single `shapex`
+# as both shapexone and shapextwo. That is the constraint
+# shapexone == shapextwo under which the five-dpar fit was made. The reason
+# for passing brms a name declared by the stored family is given at
+# .get_rate().
 .get_dpar_any <- function(prep, candidates, i = NULL) {
   for (nm in candidates) {
     if (!is.null(prep$dpars[[nm]])) {
@@ -77,17 +60,15 @@
 # E[N_shared | y2] for the negative-binomial joint families
 # --------------------------------------------------------------------------
 #
-# The conditional expectation of every joint family has the same shape,
+# For both families, the conditional expectation of the first count is
 #
 #   E[y1 | y2] = E[N_shared | y2] + lambdaone,
 #
-# and the families differ only in the first term. For bipois() and
-# bipois_partialobs()
-# it is closed form -- conditioning a sum of independent Poissons on its total
-# gives a Binomial, so E[N_shared | y2] = y2 * mu/(mu + lambdatwo) -- and those
-# it is computed inline. A sum of independent negative binomials admits no
-# such shortcut, so binegbin() needs the conditional evaluated
-# directly:
+# and the two families differ only in E[N_shared | y2]. For bipois, conditioning
+# a sum of independent Poissons on its total gives a Binomial, so
+# E[N_shared | y2] = y2 * mu/(mu + lambdatwo), computed inline in predict.R.
+# A sum of independent negative binomials has no such closed form, so for
+# binegbin the conditional distribution is evaluated directly:
 #
 #   P(N_shared = k | y2) proportional to
 #     NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapex2),  k = 0..y2
@@ -95,29 +76,22 @@
 #   E[N_shared | y2] = sum_k k P(N_shared = k | y2)
 #
 # The weights P(N_shared = k | y2) are the same weights that
-# posterior_predict_binegbin() already builds; this helper sums them instead
-# of sampling from them. That makes the epred exact rather than an
-# approximation, and makes it consistent with the predictions by construction
-# -- epred and the mean of posterior_predict draws now differ only by Monte
-# Carlo error. test-epred.R tests that epred equals the mean of the draws to
-# within Monte Carlo error.
+# .impute_draw_binegbin() in predict.R samples from; this helper sums them
+# instead. Summing the weights makes posterior_epred_y1_given_y2() exact
+# rather than an approximation, and consistent with
+# posterior_predict_y1_given_y2() by construction. test-impute.R tests that the
+# expectation equals the mean of the draws to within Monte Carlo error.
 #
-# Until 0.9.0 posterior_epred_binegbin() substituted the MARGINAL shared
-# fraction mu/(mu + lambdatwo) -- the bipois answer -- for the conditional one,
-# and the partially observed family had no epred at all. The substitution is exact
-# only in the Poisson limit and biased otherwise, in the direction set by which
-# component is the more dispersed. See NEWS for the size of the change.
+# The marginal shared fraction mu/(mu + lambdatwo) gives the right answer only
+# in the Poisson limit, and must not replace the conditional weights above.
 #
-# `shapex2` is the dispersion of the exclusive component in the SECOND
-# margin (`shapextwo`, or the single `shapex` of a pre-0.10.0 fit) -- the
-# expectation is conditional on y2, so the dispersion of the first
-# margin does not enter.
+# `shapex2` is the dispersion of the second exclusive component (`shapextwo`,
+# or the single `shapex` of a pre-0.10.0 fit). The expectation is conditional
+# on y2, so the dispersion of the first exclusive component does not enter.
 #
 # Arguments are ndraws x nobs matrices except `y2`, a length-nobs integer
-# vector. Returns an ndraws x nobs matrix. The loop is over observations and
-# over the support 0..y2, vectorised across draws within each, so its cost
-# matches that of posterior_predict; both are paid post-hoc, never inside the
-# sampler.
+# vector. Returns an ndraws x nobs matrix. The loops run over observations and
+# over the support 0..y2, and are vectorised across draws.
 .e_shared_given_y2_nb <- function(mu, lambdatwo, shapes, shapex2, y2) {
   out <- matrix(0, nrow = nrow(mu), ncol = ncol(mu))
   for (j in seq_along(y2)) {
@@ -140,16 +114,36 @@
 # The observation flag, for a prep built by either constructor
 # --------------------------------------------------------------------------
 
-# From 0.10.0 each component distribution has two constructors sharing one
-# family name. The fully paired one declares vars = c("vint1[n]", "1"), so the
-# flag reaches Stan as a literal and never enters the data block; a prep built
-# from such a fit therefore has no vint2 at all, and every one of its rows is
-# paired. The partially observed constructor declares
-# vars = c("vint1[n]", "vint2[n]") and the flag is there to read.
+# Both constructors of a family return the same family name. bipois() and
+# binegbin() declare vars = c("vint1[n]", "1"), so the flag reaches Stan as a
+# literal and never enters the data block. A prep built from such a fit has no
+# vint2, and every row is paired. bipois_partialobs() and
+# binegbin_partialobs() declare vars = c("vint1[n]", "vint2[n]"), and vint2
+# holds the flag.
 #
-# Only log_lik_* calls this. posterior_predict_* and posterior_epred_* do not
-# read the flag under either shape -- they impute the first margin on every
-# row, which is the epred convention of the package (see CLAUDE.md).
+# Only log_lik_* calls this. posterior_predict_* and posterior_epred_* return
+# the marginal distribution and mean of y1, which do not depend on the flag.
+# The _y1_given_y2 functions in predict.R read the flag through .paired_rows(),
+# to return the recorded y1 on paired rows when keep_observed = TRUE.
 .y1_obs_at <- function(prep, i) {
   if (is.null(prep$data$vint2)) 1L else prep$data$vint2[i]
+}
+
+# The R references stop on a flag other than 0 or 1, as the Stan lpmf rejects
+# one. brms binds vint() terms by position, so vint(y1_obs, y2) passes the flag
+# as the second count and the second count as the flag. log_lik() with newdata
+# reaches the R references without passing through Stan, and without this
+# check both references would evaluate any flag other than 1 on the unpaired
+# branch and return a finite log-density. NA fails the check too, because %in%
+# returns FALSE for it.
+.check_y1_obs <- function(y1_obs) {
+  bad <- !(y1_obs %in% c(0, 1))
+  if (any(bad)) {
+    stop(
+      "y1_obs must be 0 or 1; found ", y1_obs[bad][1],
+      ". Check the order: vint(y2, y1_obs).",
+      call. = FALSE
+    )
+  }
+  invisible(y1_obs)
 }

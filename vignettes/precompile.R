@@ -1,11 +1,11 @@
-# Precompile the vignette and the pkgdown articles that fit models.
+# Precompile the vignette and the pkgdown articles.
 #
-# Both vignettes/bicountbrms.Rmd and
-# vignettes/articles/paired-count-anatomy.Rmd fit real brms models. Building
-# those on every R CMD check and every CI run would need a full Stan toolchain
-# plus minutes of compilation, so they are precompiled instead: each _<name>.Rmd
-# source is knitted HERE, on a machine with Stan, and the resulting .Rmd carries
-# the output as static text. Downstream builds only render markdown.
+# Two documents fit brms models: vignettes/bicountbrms.Rmd and the
+# partially-paired-designs article. Building them on every R CMD check and CI run
+# would need a Stan toolchain and several minutes of compilation, so each
+# _<name>.Rmd source is knitted here, on a machine with Stan, and the resulting
+# <name>.Rmd holds the output as static text. Downstream builds only render
+# markdown.
 #
 # Because the output is static text, .github/workflows/pkgdown.yaml can use
 # dependencies: '"hard"' and install no Stan backend.
@@ -20,11 +20,11 @@
 # next run of this script will overwrite it.
 #
 # FIGURES. Downstream builds do not re-run the chunks, so any figure must
-# already exist on disk. paired-count-anatomy sets dev = "svg" and
-# fig.path = "figure/" in its setup chunk, so its plots land in
-# vignettes/articles/figure/ and must be COMMITTED alongside the .Rmd. The
-# vignette currently produces no figures; if you add a plotting chunk there, do
-# the same.
+# already exist on disk. The two articles set dev = "svg" and
+# fig.path = "figure/" in their setup chunks, so their plots are written to
+# vignettes/articles/figure/ and must be committed with the .Rmd files. The
+# vignette produces no figures; a plotting chunk added there needs the same
+# setup.
 
 stopifnot(
   "run from the package root" = file.exists("DESCRIPTION"),
@@ -34,12 +34,11 @@ stopifnot(
 )
 
 # STALE INSTALL. A knit against an out-of-date installed bicountbrms does not
-# fail. knitr captures the errors as chunk output and exits 0, so the result is
-# an article carrying `#> Error` where the fitted numbers should be. That
-# happened at 0.10.0 against an installed 0.9.0, whose binegbin() still declared
-# five dpars and whose binegbin_mfd_to_dpars() still emitted `shapex`; the knit
-# reported success and the article was wrong. Compare the versions rather than
-# trusting the exit code.
+# fail: knitr captures the errors as chunk output and exits 0, so the article
+# shows `#> Error` where the fitted numbers should be. The check below compares
+# the installed version with DESCRIPTION. It cannot detect an install of the
+# same version made before later source edits, so run R CMD INSTALL . before
+# every precompile.
 if (!requireNamespace("bicountbrms", quietly = TRUE)) {
   stop("bicountbrms is not installed. Run R CMD INSTALL . first.", call. = FALSE)
 }
@@ -55,20 +54,19 @@ local({
 
 # input/output are relative to the directory each pair lives in, so knitr
 # resolves any relative paths inside the document the same way a build would.
-# Every target here fits at least one model, which is why it is precompiled.
-# The two articles that do not fit anything -- choosing-priors and
-# migration-and-errata -- are plain .Rmd with no _ source, and are absent from
-# this list on purpose.
+# The reparameterisation article fits no model, but it is precompiled with the
+# others so that every _<name>.Rmd source is built the same way. The prediction
+# vignette runs no code, is a plain .Rmd file with no _ source, and is not
+# listed.
 targets <- list(
   list(dir = "vignettes",          stem = "bicountbrms"),
-  list(dir = "vignettes/articles", stem = "paired-count-anatomy"),
-  list(dir = "vignettes/articles", stem = "families-and-parameters"),
-  list(dir = "vignettes/articles", stem = "partially-observed-fit")
+  list(dir = "vignettes/articles", stem = "reparameterisation"),
+  list(dir = "vignettes/articles", stem = "partially-paired-designs")
 )
 
 for (tg in targets) {
   message("Knitting ", tg$dir, "/_", tg$stem,
-          ".Rmd -- this fits a model, allow a few minutes.")
+          ".Rmd -- a document that fits a model takes several minutes.")
   old <- setwd(tg$dir)
   knitr::knit(
     input  = paste0("_", tg$stem, ".Rmd"),

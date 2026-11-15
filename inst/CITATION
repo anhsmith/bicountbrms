@@ -17,15 +17,14 @@ citHeader(
   "because every family here is a brms custom family, brms as well ",
   "(citation(\"brms\")). If you use a specific family, please also cite the ",
   "distribution it implements: Holgate (1964) for the trivariate-reduction ",
-  "representation and Karlis & Ntzoufras (2003) for its regression form. ",
-  "Full references are given in the article ",
-  "\"The families and their parameters\", at ",
-  "https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.html"
+  "representation, Karlis & Ntzoufras (2003) for its regression form, and ",
+  "Kirkpatrick & Neale (2016) for negative-binomial components. ",
+  "Full references are given in Getting started, vignette(\"bicountbrms\")."
 )
 
 bibentry(
   bibtype  = "Manual",
-  title    = "{bicountbrms}: Joint Bivariate-Count {brms} Custom Families for Paired Counts",
+  title    = "{bicountbrms}: Custom {brms} Families for Paired Counts",
   author   = person(
     "Adam N. H.", "Smith",
     comment = c(ORCID = "0000-0003-0059-6206")
@@ -36,8 +35,8 @@ bibentry(
   url      = "https://github.com/anhsmith/bicountbrms",
   header   = "Package citation:",
   textVersion = paste0(
-    "Smith, A. N. H. (", year, "). bicountbrms: Joint Bivariate-Count brms ",
-    "Custom Families for Paired Counts. ",
+    "Smith, A. N. H. (", year, "). bicountbrms: Custom brms Families for ",
+    "Paired Counts. ",
     "R package version ", version, ". ",
     "https://doi.org/10.5281/zenodo.22239120"
   )

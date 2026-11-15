@@ -1,108 +1,27 @@
 # ==========================================================================
-# bipois: joint bivariate Poisson via trivariate reduction
-# (Holgate 1964; recurrence: "A fast way to calculate the bivariate poisson
-# in STAN", stan-users Google Group, March 2016 -- thread SUcp-ktkXn4,
-# posted by Andre, refined by Bob Carpenter -- adapted below from
-# log-rate/`poisson_log_lpmf` parameterisation to the natural-scale-rate
-# parameterisation the dpars in this package use post-link.)
+# bipois: joint bivariate Poisson counts via trivariate reduction
 #
-# Unlike a difference family -- the Skellam, discrete Laplace and discrete
-# normal families in the companion package skellambrms
-# (https://github.com/anhsmith/skellambrms), all of which model a single
-# response d = y1 - y2 -- bipois models the *joint* pair (y1, y2)
-# directly. That avoids regressing the difference on one of its own
-# components (a `d ~ y2` design), which induces regression to the mean: y2
-# appears on both sides, so the fitted slope is biased towards -1 by the
-# shared sampling error alone. Both y1 and y2 are generated as
-# y1 = N_shared + N1, y2 = N_shared + N2, with N_shared ~ Poisson(mu),
-# N1 ~ Poisson(lambdaone), N2 ~ Poisson(lambdatwo) mutually independent given
-# their rates. N_shared is unobserved and marginalised out analytically:
+# Trivariate reduction with Poisson components (Holgate 1964):
 #
-#   P(y1=x, y2=y) = sum_{k=0}^{min(x,y)}
-#     P(N_shared=k) P(N1=x-k) P(N2=y-k)
+#   y1 = N_shared + N1,   y2 = N_shared + N2,
+#   N_shared ~ Poisson(mu),   N1 ~ Poisson(lambdaone),
+#   N2 ~ Poisson(lambdatwo),   mutually independent.
 #
-# which is Campbell (1934) eq. (2.2): Campbell, J. T., The Poisson correlation
-# function, Proc. Edin. Math. Soc. (2) 4:18-26.
+# N_shared is summed out over k = 0..min(y1, y2) (Campbell 1934, eq. 2.2).
+# The Stan function evaluates the sum by a recurrence in log space, adapted
+# from the bipois2 code posted to the stan-users Google Group in March 2016
+# (thread SUcp-ktkXn4, by Andre, refined by Bob Carpenter). On an unpaired
+# row (y1_obs == 0) the likelihood is y2 ~ Poisson(mu + lambdatwo).
 #
-# rather than evaluated as a naive per-k sum of three separate Poisson
-# lpmfs, the Stan implementation below uses the cited bipois2 incremental
-# recurrence: the k=0 term is computed directly, and each subsequent term
-# is obtained from the previous one by a ratio update in log space,
-# accumulated via log_sum_exp -- see bipois_stan_funs below for the
-# derivation of that ratio and its correspondence to the cited source.
+# bipois() and bipois_partialobs() return the same family name, so they
+# share one Stan function and one set of post-processing methods. They differ
+# only in `vars`: bipois() passes the observation indicator as the literal 1.
+# Two Stan functions of one name and different numbers of arguments would need
+# function overloading (Stan >= 2.29), and DESCRIPTION sets no minimum Stan
+# version.
 #
-# ONE FAMILY, TWO CONSTRUCTORS. bipois() is for a fully paired design and
-# bipois_partialobs() for one in which the first count is missing on some
-# rows. Both return the SAME custom_family name, so there is one lpmf and one
-# set of post-processing methods; they differ only in how the observation flag
-# reaches the likelihood:
-#
-#   bipois()             vars = c("vint1[n]", "1")
-#   bipois_partialobs()  vars = c("vint1[n]", "vint2[n]")
-#
-# brms pastes `vars` entries into the generated Stan call verbatim, so the
-# plain constructor supplies y1_obs as the literal 1 and its user never has to
-# build a flag column, or know one exists. See binegbin_partialobs() for why
-# this is preferred over declaring two overloaded Stan functions.
-#
-# WHAT THE FLAG SELECTS.
-#
-#   y1_obs == 1 (paired row):  full joint bipois lpmf on (y1, y2).
-#   y1_obs == 0 (unpaired row):  the y2 MARGINAL of the SAME bivariate model.
-#
-# brms uses the cens() addition term for a value known to lie in a set. On an
-# unpaired row, y1 is not observed at all, and the likelihood marginalises over
-# its whole support, so cens() does not apply. bipois_partialobs() was called
-# bipois_cens() up to 0.9.1 and renamed at 0.10.0.
-#
-# THE UNPAIRED BRANCH IS ANALYTIC. For binegbin the
-# y1-integrated marginal is a convolution that must be evaluated as a sum,
-#
-#   P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo),
-#
-# because NB2 + NB2 is not NB2 unless the two components share their success
-# probability (Kirkpatrick & Neale 2016). The Poisson case has no such
-# obstruction: a sum of independent Poissons is Poisson, so the same
-# convolution collapses exactly to
-#
-#   y2 ~ Poisson(mu + lambdatwo),
-#
-# one closed-form line with no sum, no cutoff and no accumulated rounding. Two
-# consequences beyond the branch being cheap to evaluate:
-#
-#   * It supplies an ANALYTIC REFERENCE for the unpaired branch of binegbin,
-#     which the package otherwise lacks. The marginal-identity test for that
-#     branch checks the NB sum against itself -- summing the paired branch
-#     over y1 and comparing to the unpaired branch -- so both sides share any
-#     error in the convolution. Taking the NB family to its Poisson limit and
-#     comparing against this closed form is an independent check of the same
-#     code path. See test-bipois-partialobs.R.
-#   * It avoids a boundary. A user whose counts really are equidispersed must
-#     otherwise fit binegbin with the dispersions pressed against their
-#     Poisson limit (shape -> Inf, i.e. kappa -> 0), which is exactly where
-#     sampling degrades. A dedicated family sidesteps that.
-#
-# WHY A DEDICATED FAMILY AND NOT TWO SEPARATE FITS, under partial observation.
-# Unchanged from binegbin, and the argument does not depend on the component
-# distribution: the unpaired rows never observe y1, so a paired-only fit
-# could use the paired rows alone, yet y2 on those rows is a draw from the
-# same bivariate model and still informs mu, lambdatwo and any group-level
-# structure. Integrating the unobserved margin out pools every row under one
-# coherent likelihood. See binegbin.R for the full statement.
-#
-# WHAT EACH RATE IS IDENTIFIED FROM, under partial observation. lambdatwo
-# enters both branches, so every row sharpens it. lambdaone enters only the
-# paired branch and is identified solely by the paired rows. mu enters both,
-# but on the unpaired branch only through the sum mu + lambdatwo: those rows
-# constrain the total, not the split between the shared and source-2-exclusive
-# components. Separating mu from lambdatwo is therefore informed by the paired
-# rows as well, so a design with few of them will learn the congruence f weakly
-# however many unpaired rows it has. That statement is sharper here than for
-# binegbin, where the two dispersions overlap in what they inform. The
-# closed form above shows it directly. Under full pairing none of this applies.
-#
-# EXACT RELATIONSHIP TO binegbin. As shapes, shapexone and shapextwo -> Inf,
-# binegbin -> bipois on both branches. Pinned in test-bipois-partialobs.R.
+# As shapes, shapexone and shapextwo -> Inf, binegbin -> bipois on both
+# branches (tested in test-bipois-partialobs.R).
 
 # --------------------------------------------------------------------------
 # brms custom family
@@ -111,93 +30,66 @@
 #' Joint bivariate-Poisson custom family for brms
 #'
 #' @description
-#' Returns a brms custom family for the joint distribution of a pair
-#' of counts, `(y1, y2)`, constructed via trivariate reduction: `y1 =
-#' N_s + N1`, `y2 = N_s + N2`, with `N_s ~
-#' Poisson(mu)`, `N1 ~ Poisson(lambdaone)`, `N2 ~ Poisson(lambdatwo)`
-#' mutually independent given their rates. All three rates are link = "log".
-#' Modelling the pair jointly avoids regressing the difference on one of its
-#' own components (a `d = y1 - y2 ~ y2` design), which induces regression to
-#' the mean.
+#' Returns a brms custom family for the joint distribution of a pair of
+#' counts `(y1, y2)`, constructed by trivariate reduction: `y1 = N_s + N1` and
+#' `y2 = N_s + N2`, where `N_s ~ Poisson(mu)`, `N1 ~ Poisson(lambdaone)`, and
+#' `N2 ~ Poisson(lambdatwo)` are mutually independent given their rates. All
+#' three rates have a log link.
 #'
-#' Use this when both counts were recorded on every row. If the first count is
-#' missing on some rows, use [bipois_partialobs()], which is the same family
-#' with an observation flag -- same `name`, same three dpars, same likelihood,
-#' same post-processing.
+#' Use `bipois()` when both counts were recorded on every row. brms drops any
+#' row with a missing value of `y1` or `y2`. If only one source has missing
+#' counts, make that source `y1` and use [bipois_partialobs()], which keeps
+#' every row in the model.
 #'
-#' `y1` is the response of the family; `y2` is passed in as supplementary
-#' integer data via the brms `vint()` addition term, since the brms
-#' `custom_family()` machinery is built around a single declared response
-#' column -- see Details.
+#' `y1` is the response. `y2` is passed as supplementary integer data through
+#' the brms `vint()` addition term:
 #'
-#' Use in a brm() call as:
-#'   brm(
-#'     bf(y1 | vint(y2) ~ ...),
-#'     family   = bipois(),
-#'     stanvars = bipois_stanvars(),
-#'     data     = dat
-#'   )
+#' ```r
+#' brm(
+#'   bf(y1 | vint(y2) ~ ...),
+#'   family   = bipois(),
+#'   stanvars = bipois_stanvars(),
+#'   data     = dat
+#' )
+#' ```
+#'
+#' This template is for the native parameterisation. To fit the model in the
+#' congruence–bias parameterisation, which we recommend, write the formula
+#' with [bf_mfd()].
 #'
 #' @details
-#' **Naming note.** `brms::custom_family()` requires a dpar literally named
-#' `"mu"` (`stop2("All families must have a 'mu' parameter.")`,
-#' unconditional), whatever the family actually calls that quantity. Here it is
-#' bound to `lambda_shared`, the rate of the
-#' component shared between `y1` and `y2` -- not a mean of either
-#' response individually. `lambdaone` (rate of the source-1-exclusive component)
-#' and `lambdatwo` (rate of the source-2-exclusive component) are the other two
-#' dpars, plainly named (no forced reinterpretation needed for those two).
+#' The correlation between the two counts cannot be negative, because it is
+#' generated by the shared component, which is part of both counts.
 #'
-#' **The spelling `lambdaone` rather than `lambda1`.** `custom_family()` rejects dpar names
-#' ending in a digit (`stop2("'dpars' should not end with a number.")`), as
-#' well as dots and underscores. The documentation therefore writes these
-#' rates as \eqn{\lambda_1}{lambda_1} and \eqn{\lambda_2}{lambda_2} while the
-#' code must spell them `lambdaone`/`lambdatwo`. See the notation table in
-#' the package README.
-#'
-#' **`y2` as supplementary data rather than a second response.** The brms
-#' `custom_family()` API supports exactly one declared response column
-#' (`Y`) plus optional supplementary integer/real data (`vint()`/`vreal()`
-#' addition terms) -- the same mechanism used for, e.g., binomial trial
-#' counts in the brms custom-families vignette. There is no
-#' *undeclared-response* concept for a genuinely joint two-count
-#' likelihood; `vint(y2)` is the correct fit for that gap, not a
-#' workaround. This does mean `y2` is *not* itself treated as
-#' brms-modelled response data (no missing-value handling, no
-#' resp_*() addition terms apply to it) -- it is fixed, observed
-#' per-row data, consistent with the fact that every row this constructor is
-#' for comes from the paired (both-observed) subset.
-#'
-#' **Order of dpars matters for the generated Stan call.** brms generates
-#' `target += bipois_lpmf(Y[n] | mu[n], lambdaone[n], lambdatwo[n],
-#' vint1[n], 1)` -- dpars in the order declared here, then the two `vars`
-#' entries. `bipois_stan_funs` (stanfunctions via `bipois_stanvars()`)
-#' declares `bipois_lpmf` with exactly this argument order; changing the order
-#' here without changing the Stan signature (or vice versa) silently swaps
-#' which rate governs which count. The trailing `1` is the observation flag,
-#' supplied as a literal because every row of a fully paired design has both
-#' counts.
+#' brms requires every custom family to have a dpar named `mu`. In `bipois()`,
+#' `mu` is the rate of the shared component, not the mean of either count.
+#' brms also rejects dpar names that end in a digit, so the exclusive rates
+#' are `lambdaone` and `lambdatwo`, written \eqn{\lambda_1}{lambda_1} and
+#' \eqn{\lambda_2}{lambda_2} in the documentation.
 #'
 #' @return
 #'   `bipois()` returns a brms `custom_family` object. `bipois_stanvars()`
 #'   returns a `stanvars` object holding the Stan code for the corresponding
 #'   `_lpmf`. `log_lik_bipois()` returns a numeric vector of log-densities,
 #'   one per posterior draw, for observation `i`.
-#'   `posterior_predict_bipois()` returns an integer vector of simulated
-#'   `y1` values, one per posterior draw, for observation `i`.
-#'   `posterior_epred_bipois()` returns a numeric matrix of `E[y1 | y2]`, with
-#'   posterior draws in rows and observations in columns.
+#'   `posterior_predict_bipois()` returns an integer vector of draws of `y1`
+#'   from its marginal distribution, one per posterior draw, for observation
+#'   `i`. `posterior_epred_bipois()` returns a numeric matrix of
+#'   `mu + lambdaone`, with posterior draws in rows and observations in
+#'   columns.
 #' @seealso [bipois_partialobs()] for partially observed pairs; [binegbin()]
-#'   for the overdispersed counterpart.
+#'   for the overdispersed counterpart; `vignette("prediction")` for the
+#'   prediction functions.
 #' @export
 bipois <- function() {
   brms::custom_family(
     name  = "bipois",
-    dpars = c("mu", "lambdaone", "lambdatwo"),  # mu = lambda_shared -- see Details
+    # Order must match the arguments of bipois_lpmf: dpars, then vars.
+    dpars = c("mu", "lambdaone", "lambdatwo"),  # mu = rate of the shared component
     links = c("log", "log", "log"),
     lb    = c(0, 0, 0),
     type  = "int",
-    vars  = c("vint1[n]", "1")  # vint1 = y2; the flag is a literal -- see Details
+    vars  = c("vint1[n]", "1")  # vint1 = y2; the observation indicator is the literal 1
   )
 }
 
@@ -210,108 +102,69 @@ bipois_stanvars <- function() {
 #' Joint bivariate-Poisson family for partially observed pairs
 #'
 #' @description
-#' [bipois()] for a design in which the first count is missing on some rows.
-#' Same generative model, same `name`, same three dpars, same likelihood and
-#' the same post-processing methods -- the only difference is that each row
-#' supplies a second integer, an observation flag, through
-#' `vint()`:
+#' Returns a version of [bipois()] for partially paired designs, in which source 1
+#' has missing values. The generative model, family name, dpars, and
+#' post-processing methods are the same as for [bipois()]. Each row also
+#' supplies an observation indicator as the second argument of `vint()`, after `y2`:
 #'
+#' ```r
+#' brm(
+#'   bf(y1 | vint(y2, y1_obs) ~ ...),
+#'   family   = bipois_partialobs(),
+#'   stanvars = bipois_partialobs_stanvars(),
+#'   data     = dat
+#' )
 #' ```
-#' bf(y1 | vint(y2, y1_obs) ~ ...)
+#'
+#' This template is for the native parameterisation. To fit the model in the
+#' congruence–bias parameterisation, which we recommend, write the formula
+#' with [bf_mfd()].
+#'
+#' `y1_obs` is `1` on rows where both counts were recorded and `0` on rows where
+#' only `y2` was recorded. An indicator other than `0` or `1` makes the
+#' sampler fail at initialisation, with a message in the chain output that
+#' names the cause. The check also catches the two `vint()` arguments written
+#' in reverse order.
+#'
+#' **Do not use `NA` for missing `y1` values.** brms drops any row with a
+#' missing response with only a warning. On a row with `y1_obs == 0`, the
+#' likelihood term does not depend on `y1`, so `y1` can be any integer. We
+#' suggest `-1`, because it cannot be confused with a recorded count:
+#'
+#' ```r
+#' dat$y1[dat$y1_obs == 0] <- -1L
 #' ```
-#'
-#' `y1_obs` is a 0/1 integer column: `1` where both counts were recorded, `0`
-#' where the first was not. `y1` may hold any non-negative integer on those
-#' rows -- `0` is the conventional placeholder -- because the likelihood does
-#' not read it. Do not use `NA`, which brms drops before fitting, taking the
-#' observed `y2` on that row with it.
-#'
-#' **Contribution of a paired row and of an unpaired row.** A paired row (`y1_obs == 1`) uses the
-#' full joint [bipois()] lpmf on `(y1, y2)`. A row whose first count was never
-#' recorded (`y1_obs == 0`) contributes the marginal of the second count *from
-#' the same model*. For Poisson components that marginal is closed form -- a
-#' sum of independent Poissons is Poisson -- so it is exactly
-#' `y2 ~ Poisson(mu + lambdatwo)`. [binegbin_partialobs()] evaluates the
-#' marginal of `y2`, the convolution of the shared and source-2-exclusive
-#' negative-binomial components, as a finite sum over `k = 0..y2`. In both
-#' families, an unpaired row is not dropped and is not given a different model:
-#' it still informs `mu`, `lambdatwo` and any group-level effects.
-#'
-#' **Imputation after fitting.** The fitted model can impute the unobserved
-#' first count conditional on the observed second count. `posterior_predict()`
-#' and `posterior_epred()` return a `y1` draw and `E[y1 | y2]` for *every* row,
-#' paired and unpaired alike -- `y1_obs` selects a likelihood branch, not a
-#' prediction.
-#'
-#' **Parameters identified only by the paired rows.** `lambdatwo` appears on
-#' both branches, so every row informs `lambdatwo`. `lambdaone` appears only
-#' on the paired branch and is identified by the paired rows alone. The
-#' likelihood term for an unpaired row depends on `mu` and `lambdatwo` only
-#' through `mu + lambdatwo`. Unpaired rows therefore constrain the expected
-#' count of the second source, but not how `mu + lambdatwo` divides between
-#' the shared and source-2-exclusive components. The separation of `mu` from
-#' `lambdatwo`, and so the estimate of the congruence \eqn{f}, is informed by
-#' the paired rows alone. With few paired rows, the likelihood is nearly flat
-#' along `mu + lambdatwo` = constant, so in that direction the posterior
-#' follows the prior, however many unpaired rows the design contains.
-#'
-#' **Relation to censoring in brms.** brms uses the `cens()` addition term for a
-#' value known to lie in a set (`left`, `right` or `interval`). On an unpaired
-#' row, the first count is not observed at all, and the likelihood marginalises
-#' over its whole support. `bipois_partialobs()` was called `bipois_cens()` up
-#' to 0.9.1. Do not combine `bipois_partialobs()` with `cens()`.
-#'
-#' Use in a brm() call as:
-#'   brm(
-#'     bf(y1 | vint(y2, y1_obs) ~ 1,
-#'        mu ~ 1 + (1 | vessel) + (1 | vessel:trip_id),
-#'        nlf(lambdaone ~ lamx + delta),
-#'        nlf(lambdatwo ~ lamx - delta),
-#'        lamx ~ 1, delta ~ 1, nl = TRUE),
-#'     family   = bipois_partialobs(),
-#'     stanvars = bipois_partialobs_stanvars(),
-#'     data     = dat
-#'   )
 #'
 #' @details
-#' **Choosing between `bipois_partialobs()` and [binegbin_partialobs()].**
+#' On a paired row, the likelihood term is the joint probability of
+#' `(y1, y2)` under [bipois()]. On an unpaired row, the likelihood term is the
+#' marginal probability of `y2`, the joint probability summed over every
+#' possible value of the unrecorded `y1`. That sum has the closed form
+#' `y2 ~ Poisson(mu + lambdatwo)`, because a sum of independent Poisson
+#' variables is Poisson.
+#'
+#' To impute `y1` on the unpaired rows, use [posterior_predict_y1_given_y2()]
+#' or [posterior_epred_y1_given_y2()]; see `vignette("prediction")`.
+#'
+#' An unpaired row informs `mu` and `lambdatwo` only through their sum,
+#' `mu + lambdatwo`, which is the expected value of `y2`. Two quantities are
+#' therefore estimated from the paired rows alone: (i) `lambdaone`, which does
+#' not appear in the likelihood term for an unpaired row, and (ii) the division
+#' of `mu + lambdatwo` between the shared and source-2-exclusive components.
+#' The congruence \eqn{f} depends on both, so \eqn{f} is also estimated from the
+#' paired rows alone. With few paired rows, the posteriors of these quantities
+#' stay close to their priors, however many unpaired rows the design contains.
+#'
 #' `bipois_partialobs()` fixes the variance of each latent component equal to
-#' its mean. Where the counts are overdispersed relative to a Poisson
-#' distribution, [binegbin_partialobs()] is the correct model and
+#' the mean of that component. Where the counts are overdispersed relative to
+#' a Poisson distribution, [binegbin_partialobs()] is the correct model and
 #' `bipois_partialobs()` will understate the marginal variances. Where the
-#' counts are not overdispersed, [binegbin_partialobs()] fits such counts only
-#' by driving its dispersions to their Poisson limit
-#' (`shape` \eqn{\to\infty}, equivalently `kappa` \eqn{\to 0}), a boundary at
-#' which sampling degrades; fitting `bipois_partialobs()` directly avoids that
-#' boundary. Compare the fits from the two constructors with `loo()`.
-#'
-#' **Shared Stan function and post-processing methods.**
-#' `bipois_partialobs()` returns the same `custom_family` `name` as
-#' [bipois()], so brms resolves both constructors to one `bipois_lpmf` and one
-#' set of `log_lik_bipois()` / `posterior_predict_bipois()` /
-#' `posterior_epred_bipois()` methods. The paired branch of
-#' `bipois_partialobs()` therefore runs the same code as [bipois()]. See
-#' [binegbin_partialobs()] for why `vars` declares a literal in the plain
-#' constructor rather than the two constructors declaring overloaded Stan
-#' functions.
-#'
-#' **Two `vint()` arguments, in declared order.** brms appends `vint()` integers
-#' to the generated lpmf call in the order they are listed in the `vint()` term
-#' of the formula, matching the `vars` declared here
-#' (`c("vint1[n]", "vint2[n]")`): so `vint(y2, y1_obs)` binds `vint1 = y2` and
-#' `vint2 = y1_obs`. brms generates `target += bipois_lpmf(Y[n] | mu[n],
-#' lambdaone[n], lambdatwo[n], vint1[n], vint2[n])`. Reordering the dpars or the
-#' two `vint()` terms without matching the Stan signature silently swaps which
-#' rate governs which component or which integer is the branch flag.
-#'
-#' **Distinguishing the two constructors in a stored fit.** `family$name` is `"bipois"`
-#' either way. What distinguishes them is the presence of the second
-#' supplementary integer:
-#'
-#' ```
-#' "vint2" %in% names(brms::standata(fit))   # TRUE for a partially observed fit
-#' fit$family$vars     # c("vint1[n]", "vint2[n]") or c("vint1[n]", "1")
-#' ```
+#' counts are not overdispersed, [binegbin_partialobs()] fits the counts only
+#' with `shapes`, `shapexone`, and `shapextwo` very large (each `kappa` near
+#' 0), and sampling is poor when the dispersions are that large.
+#' `bipois_partialobs()` has no dispersions, so it avoids the problem. Compare
+#' the fits from the two constructors with `loo()`, which scores `y1` and `y2` on
+#' a paired row and `y2` on an unpaired row.
 #'
 #' @return
 #'   `bipois_partialobs()` returns a brms `custom_family` object.
@@ -336,10 +189,9 @@ bipois_partialobs <- function() {
 #' @rdname bipois_partialobs
 #' @export
 bipois_partialobs_stanvars <- function() {
-  # Deliberately the same object as bipois_stanvars(): one family name means
-  # one Stan function, and both constructors need exactly it. The alias exists
-  # so that a call reads consistently, not because there is a second
-  # implementation.
+  # The same object as bipois_stanvars(), because both constructors return
+  # one family name and so use one Stan function. The second name lets each
+  # constructor be paired with a stanvars function of matching name.
   bipois_stanvars()
 }
 
@@ -347,12 +199,10 @@ bipois_partialobs_stanvars <- function() {
 # Stan function block
 # --------------------------------------------------------------------------
 
-# Derivation of the recurrence, in the natural-scale-rate terms of this package
-# (the cited stan-users thread works in log-rates via poisson_log_lpmf;
-# translated here since the dpars in this package are already inv-link-
-# transformed to natural scale by the time they reach the lpmf, the same
-# convention as every other family in this package: binegbin_lpmf likewise
-# takes `mu`, not `log(mu)`).
+# Derivation of the recurrence on the natural scale of the rates. The cited
+# stan-users thread works with log-rates through poisson_log_lpmf; brms
+# applies the inverse link before calling the lpmf, so bipois_lpmf, like
+# binegbin_lpmf, takes `mu` rather than `log(mu)`.
 #
 # Write lambda_shared = mu, and let term(k) = P(N_shared=k) P(N1=r-k)
 # P(N2=s-k) for r = y1, s = y2, m = min(r,s). Then:
@@ -360,47 +210,34 @@ bipois_partialobs_stanvars <- function() {
 #   term(0) = exp(-mu) * [lambdaone^r exp(-lambdaone) / r!]
 #                       * [lambdatwo^s exp(-lambdatwo) / s!]
 #
-# so log(term(0)) = poisson_lpmf(r|lambdaone) + poisson_lpmf(s|lambdatwo) - mu
-# (the `+lambdaone +lambdatwo` inside each poisson_lpmf cancels algebraically
-# against the `-lambdaone -lambdatwo` that would otherwise appear from
-# factoring exp(-mu-lambdaone-lambdatwo) out front -- this is exactly the
-# same cancellation used in the starting term of the cited thread,
-# `ss <- poisson_log_log(r, mu1) + poisson_log_log(s, mu2) - exp(mu3)`).
+# so log(term(0)) = poisson_lpmf(r|lambdaone) + poisson_lpmf(s|lambdatwo) - mu,
+# the starting term of the cited thread.
 #
-# The ratio between consecutive terms is:
-#   term(k) / term(k-1) = [(r-k+1)/lambdaone] * [(s-k+1)/lambdatwo] * [mu/k]
-# (one fewer factor of lambdaone in the N1 count as k increases by one,
-# one fewer of lambdatwo, one more of mu -- and the corresponding
-# factorial/combinatorial adjustment (r-k+1), (s-k+1), 1/k). In log space:
+# The ratio between consecutive terms is
+#   term(k) / term(k-1) = [(r-k+1)/lambdaone] * [(s-k+1)/lambdatwo] * [mu/k],
+# so in log space
 #   log(term(k)) = log(term(k-1)) + log(r-k+1) + log(s-k+1) - log(k)
-#                  + log(mu) - log(lambdaone) - log(lambdatwo)
-# which is exactly the per-step update in the cited thread (`log_s <- log_s +
-# log(r-k+1) + mus + log(s-k+1) - log(k)`, with `mus = -mu1-mu2+mu3`
-# translating directly to `log(mu) - log(lambdaone) - log(lambdatwo)` once
-# mu1, mu2, mu3 are read as log-rates). Each term is accumulated into the
-# running total via log_sum_exp -- no separate normalising-constant term is
-# needed, since this sum is finite (m+1 terms) and exactly equals the
-# marginalised joint log-likelihood, not a survival function.
+#                  + log(mu) - log(lambdaone) - log(lambdatwo),
+# the per-step update of the cited thread with its log-rates mu1, mu2, and mu3
+# read as log(lambdaone), log(lambdatwo), and log(mu). The terms are
+# accumulated with log_sum_exp, and their total is the log-likelihood of the
+# pair.
 #
-# No large-argument blowup risk: m = min(y1, y2) is bounded by the data itself
-# (a few tens of terms at most for counts of the size these families are built
-# for), and every term here is a sum/difference of ordinary Poisson
-# log-densities, evaluated at arguments the data bounds. No iteration cap or
-# normal-approximation branch is needed for that reason -- in contrast to the
-# Bessel-function evaluation a Skellam log-CCDF requires, where the argument is
-# unbounded during warmup and a fallback branch is unavoidable (see
-# skellambrms).
+# The sum has m + 1 terms, so its length is set by the data, and it needs no
+# iteration cap or approximation branch.
 #
 # The y1_obs == 0 branch is the closed-form marginal,
-# poisson_lpmf(y2 | mu + lambdatwo). No sum, so nothing to cap or truncate;
-# this is the branch that has no counterpart in binegbin, where the same
-# quantity is a convolution over k = 0..y2.
+# poisson_lpmf(y2 | mu + lambdatwo). In binegbin, the same marginal is a sum
+# over k = 0..y2.
 #
 # bipois() reaches this function with y1_obs supplied as the literal 1, so a
 # fully paired model always takes the first branch.
 bipois_stan_funs <- "
   real bipois_lpmf(int y1, real mu, real lambdaone, real lambdatwo,
                    int y2, int y1_obs) {
+    if (y1_obs != 0 && y1_obs != 1)
+      reject(\"y1_obs must be 0 or 1; found \", y1_obs,
+             \". Check the order: vint(y2, y1_obs).\");
     if (y1_obs == 1) {
       int m = min(y1, y2);
       real ss = poisson_lpmf(y1 | lambdaone) + poisson_lpmf(y2 | lambdatwo) - mu;
@@ -424,23 +261,16 @@ bipois_stan_funs <- "
 # --------------------------------------------------------------------------
 
 # Branch-selecting evaluation, vectorised over all arguments (recycled to a
-# common length), used to power log_lik_bipois() and to validate the Stan
-# lpmf. Internal reference only, exactly the role binegbin_lpmf_r plays for
-# its own family.
+# common length), used by log_lik_bipois() and to validate the Stan lpmf, as
+# binegbin_lpmf_r is for binegbin.
 #
-# The paired branch is computed term-by-term from the original
-# P(N_shared=k) P(N1=x-k) P(N2=y-k) definition rather than via the recurrence
-# -- an independent route to the same quantity, so it verifies the Stan
-# implementation rather than restating it. It is evaluated post-hoc, not inside
-# the hot loop of the sampler, so there is no reason to use the algebraic
-# shortcuts of the recurrence here.
+# The paired branch is computed term by term from the definition
+# P(N_shared=k) P(N1=x-k) P(N2=y-k) rather than by the recurrence, so the
+# tests compare the Stan recurrence with an independent computation.
 #
-# The unpaired branch uses the closed form, as Stan does. The independent
-# route -- brute-force convolution over k = 0..y2 -- is in
-# test-bipois-partialobs.R rather than here, so log_lik() does not pay for a
-# sum that has an exact one-line answer. The test compares the closed form
-# with the brute-force convolution, so the closed form is checked rather than
-# assumed.
+# The unpaired branch uses the closed form, as Stan does.
+# test-bipois-partialobs.R compares the closed form with a sum over
+# k = 0..y2.
 #
 # `y1_obs` defaults to 1, so a call that names no flag is the paired branch.
 bipois_lpmf_r <- function(y1, y2, mu, lambdaone, lambdatwo, y1_obs = 1L) {
@@ -452,6 +282,7 @@ bipois_lpmf_r <- function(y1, y2, mu, lambdaone, lambdatwo, y1_obs = 1L) {
   mu        <- rep_len(mu, n)
   lambdaone <- rep_len(lambdaone, n)
   lambdatwo <- rep_len(lambdatwo, n)
+  .check_y1_obs(y1_obs)
 
   vapply(seq_len(n), function(i) {
     if (y1_obs[i] != 1) {
@@ -490,22 +321,11 @@ log_lik_bipois <- function(i, prep) {
 posterior_predict_bipois <- function(i, prep, ...) {
   mu        <- brms::get_dpar(prep, "mu", i = i)   # lambda_shared -- see Details
   lambdaone <- .get_rate(prep, "lambdaone", "lambdaem", i = i)
-  lambdatwo <- .get_rate(prep, "lambdatwo", "lambdalb", i = i)
-  y2 <- prep$data$vint1[i]
-  # y2 is fixed, observed data (not itself re-simulated -- see "`y2` as
-  # supplementary data rather than a second response" in ?bipois). Consistent
-  # with that, y1 is predicted *conditional on the real y2*, via the
-  # closed-form conditional split:
-  # N_shared | y2 ~ Binomial(y2, mu / (mu + lambdatwo)); N1 fresh from
-  # its own marginal; y1 = N_shared + N1.
-  #
-  # y1_obs is deliberately NOT read: every row, paired or unpaired, gets a y1
-  # draw conditional on its observed y2. On an unpaired row, that draw is the
-  # imputed first count.
-  p_shared <- mu / (mu + lambdatwo)
-  n_shared <- stats::rbinom(length(mu), size = y2, prob = p_shared)
-  n1       <- stats::rpois(length(mu), lambdaone)
-  n_shared + n1
+  # y1 from its marginal distribution given the parameters. y1 = N_shared + N1
+  # is a sum of independent Poissons, so y1 ~ Poisson(mu + lambdaone). Neither
+  # the recorded y2 nor y1_obs is read. Draws of y1 conditional on the
+  # recorded y2 are made by posterior_predict_y1_given_y2() in predict.R.
+  stats::rpois(length(mu), mu + lambdaone)
 }
 
 #' @rdname bipois
@@ -514,13 +334,8 @@ posterior_predict_bipois <- function(i, prep, ...) {
 posterior_epred_bipois <- function(prep) {
   mu        <- brms::get_dpar(prep, "mu")   # lambda_shared -- see Details
   lambdaone <- .get_rate(prep, "lambdaone", "lambdaem")
-  lambdatwo <- .get_rate(prep, "lambdatwo", "lambdalb")
-  y2 <- prep$data$vint1
-  # E[y1 | y2] = E[N_shared | y2] + E[N1] = y2 * mu/(mu+lambdatwo) + lambdaone,
-  # the same conditional split as posterior_predict_bipois above, in
-  # expectation rather than simulated. y1_obs is not read, for the same reason
-  # it is not read there.
-  y2_mat <- matrix(y2, nrow = nrow(mu), ncol = ncol(mu), byrow = TRUE)
-  p_shared <- mu / (mu + lambdatwo)
-  y2_mat * p_shared + lambdaone
+  # E[y1] = mu + lambdaone, the marginal mean and the mean of the draws of
+  # posterior_predict_bipois() above. The conditional expectation E[y1 | y2]
+  # is returned by posterior_epred_y1_given_y2().
+  mu + lambdaone
 }
