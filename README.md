@@ -146,7 +146,7 @@ To impute $y_1$ on the rows where it was not recorded, use
 - [The congruence–bias parameterisation][reparameterisation] has an interactive
   widget that simulates pairs of counts from one model and shows the
   congruence–bias and native parameterisations side by side, and gives the
-  formulas that convert between the coordinates and the native parameters.
+  equations that convert between the coordinates and the native parameters.
 - The [changelog][news] records what each release changed.
 
 A companion package,

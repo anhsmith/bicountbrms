@@ -28,7 +28,7 @@
 .MFD_COORDS <- c("logM", "logitf", "delta",
                  "kappas", "kappax", "kappaxone", "kappaxtwo")
 
-# The three valid sets of coordinate formulas, and the nlf() lines each adds to
+# The three valid sets of coordinate formulae, and the nlf() lines each adds to
 # the rate lines.
 .MFD_SETS <- list(
   separate = list(
@@ -68,7 +68,7 @@
 #'   `y1 | vint(y2, y1_obs)` for [bipois_partialobs()] and
 #'   [binegbin_partialobs()]. The response is passed to the brms formula
 #'   unchanged.
-#' @param ... Two-sided formulas, one for each coordinate, in any order. The
+#' @param ... Two-sided formulae, one for each coordinate, in any order. The
 #'   left-hand side names the coordinate and the right-hand side gives its
 #'   linear predictor, as in `logM ~ 0 + site` or `delta ~ 1`. Every
 #'   coordinate of the chosen set is required, including those with an
@@ -91,7 +91,7 @@
 #' must be positive (see Priors). [mfd_to_dpars()]
 #' computes the native parameters from the same identities.
 #'
-#' **Sets of coordinates.** The set of coordinate formulas supplied determines
+#' **Sets of coordinates.** The set of coordinate formulae supplied determines
 #' the dispersion structure. `logM`, `logitf`, and `delta` are always
 #' required. The three valid sets are:
 #'
@@ -193,7 +193,7 @@ bf_mfd <- function(formula, ...) {
   if (is.call(resp) && identical(resp[[1]], as.name("~"))) {
     stop("The first argument of `bf_mfd()` is the response, written without ",
          "`~`, as in `y1 | vint(y2)` or `y1 | vint(y2, y1_obs)`. ",
-         "The coordinate formulas follow it.", call. = FALSE)
+         "The coordinate formulae follow the response.", call. = FALSE)
   }
 
   coord_forms <- list(...)
@@ -226,7 +226,7 @@ bf_mfd <- function(formula, ...) {
     if (setequal(lhs, s$coords)) set <- s
   }
   if (is.null(set)) {
-    stop("The coordinate formulas supplied (",
+    stop("The coordinate formulae supplied (",
          paste0("`", lhs, "`", collapse = ", "),
          ") are not one of the three valid sets:\n",
          "  * logM, logitf, delta, kappas, kappaxone, kappaxtwo ",

@@ -208,7 +208,7 @@ test_that("the log rate lines stay exact at an extreme source bias", {
 # Argument order and validation
 # ---------------------------------------------------------------------------
 
-test_that("the order of the coordinate formulas does not matter", {
+test_that("the order of the coordinate formulae does not matter", {
   canonical <- bf_mfd(
     y1 | vint(y2),
     logM      ~ 0 + site,

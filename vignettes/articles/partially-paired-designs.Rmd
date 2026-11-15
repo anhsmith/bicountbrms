@@ -147,7 +147,7 @@ count(dat, treatment, y1_obs)
 The model is written with `bf_mfd()` as in [Getting started][started]. The
 response is `y1 | vint(y2, y1_obs)`, and the constructor and its Stan code are
 `binegbin_partialobs()` and `binegbin_partialobs_stanvars()`. The formula for
-`logM` includes a group-level effect of `group`, and the formulas for `logitf`
+`logM` includes a group-level effect of `group`, and the formulae for `logitf`
 and `delta` include `treatment`, with one coefficient for each treatment.
 
 

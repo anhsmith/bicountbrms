@@ -13,7 +13,7 @@ bf_mfd(formula, ...)
 \code{\link[=binegbin_partialobs]{binegbin_partialobs()}}. The response is passed to the brms formula
 unchanged.}
 
-\item{...}{Two-sided formulas, one for each coordinate, in any order. The
+\item{...}{Two-sided formulae, one for each coordinate, in any order. The
 left-hand side names the coordinate and the right-hand side gives its
 linear predictor, as in \code{logM ~ 0 + site} or \code{delta ~ 1}. Every
 coordinate of the chosen set is required, including those with an
@@ -51,7 +51,7 @@ unbounded, so their linear predictors need no link. The overdispersions
 must be positive (see Priors). \code{\link[=mfd_to_dpars]{mfd_to_dpars()}}
 computes the native parameters from the same identities.
 
-\strong{Sets of coordinates.} The set of coordinate formulas supplied determines
+\strong{Sets of coordinates.} The set of coordinate formulae supplied determines
 the dispersion structure. \code{logM}, \code{logitf}, and \code{delta} are always
 required. The three valid sets are:
 \itemize{
