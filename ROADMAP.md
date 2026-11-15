@@ -8,11 +8,11 @@ the change and the design questions it raises. Move an entry to
 
 The get-started vignette would introduce both parameterisations: the
 native rates and dispersions (`mu`, `lambdaone`, `lambdatwo`, `shapes`,
-`shapexone`, `shapextwo`), and the midpoint $`M`$, congruence $`f`$ and
-source bias $`\delta`$ converted by
-[`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_mfd_to_dpars.md)
+`shapexone`, `shapextwo`), and the midpoint M, congruence f and source
+bias \delta converted by
+[`mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/mfd_to_dpars.md)
 and
-[`binegbin_dpars_to_mfd()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_dpars_to_mfd.md).
+[`dpars_to_mfd()`](https://anhsmith.github.io/bicountbrms/reference/dpars_to_mfd.md).
 The remaining articles would then give each formula, prior and summary
 in both parameterisations, as tabs (`## Heading {.tabset}` in R
 Markdown, which pkgdown renders).
@@ -48,8 +48,23 @@ first count is observed, scored by the marginal of the first count.
   Every constructor changes its `vars`, and
   `tests/testthat/test-stancode-shape.R` must be updated for all four.
 - `.y1_obs_at()` in `R/utils.R` generalises to a lookup for either flag,
-  and `posterior_epred_*` needs $`E[y_2 \mid y_1]`$ for rows where only
+  and `posterior_epred_*` needs E\[y_2 \mid y_1\] for rows where only
   the first count was recorded.
 - The split between the shared and excess components is estimated mainly
   from the paired rows, as it is now, so the number of paired rows
   remains the effective sample size for the bias and the congruence.
+
+## Citation section in the README
+
+The Citation section was removed from `README.md` on 14 November 2026,
+before the paper describing the package was submitted to *Methods in
+Ecology and Evolution*, because the reviewers receive an anonymised copy
+of the repository. Restore the Citation section once the paper is
+published.
+
+- Point the restored section and `inst/CITATION` to the paper, and keep
+  the `citation("bicountbrms")` call and the concept DOI
+  (10.5281/zenodo.22239120).
+- Add Kirkpatrick and Neale (2016) and Kirkpatrick (2022) to the
+  `citHeader` in `inst/CITATION`, which at present asks users to cite
+  only Holgate (1964) and Karlis and Ntzoufras (2003).

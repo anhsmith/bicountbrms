@@ -1,14 +1,12 @@
 # Package index
 
-## Joint bivariate-count families
+## Families for paired counts
 
-Model the pair of counts jointly via trivariate reduction, capturing its
-correlation, marginal overdispersion, and difference together rather
-than the difference alone. Each component distribution has one family
-name and two constructors: the plain constructor for a fully paired
-design, and the \_partialobs constructor for a design in which the first
-count is missing on some rows. The two constructors of a family share a
-likelihood and a set of post-processing methods.
+Constructors for the bipois and binegbin families, which model a pair of
+counts by trivariate reduction with Poisson or negative-binomial
+components. Each family has a second constructor for partially paired
+designs, listed below, and the two constructors of a family share a
+likelihood and the post-processing methods.
 
 - [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
   [`bipois_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
@@ -24,15 +22,12 @@ likelihood and a set of post-processing methods.
   : Joint bivariate custom family with negative-binomial components for
   brms
 
-## Partially observed pairs
+## Partially paired designs
 
-The same two models, for rows on which the first count was never
-recorded. Those rows are scored by the integrated-out marginal of the
-same joint, so they still inform the shared component and the second
-source rather than being dropped. For Poisson components that marginal
-is closed form; for Negative-Binomial components it is a convolution.
-This is unrelated to the brms cens() addition term, which means a value
-known to lie in a set.
+Constructors for partially paired designs, in which source 1 has missing
+values. On an unpaired row, the likelihood term is the marginal
+probability of y2, so the row informs the shared component and the
+exclusive component of source 2.
 
 - [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
   [`bipois_partialobs_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md)
@@ -42,23 +37,40 @@ known to lie in a set.
   : Joint bivariate family with negative-binomial components for
   partially observed pairs
 
-## Parameterisation helpers
+## Prediction and imputation
 
-Convert between the dpars a family takes and the interpretable
-coordinates: the midpoint of the two expected counts, congruence, and
-source bias.
+Draws and expectations of both counts together, and of y1 given the
+recorded y2. The functions conditional on y2 impute y1 on the unpaired
+rows of a fit from bipois_partialobs() or binegbin_partialobs().
 
-- [`binegbin_mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_mfd_to_dpars.md)
-  : Convert (M, f, delta) coordinates to native binegbin/bipois dpars
-- [`binegbin_dpars_to_mfd()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_dpars_to_mfd.md)
-  : Convert native binegbin/bipois dpars to (M, f, delta) coordinates
+- [`posterior_predict_y1_and_y2()`](https://anhsmith.github.io/bicountbrms/reference/posterior_predict_y1_and_y2.md)
+  [`posterior_epred_y1_and_y2()`](https://anhsmith.github.io/bicountbrms/reference/posterior_predict_y1_and_y2.md)
+  : Draws and expectations of both counts from the joint model
+- [`posterior_predict_y1_given_y2()`](https://anhsmith.github.io/bicountbrms/reference/posterior_predict_y1_given_y2.md)
+  [`posterior_epred_y1_given_y2()`](https://anhsmith.github.io/bicountbrms/reference/posterior_predict_y1_given_y2.md)
+  : Draws and expectations of y1 given y2
 
-## Example data
+## Congruence–bias coordinates
 
-A simulated partially paired dataset with known generating values, and
-its latent components.
+Conversion between the native parameters and the congruence–bias
+coordinates (the midpoint of the two expected counts, the congruence,
+and the source bias), and the brms formula for a model in the
+coordinates.
 
-- [`bicount_sim`](https://anhsmith.github.io/bicountbrms/reference/bicount_sim.md)
-  : Simulated partially paired counts from three sites
-- [`bicount_sim_latent`](https://anhsmith.github.io/bicountbrms/reference/bicount_sim_latent.md)
-  : Latent components of the simulated partially paired counts
+- [`mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/mfd_to_dpars.md)
+  : Convert from the congruence–bias parameterisation to native
+  parameters
+- [`dpars_to_mfd()`](https://anhsmith.github.io/bicountbrms/reference/dpars_to_mfd.md)
+  : Convert from native parameters to the congruence–bias
+  parameterisation
+- [`bf_mfd()`](https://anhsmith.github.io/bicountbrms/reference/bf_mfd.md)
+  : Build a brms formula in the congruence–bias parameterisation
+
+## Simulation
+
+Random generation of paired counts from the generating model of the
+bipois and binegbin families, with the shared and source-exclusive
+components of each pair.
+
+- [`rbicount()`](https://anhsmith.github.io/bicountbrms/reference/rbicount.md)
+  : Random generation of paired counts

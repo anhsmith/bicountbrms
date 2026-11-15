@@ -5,14 +5,20 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Joint Bivariate-Count brms Custom Families for Paired Counts • bicountbrms</title>
-<script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Custom brms Families for Paired Counts • bicountbrms</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" sizes="any" href="favicon.ico">
+<link rel="manifest" href="site.webmanifest">
+<!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="katex-auto.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Joint Bivariate-Count brms Custom Families for Paired Counts">
-<meta name="description" content="Provides custom brms families for comparing two paired count sources, modelling the pair jointly via trivariate reduction rather than reducing it to a difference. Two families are supplied: a bivariate Poisson (bipois()) and its overdispersed sibling with negative-binomial components (binegbin()). Each has a second constructor (bipois_partialobs(), binegbin_partialobs()) that admits rows on which the first count was never recorded, scoring them by the integrated-out marginal of the same joint model, so those rows still inform the shared component and the second source. Modelling the pair rather than its difference captures the midpoint of the two expected counts, the correlation between sources, and marginal overdispersion alongside the disagreement, and supports simulating one count conditional on the other, including on rows where it was never recorded. An interpretable reparameterisation separates the midpoint, congruence, and source bias, giving each a finite null and so admitting priors that shrink towards a simpler model. The Negative-Binomial family lets the two source-exclusive components differ in overdispersion.">
-<meta property="og:description" content="Provides custom brms families for comparing two paired count sources, modelling the pair jointly via trivariate reduction rather than reducing it to a difference. Two families are supplied: a bivariate Poisson (bipois()) and its overdispersed sibling with negative-binomial components (binegbin()). Each has a second constructor (bipois_partialobs(), binegbin_partialobs()) that admits rows on which the first count was never recorded, scoring them by the integrated-out marginal of the same joint model, so those rows still inform the shared component and the second source. Modelling the pair rather than its difference captures the midpoint of the two expected counts, the correlation between sources, and marginal overdispersion alongside the disagreement, and supports simulating one count conditional on the other, including on rows where it was never recorded. An interpretable reparameterisation separates the midpoint, congruence, and source bias, giving each a finite null and so admitting priors that shrink towards a simpler model. The Negative-Binomial family lets the two source-exclusive components differ in overdispersion.">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Custom brms Families for Paired Counts">
+<meta name="description" content="Provides custom brms families for pairs of counts that two sources, such as methods, observers, or instruments, each record on the same unit. The pair is modelled by trivariate reduction with Poisson (bipois()) or negative-binomial (binegbin()) components: the count from each source is the sum of a latent count of events recorded by both sources and a latent count of events recorded by that source alone. The constructors bipois_partialobs() and binegbin_partialobs() also fit partially paired designs, in which source 2 records every unit and source 1 only a subset of units; the missing counts of source 1 can then be imputed conditional on the counts recorded by source 2. mfd_to_dpars() and dpars_to_mfd() convert the native parameters to and from the midpoint of the two expected counts, the congruence, and the source bias.">
+<meta property="og:description" content="Provides custom brms families for pairs of counts that two sources, such as methods, observers, or instruments, each record on the same unit. The pair is modelled by trivariate reduction with Poisson (bipois()) or negative-binomial (binegbin()) components: the count from each source is the sum of a latent count of events recorded by both sources and a latent count of events recorded by that source alone. The constructors bipois_partialobs() and binegbin_partialobs() also fit partially paired designs, in which source 2 records every unit and source 1 only a subset of units; the missing counts of source 1 can then be imputed conditional on the counts recorded by source 2. mfd_to_dpars() and dpars_to_mfd() convert the native parameters to and from the midpoint of the two expected counts, the congruence, and the source bias.">
 <meta property="og:image" content="https://anhsmith.github.io/bicountbrms/logo.svg">
 </head>
 <body>
@@ -23,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="index.html">bicountbrms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,13 +43,9 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/families-and-parameters.html">The families and their parameters</a></li>
-    <li><a class="dropdown-item" href="articles/choosing-priors.html">Choosing priors</a></li>
-    <li><a class="dropdown-item" href="articles/partially-observed-fit.html">A worked partially observed fit</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Interpretation and history</h6></li>
-    <li><a class="dropdown-item" href="articles/paired-count-anatomy.html">Mapping native parameters to interpretable coordinates</a></li>
-    <li><a class="dropdown-item" href="articles/migration-and-errata.html">Migration and errata</a></li>
+<li><a class="dropdown-item" href="articles/reparameterisation.html">The congruence–bias parameterisation</a></li>
+    <li><a class="dropdown-item" href="articles/partially-paired-designs.html">Partially paired designs</a></li>
+    <li><a class="dropdown-item" href="articles/prediction.html">Prediction and imputation</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -67,9 +69,10 @@
 </div>
 <!-- badges: start -->
 
-<p>Custom <a href="https://paulbuerkner.com/brms/" class="external-link">brms</a> families for Bayesian modelling of <strong>pairs of counts</strong> that are positively correlated. Applications include counts recorded by two sources that measure the same quantity, such as two observers, two instruments, or two reporting channels, where the question is how much, and how systematically, the two sources disagree.</p>
-<p>The pair <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(y_1, y_2)</annotation></semantics></math> is modelled jointly using <strong>trivariate reduction</strong> with Poisson (Holgate 1964; Karlis and Ntzoufras 2003) or negative-binomial (Kirkpatrick and Neale 2016; Kirkpatrick 2022) components, using <code><a href="reference/bipois.html">bipois()</a></code> or <code><a href="reference/binegbin.html">binegbin()</a></code>, respectively. Correlation between the two counts is induced via an unobserved shared latent component, with an additional component each that only one source recorded.</p>
-<p>The native parameters — means and (for negative binomial) dispersions for each of the three latent components — can be <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html">reparameterised into four interpretable coordinates</a>: the midpoint of the two expected counts, the congruence between the two sources, the bias toward one of them, and (for negative binomial) the overdispersion of each component. The package also allows the model to be fit when one source is only partially observed (the <code>*_partialobs</code> variants); posterior predictions can then be made for the missing values of that source based on the observed values of the other.</p>
+<p>Custom <a href="https://paulbuerkner.com/brms/" class="external-link">brms</a> families for Bayesian modelling of <strong>pairs of counts</strong> that are positively correlated. Applications include counts recorded by two sources that measure the same quantity, such as two observers, two instruments, or two reporting channels.</p>
+<p>The pair <span class="math inline">(y_1, y_2)</span> is modelled by <strong>trivariate reduction</strong>, with Poisson components in <code><a href="reference/bipois.html">bipois()</a></code> (Holgate 1964; Karlis and Ntzoufras 2003) or negative-binomial components in <code><a href="reference/binegbin.html">binegbin()</a></code> (Kirkpatrick and Neale 2016; Kirkpatrick 2022). Each count is the sum of a latent count recorded by both sources, which induces the correlation, and a latent count recorded by that source alone.</p>
+<p>The native parameters of the model are the rates and (for negative binomial) dispersions of the three latent components. The model can also be fitted using alternative <a href="https://anhsmith.github.io/bicountbrms/articles/reparameterisation.html">congruence–bias coordinates</a>, each of which directly represents a quantity of interest when comparing two sources: the midpoint of the two expected counts, the congruence between the two sources, the source bias, and (for negative binomial) the overdispersion of each component. <code><a href="reference/bf_mfd.html">bf_mfd()</a></code> writes the brms formula in these coordinates, so priors and predictors act directly on the quantities of interest, and <code>summary(fit)</code> reports the posterior of each coordinate. The native parameterisation can be fitted with an ordinary brms formula, in which a predictor can instead act on a single latent component; see <em>Models with predictors</em> in <a href="https://anhsmith.github.io/bicountbrms/articles/bicountbrms.html">Getting started</a>.</p>
+<p>The <code>_partialobs()</code> constructors fit the model when one source has missing values, and the fitted model can impute the missing counts of that source conditional on the recorded counts from the other source.</p>
 <div class="section level2">
 <h2 id="the-core-functions">The core functions<a class="anchor" aria-label="anchor" href="#the-core-functions"></a>
 </h2>
@@ -82,7 +85,7 @@
 <thead><tr>
 <th></th>
 <th>both counts recorded</th>
-<th>first count sometimes unrecorded</th>
+<th>source 1 has missing values</th>
 </tr></thead>
 <tbody>
 <tr>
@@ -99,9 +102,7 @@
 </tr>
 </tbody>
 </table>
-<p>Each row of the table above is one family (Poisson or negative binomial). The two constructors for each family return the same likelihood and the same post-processing methods, and differ only in whether the <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math> observation indicator (<code>y1_obs</code>) enters the likelihood as data or as a constant. The indicator is not supplied in cases where both counts are fully observed.</p>
-<p>For a row where both counts are observed, the likelihood term is the full joint distribution of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(y_1, y_2)</annotation></semantics></math>: a function of the shared rate and (for negative binomial) dispersion (<code>mu</code>, <code>shapes</code>), the rate and (for negative binomial) dispersion specific to each source (<code>lambdaone</code>, <code>shapexone</code>, <code>lambdatwo</code>, <code>shapextwo</code>), and, through <code>lambdaone</code> and <code>lambdatwo</code>, the bias between the two sources.</p>
-<p>For a row where only <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>2</mn></msub><annotation encoding="application/x-tex">y_2</annotation></semantics></math> is observed, the likelihood term is instead the marginal probability of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>2</mn></msub><annotation encoding="application/x-tex">y_2</annotation></semantics></math> alone, obtained by summing that joint distribution over every value the first count could have taken. It therefore only informs the parameters common to both counts (<code>mu</code>, <code>shapes</code>, <code>lambdatwo</code>, <code>shapextwo</code>) and not the parameters that pertain only to <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math> (<code>lambdaone</code>, <code>shapexone</code>).</p>
+<p>Each row of the table is one family. The two constructors of a family share the likelihood and the post-processing methods, and the <code>_partialobs()</code> constructor also takes the observation indicator <code>y1_obs</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -114,140 +115,77 @@
 <div class="section level2">
 <h2 id="minimal-fits">Minimal fits<a class="anchor" aria-label="anchor" href="#minimal-fits"></a>
 </h2>
-<p>The second count is provided as supplementary integer data via the <code>vint()</code> function, and the Stan function for the family is specified via the <code>stanvars</code> argument. Both are required.</p>
+<p>The models below are written in the <a href="https://anhsmith.github.io/bicountbrms/articles/reparameterisation.html">congruence–bias coordinates</a> with <code><a href="reference/bf_mfd.html">bf_mfd()</a></code>, which takes one formula for each coordinate (<code>logM</code>, <code>logitf</code>, <code>delta</code>, <code>kappas</code>, <code>kappaxone</code>, and <code>kappaxtwo</code>; see <a href="https://anhsmith.github.io/bicountbrms/articles/bicountbrms.html">Getting started</a> for their definitions). <span class="math inline">y_2</span> is passed to the family as supplementary integer data through <code>vint()</code>, and the Stan function for the family through the <code>stanvars</code> argument. Both are required. brms gives every coordinate a flat, improper prior unless one is set, and <a href="https://anhsmith.github.io/bicountbrms/articles/bicountbrms.html">Getting started</a> gives a prior for each coordinate.</p>
+<div class="section level3">
+<h3 id="paired-designs">Paired designs<a class="anchor" aria-label="anchor" href="#paired-designs"></a>
+</h3>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paul-buerkner/brms" class="external-link">brms</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/anhsmith/bicountbrms" class="external-link">bicountbrms</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brm.html" class="external-link">brm</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula.html" class="external-link">bf</a></span><span class="op">(</span><span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>,</span>
-<span>     <span class="va">lambdaone</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">lambdatwo</span> <span class="op">~</span> <span class="fl">1</span>,</span>
-<span>     <span class="va">shapes</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">shapexone</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">shapextwo</span> <span class="op">~</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="reference/bf_mfd.html">bf_mfd</a></span><span class="op">(</span></span>
+<span>    <span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span><span class="op">)</span>,</span>
+<span>    <span class="va">logM</span>      <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">logitf</span>    <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">delta</span>     <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">kappas</span>    <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">kappaxone</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">kappaxtwo</span> <span class="op">~</span> <span class="fl">1</span></span>
+<span>  <span class="op">)</span>,</span>
 <span>  family   <span class="op">=</span> <span class="fu"><a href="reference/binegbin.html">binegbin</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  stanvars <span class="op">=</span> <span class="fu"><a href="reference/binegbin.html">binegbin_stanvars</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  data     <span class="op">=</span> <span class="va">dat</span></span>
+<span>  data     <span class="op">=</span> <span class="va">dat</span>,</span>
+<span>  prior    <span class="op">=</span> <span class="va">priors</span>  <span class="co"># one prior for each coordinate; see Getting started</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>Where the first count was not recorded on some rows, each row supplies a second integer through <code>vint()</code>, in the order <code>vint(y2, y1_obs)</code>, and the family and its stanvars are the <code>_partialobs</code> constructors:</p>
+</div>
+<div class="section level3">
+<h3 id="partially-paired-designs">Partially paired designs<a class="anchor" aria-label="anchor" href="#partially-paired-designs"></a>
+</h3>
+<p>Where source 1 has missing values, the data need an observation indicator <code>y1_obs</code>, <code>1</code> where <span class="math inline">y_1</span> was recorded and <code>0</code> where it was not. <strong><code>y1</code> must not be <code>NA</code></strong>, because brms drops any row with a missing response with only a warning. On an unpaired row, the likelihood term does not depend on <code>y1</code>, so <code>y1</code> can be any integer. We suggest <code>-1</code>, because it cannot be confused with a recorded count:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dat</span><span class="op">$</span><span class="va">y1_obs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">y1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">dat</span><span class="op">$</span><span class="va">y1</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">y1</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">1L</span></span></code></pre></div>
+<p>The indicator is passed as the second argument of <code>vint()</code>, and the family and its stanvars are the <code>_partialobs</code> constructors:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_po</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brm.html" class="external-link">brm</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula.html" class="external-link">bf</a></span><span class="op">(</span><span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span>, <span class="va">y1_obs</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>,</span>
-<span>     <span class="va">lambdaone</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">lambdatwo</span> <span class="op">~</span> <span class="fl">1</span>,</span>
-<span>     <span class="va">shapes</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">shapexone</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">shapextwo</span> <span class="op">~</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="reference/bf_mfd.html">bf_mfd</a></span><span class="op">(</span></span>
+<span>    <span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span>, <span class="va">y1_obs</span><span class="op">)</span>,</span>
+<span>    <span class="va">logM</span>      <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">logitf</span>    <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">delta</span>     <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">kappas</span>    <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">kappaxone</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">kappaxtwo</span> <span class="op">~</span> <span class="fl">1</span></span>
+<span>  <span class="op">)</span>,</span>
 <span>  family   <span class="op">=</span> <span class="fu"><a href="reference/binegbin_partialobs.html">binegbin_partialobs</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  stanvars <span class="op">=</span> <span class="fu"><a href="reference/binegbin_partialobs.html">binegbin_partialobs_stanvars</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  data     <span class="op">=</span> <span class="va">dat</span></span>
+<span>  data     <span class="op">=</span> <span class="va">dat</span>,</span>
+<span>  prior    <span class="op">=</span> <span class="va">priors</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><code>y1_obs</code> is <code>1</code> where the first count was recorded and <code>0</code> where it was not. On a row with <code>y1_obs == 0</code>, <code>y1</code> may hold any non-negative integer — <code>0</code> is the conventional placeholder — because the likelihood term for that row does not depend on it. Do not use <code>NA</code>: brms drops such rows before fitting, taking their observed <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>2</mn></msub><annotation encoding="application/x-tex">y_2</annotation></semantics></math> with them. <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> and <code><a href="https://mc-stan.org/rstantools/reference/posterior_epred.html" class="external-link">posterior_epred()</a></code> then return a draw and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>y</mi><mn>1</mn></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">E[y_1 \mid y_2]</annotation></semantics></math> for every row, including the rows where <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math> was never recorded.</p>
-<p><code>brms</code> leaves every distributional parameter of a custom family except <code>mu</code> without a prior. Set them; see <a href="https://anhsmith.github.io/bicountbrms/articles/choosing-priors.html">Choosing priors</a>.</p>
+<p>To impute <span class="math inline">y_1</span> on the rows where it was not recorded, use <code><a href="reference/posterior_predict_y1_given_y2.html">posterior_predict_y1_given_y2()</a></code>; see <a href="https://anhsmith.github.io/bicountbrms/articles/prediction.html">Prediction and imputation</a>.</p>
 </div>
-<div class="section level2">
-<h2 id="notation">Notation<a class="anchor" aria-label="anchor" href="#notation"></a>
-</h2>
-<table class="table">
-<colgroup>
-<col width="33%">
-<col width="33%">
-<col width="33%">
-</colgroup>
-<thead><tr>
-<th>Code</th>
-<th>Math</th>
-<th>Meaning</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>
-<code>y1</code> (the response)</td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math></td>
-<td>count from source 1</td>
-</tr>
-<tr>
-<td>
-<code>y2</code> (via <code>vint()</code>)</td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>2</mn></msub><annotation encoding="application/x-tex">y_2</annotation></semantics></math></td>
-<td>count from source 2</td>
-</tr>
-<tr>
-<td>—</td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>s</mi></msub><annotation encoding="application/x-tex">N_s</annotation></semantics></math></td>
-<td>latent count recorded by both sources</td>
-</tr>
-<tr>
-<td>—</td>
-<td>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mn>1</mn></msub><annotation encoding="application/x-tex">N_1</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mn>2</mn></msub><annotation encoding="application/x-tex">N_2</annotation></semantics></math>
-</td>
-<td>latent counts only one source recorded</td>
-</tr>
-<tr>
-<td><code>mu</code></td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math></td>
-<td>rate of the shared component (<strong>not</strong> a response mean)</td>
-</tr>
-<tr>
-<td>
-<code>lambdaone</code>, <code>lambdatwo</code>
-</td>
-<td>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>
-</td>
-<td>rates of the two source-exclusive components</td>
-</tr>
-<tr>
-<td><code>shapes</code></td>
-<td><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>s</mi></msub><annotation encoding="application/x-tex">\phi_s</annotation></semantics></math></td>
-<td>NB2 dispersion of the shared component</td>
-</tr>
-<tr>
-<td>
-<code>shapexone</code>, <code>shapextwo</code>
-</td>
-<td>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x2}</annotation></semantics></math>
-</td>
-<td>NB2 dispersions of the two exclusive components</td>
-</tr>
-<tr>
-<td>
-<code>y1_obs</code> (via <code>vint()</code>)</td>
-<td>—</td>
-<td>the <code>_partialobs()</code> indicator: <code>1</code> where <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math> was recorded and <code>0</code> otherwise</td>
-</tr>
-</tbody>
-</table>
-<p><code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">brms::custom_family()</a></code> requires one distributional parameter to be named <code>mu</code>, and rejects any name ending in a digit. Here <code>mu</code> is the rate of the shared component rather than the mean of either count, and the two exclusive rates are spelled out (<code>one</code> or <code>two</code>).</p>
 </div>
 <div class="section level2">
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
 </h2>
 <ul>
 <li>
-<a href="https://anhsmith.github.io/bicountbrms/articles/bicountbrms.html">Getting started</a> — one fit, end to end: simulate, fit, check, predict.</li>
+<a href="https://anhsmith.github.io/bicountbrms/articles/bicountbrms.html">Getting started</a> describes one <code><a href="reference/binegbin.html">binegbin()</a></code> analysis from start to finish: simulating data from known parameters, fitting the model in the congruence–bias parameterisation, checking recovery of the generating values, predicting both counts, and comparing the fit with a Poisson model.</li>
 <li>
-<a href="https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.html">The families and their parameters</a> — the construction, the moments, and a fitted demonstration that the dispersions of the two exclusive components can be told apart when they differ.</li>
+<a href="https://anhsmith.github.io/bicountbrms/articles/partially-paired-designs.html">Partially paired designs</a> fits a model in the congruence–bias parameterisation to simulated data in which source 1 has missing values, and compares the imputed values of <span class="math inline">y_1</span>, given <span class="math inline">y_2</span> and marginal, with values withheld from the model.</li>
 <li>
-<a href="https://anhsmith.github.io/bicountbrms/articles/choosing-priors.html">Choosing priors</a> — what brms leaves improper, and which of the <code>class</code>, <code>dpar</code> and <code>nlpar</code> slots each prior belongs in.</li>
+<a href="https://anhsmith.github.io/bicountbrms/articles/prediction.html">Prediction and imputation</a> describes the prediction functions and the imputation of <span class="math inline">y_1</span> on unpaired rows.</li>
 <li>
-<a href="https://anhsmith.github.io/bicountbrms/articles/partially-observed-fit.html">A worked partially observed fit</a> — imputing a count that was never recorded, scored against values withheld from the model.</li>
-<li>
-<a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html">Mapping native parameters to interpretable coordinates</a> — the midpoint of the two expected counts, congruence and source bias, with shrinkage priors.</li>
-<li>
-<a href="https://anhsmith.github.io/bicountbrms/articles/migration-and-errata.html">Migration and errata</a> — what each release changed, and two corrected results.</li>
+<a href="https://anhsmith.github.io/bicountbrms/articles/reparameterisation.html">The congruence–bias parameterisation</a> has an interactive widget that simulates pairs of counts from one model and shows the congruence–bias and native parameterisations side by side, and gives the formulas that convert between the coordinates and the native parameters.</li>
+<li>The <a href="https://anhsmith.github.io/bicountbrms/news/index.html">changelog</a> records what each release changed.</li>
 </ul>
-<p><strong>Modelling the differences directly.</strong> Where only the disagreement <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><msub><mi>y</mi><mn>1</mn></msub><mo>−</mo><msub><mi>y</mi><mn>2</mn></msub><mo>∈</mo><mi>ℤ</mi></mrow><annotation encoding="application/x-tex">d = y_1 - y_2 \in \mathbb{Z}</annotation></semantics></math> is of interest, with optional truncation via <code><a href="https://paulbuerkner.com/brms/reference/addition-terms.html" class="external-link">resp_trunc()</a></code>, the companion package <a href="https://github.com/anhsmith/skellambrms" class="external-link"><code>skellambrms</code></a> supplies Skellam, discrete Laplace and discrete normal families that model <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math> directly. Both packages were formerly distributed together as <code>pairedcountbrms</code>; see <a href="https://anhsmith.github.io/bicountbrms/articles/migration-and-errata.html">Migration and errata</a>.</p>
-</div>
-<div class="section level2">
-<h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
-</h2>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"bicountbrms"</span><span class="op">)</span></span></code></pre></div>
-<p>The package is archived on Zenodo under the concept DOI <a href="https://doi.org/10.5281/zenodo.22239120" class="external-link">10.5281/zenodo.22239120</a>, which resolves to the current version. To cite the exact version an analysis used, take the version-specific DOI from the Zenodo record for that release.</p>
-<p>Holgate (1964) states the trivariate-reduction representation and gives maximum-likelihood estimation for it; the regression form is due to Karlis and Ntzoufras (2003). Kirkpatrick and Neale (2016) and Kirkpatrick (2022) use the same construction with negative-binomial components.</p>
+<p>A companion package, <a href="https://github.com/anhsmith/skellambrms" class="external-link"><code>skellambrms</code></a>, supplies Skellam, discrete Laplace, and discrete normal families that model <span class="math inline">d = y_1 - y_2</span> directly, with optional truncation via <code><a href="https://paulbuerkner.com/brms/reference/addition-terms.html" class="external-link">resp_trunc()</a></code>.</p>
 </div>
 <div class="section level2">
 <h2 id="funding">Funding<a class="anchor" aria-label="anchor" href="#funding"></a>
 </h2>
-<p>This package was developed by Sea Through Science for a fisheries electronic-monitoring project led by Johanna Pierre of JPEC Consulting, with support from The Nature Conservancy, the Belize Blue Bonds for Ocean Conservation and the Belize Fund for a Sustainable Future.</p>
+<p>This package was developed by Sea Through Science for a fisheries electronic-monitoring project led by Johanna Pierre of JPEC Consulting, with support from The Nature Conservancy, the Belize Blue Bonds for Ocean Conservation, and the Belize Fund for a Sustainable Future.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
@@ -256,7 +194,6 @@
 <p>Karlis, D. and Ntzoufras, I. (2003). Analysis of sports data by using bivariate Poisson models. <em>Journal of the Royal Statistical Society: Series D (The Statistician)</em> <strong>52</strong>(3), 381–393. <a href="https://doi.org/10.1111/1467-9884.00366" class="external-link uri">https://doi.org/10.1111/1467-9884.00366</a></p>
 <p>Kirkpatrick, R. M. (2022). <em>RMKdiscrete: Sundry discrete probability distributions</em>. R package version 0.2. <a href="https://CRAN.R-project.org/package=RMKdiscrete" class="external-link uri">https://CRAN.R-project.org/package=RMKdiscrete</a></p>
 <p>Kirkpatrick, R. M. and Neale, M. C. (2016). Applying multivariate discrete distributions to genetically informative count data. <em>Behavior Genetics</em> <strong>46</strong>(2), 252–268. <a href="https://doi.org/10.1007/s10519-015-9757-z" class="external-link uri">https://doi.org/10.1007/s10519-015-9757-z</a></p>
-<p>Each article listed under <a href="#documentation">Documentation</a> ends with its own reference list.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -287,9 +224,7 @@
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>Adam N. H. Smith <br><small class="roles"> Author, maintainer, copyright holder </small> <a href="https://orcid.org/0000-0003-0059-6206" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
-<li>The Nature Conservancy <br><small class="roles"> Funder </small>   </li>
-<li>Belize Blue Bonds for Ocean Conservation <br><small class="roles"> Funder </small>   </li>
-<li>Belize Fund for a Sustainable Future <br><small class="roles"> Funder </small>   </li>
+<li><a href="authors.html">More about authors...</a></li>
 </ul>
 </div>
 
@@ -306,7 +241,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Adam N. H. Smith, The Nature Conservancy, Belize Blue Bonds for Ocean Conservation, Belize Fund for a Sustainable Future.</p>
+  <p>Developed by Adam N. H. Smith.</p>
 </div>
 
 <div class="pkgdown-footer-right">

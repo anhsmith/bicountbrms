@@ -4,58 +4,50 @@ Custom [brms](https://paulbuerkner.com/brms/) families for Bayesian
 modelling of **pairs of counts** that are positively correlated.
 Applications include counts recorded by two sources that measure the
 same quantity, such as two observers, two instruments, or two reporting
-channels, where the question is how much, and how systematically, the
-two sources disagree.
+channels.
 
-The pair $`(y_1, y_2)`$ is modelled jointly using **trivariate
-reduction** with Poisson (Holgate 1964; Karlis and Ntzoufras 2003) or
-negative-binomial (Kirkpatrick and Neale 2016; Kirkpatrick 2022)
-components, using
+The pair (y_1, y_2) is modelled by **trivariate reduction**, with
+Poisson components in
 [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md)
-or
-[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md),
-respectively. Correlation between the two counts is induced via an
-unobserved shared latent component, with an additional component each
-that only one source recorded.
+(Holgate 1964; Karlis and Ntzoufras 2003) or negative-binomial
+components in
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
+(Kirkpatrick and Neale 2016; Kirkpatrick 2022). Each count is the sum of
+a latent count recorded by both sources, which induces the correlation,
+and a latent count recorded by that source alone.
 
-The native parameters — means and (for negative binomial) dispersions
-for each of the three latent components — can be [reparameterised into
-four interpretable
-coordinates](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html):
-the midpoint of the two expected counts, the congruence between the two
-sources, the bias toward one of them, and (for negative binomial) the
-overdispersion of each component. The package also allows the model to
-be fit when one source is only partially observed (the `*_partialobs`
-variants); posterior predictions can then be made for the missing values
-of that source based on the observed values of the other.
+The native parameters of the model are the rates and (for negative
+binomial) dispersions of the three latent components. The model can also
+be fitted using alternative [congruence–bias
+coordinates](https://anhsmith.github.io/bicountbrms/articles/reparameterisation.html),
+each of which directly represents a quantity of interest when comparing
+two sources: the midpoint of the two expected counts, the congruence
+between the two sources, the source bias, and (for negative binomial)
+the overdispersion of each component.
+[`bf_mfd()`](https://anhsmith.github.io/bicountbrms/reference/bf_mfd.md)
+writes the brms formula in these coordinates, so priors and predictors
+act directly on the quantities of interest, and `summary(fit)` reports
+the posterior of each coordinate. The native parameterisation can be
+fitted with an ordinary brms formula, in which a predictor can instead
+act on a single latent component; see *Models with predictors* in
+[Getting
+started](https://anhsmith.github.io/bicountbrms/articles/bicountbrms.html).
+
+The `_partialobs()` constructors fit the model when one source has
+missing values, and the fitted model can impute the missing counts of
+that source conditional on the recorded counts from the other source.
 
 ## The core functions
 
-|  | both counts recorded | first count sometimes unrecorded |
+|  | both counts recorded | source 1 has missing values |
 |----|----|----|
 | **equidispersed** (Poisson latent counts) | [`bipois()`](https://anhsmith.github.io/bicountbrms/reference/bipois.md) | [`bipois_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/bipois_partialobs.md) |
 | **overdispersed** (negative-binomial latent counts) | [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md) | [`binegbin_partialobs()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md) |
 
-Each row of the table above is one family (Poisson or negative
-binomial). The two constructors for each family return the same
-likelihood and the same post-processing methods, and differ only in
-whether the $`y_1`$ observation indicator (`y1_obs`) enters the
-likelihood as data or as a constant. The indicator is not supplied in
-cases where both counts are fully observed.
-
-For a row where both counts are observed, the likelihood term is the
-full joint distribution of $`(y_1, y_2)`$: a function of the shared rate
-and (for negative binomial) dispersion (`mu`, `shapes`), the rate and
-(for negative binomial) dispersion specific to each source (`lambdaone`,
-`shapexone`, `lambdatwo`, `shapextwo`), and, through `lambdaone` and
-`lambdatwo`, the bias between the two sources.
-
-For a row where only $`y_2`$ is observed, the likelihood term is instead
-the marginal probability of $`y_2`$ alone, obtained by summing that
-joint distribution over every value the first count could have taken. It
-therefore only informs the parameters common to both counts (`mu`,
-`shapes`, `lambdatwo`, `shapextwo`) and not the parameters that pertain
-only to $`y_1`$ (`lambdaone`, `shapexone`).
+Each row of the table is one family. The two constructors of a family
+share the likelihood and the post-processing methods, and the
+`_partialobs()` constructor also takes the observation indicator
+`y1_obs`.
 
 ## Installation
 
@@ -71,9 +63,21 @@ Either `rstan` or `cmdstanr` works as the `brms` backend.
 
 ## Minimal fits
 
-The second count is provided as supplementary integer data via the
-`vint()` function, and the Stan function for the family is specified via
-the `stanvars` argument. Both are required.
+The models below are written in the [congruence–bias
+coordinates](https://anhsmith.github.io/bicountbrms/articles/reparameterisation.html)
+with
+[`bf_mfd()`](https://anhsmith.github.io/bicountbrms/reference/bf_mfd.md),
+which takes one formula for each coordinate (`logM`, `logitf`, `delta`,
+`kappas`, `kappaxone`, and `kappaxtwo`; see [Getting
+started](https://anhsmith.github.io/bicountbrms/articles/bicountbrms.html)
+for their definitions). y_2 is passed to the family as supplementary
+integer data through `vint()`, and the Stan function for the family
+through the `stanvars` argument. Both are required. brms gives every
+coordinate a flat, improper prior unless one is set, and [Getting
+started](https://anhsmith.github.io/bicountbrms/articles/bicountbrms.html)
+gives a prior for each coordinate.
+
+### Paired designs
 
 ``` r
 
@@ -81,128 +85,105 @@ library(brms)
 library(bicountbrms)
 
 fit <- brm(
-  bf(y1 | vint(y2) ~ 1,
-     lambdaone ~ 1, lambdatwo ~ 1,
-     shapes ~ 1, shapexone ~ 1, shapextwo ~ 1),
+  bf_mfd(
+    y1 | vint(y2),
+    logM      ~ 1,
+    logitf    ~ 1,
+    delta     ~ 1,
+    kappas    ~ 1,
+    kappaxone ~ 1,
+    kappaxtwo ~ 1
+  ),
   family   = binegbin(),
   stanvars = binegbin_stanvars(),
-  data     = dat
+  data     = dat,
+  prior    = priors  # one prior for each coordinate; see Getting started
 )
 ```
 
-Where the first count was not recorded on some rows, each row supplies a
-second integer through `vint()`, in the order `vint(y2, y1_obs)`, and
-the family and its stanvars are the `_partialobs` constructors:
+### Partially paired designs
+
+Where source 1 has missing values, the data need an observation
+indicator `y1_obs`, `1` where y_1 was recorded and `0` where it was not.
+**`y1` must not be `NA`**, because brms drops any row with a missing
+response with only a warning. On an unpaired row, the likelihood term
+does not depend on `y1`, so `y1` can be any integer. We suggest `-1`,
+because it cannot be confused with a recorded count:
+
+``` r
+
+dat$y1_obs <- as.integer(!is.na(dat$y1))
+dat$y1[is.na(dat$y1)] <- -1L
+```
+
+The indicator is passed as the second argument of `vint()`, and the
+family and its stanvars are the `_partialobs` constructors:
 
 ``` r
 
 fit_po <- brm(
-  bf(y1 | vint(y2, y1_obs) ~ 1,
-     lambdaone ~ 1, lambdatwo ~ 1,
-     shapes ~ 1, shapexone ~ 1, shapextwo ~ 1),
+  bf_mfd(
+    y1 | vint(y2, y1_obs),
+    logM      ~ 1,
+    logitf    ~ 1,
+    delta     ~ 1,
+    kappas    ~ 1,
+    kappaxone ~ 1,
+    kappaxtwo ~ 1
+  ),
   family   = binegbin_partialobs(),
   stanvars = binegbin_partialobs_stanvars(),
-  data     = dat
+  data     = dat,
+  prior    = priors
 )
 ```
 
-`y1_obs` is `1` where the first count was recorded and `0` where it was
-not. On a row with `y1_obs == 0`, `y1` may hold any non-negative integer
-— `0` is the conventional placeholder — because the likelihood term for
-that row does not depend on it. Do not use `NA`: brms drops such rows
-before fitting, taking their observed $`y_2`$ with them.
-[`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
-and
-[`posterior_epred()`](https://mc-stan.org/rstantools/reference/posterior_epred.html)
-then return a draw and $`E[y_1 \mid y_2]`$ for every row, including the
-rows where $`y_1`$ was never recorded.
-
-`brms` leaves every distributional parameter of a custom family except
-`mu` without a prior. Set them; see [Choosing
-priors](https://anhsmith.github.io/bicountbrms/articles/choosing-priors.html).
-
-## Notation
-
-| Code | Math | Meaning |
-|----|----|----|
-| `y1` (the response) | $`y_1`$ | count from source 1 |
-| `y2` (via `vint()`) | $`y_2`$ | count from source 2 |
-| — | $`N_s`$ | latent count recorded by both sources |
-| — | $`N_1`$, $`N_2`$ | latent counts only one source recorded |
-| `mu` | $`\mu`$ | rate of the shared component (**not** a response mean) |
-| `lambdaone`, `lambdatwo` | $`\lambda_1`$, $`\lambda_2`$ | rates of the two source-exclusive components |
-| `shapes` | $`\phi_s`$ | NB2 dispersion of the shared component |
-| `shapexone`, `shapextwo` | $`\phi_{x1}`$, $`\phi_{x2}`$ | NB2 dispersions of the two exclusive components |
-| `y1_obs` (via `vint()`) | — | the `_partialobs()` indicator: `1` where $`y_1`$ was recorded and `0` otherwise |
-
-[`brms::custom_family()`](https://paulbuerkner.com/brms/reference/custom_family.html)
-requires one distributional parameter to be named `mu`, and rejects any
-name ending in a digit. Here `mu` is the rate of the shared component
-rather than the mean of either count, and the two exclusive rates are
-spelled out (`one` or `two`).
+To impute y_1 on the rows where it was not recorded, use
+[`posterior_predict_y1_given_y2()`](https://anhsmith.github.io/bicountbrms/reference/posterior_predict_y1_given_y2.md);
+see [Prediction and
+imputation](https://anhsmith.github.io/bicountbrms/articles/prediction.html).
 
 ## Documentation
 
 - [Getting
   started](https://anhsmith.github.io/bicountbrms/articles/bicountbrms.html)
-  — one fit, end to end: simulate, fit, check, predict.
-- [The families and their
-  parameters](https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.html)
-  — the construction, the moments, and a fitted demonstration that the
-  dispersions of the two exclusive components can be told apart when
-  they differ.
-- [Choosing
-  priors](https://anhsmith.github.io/bicountbrms/articles/choosing-priors.html)
-  — what brms leaves improper, and which of the `class`, `dpar` and
-  `nlpar` slots each prior belongs in.
-- [A worked partially observed
-  fit](https://anhsmith.github.io/bicountbrms/articles/partially-observed-fit.html)
-  — imputing a count that was never recorded, scored against values
-  withheld from the model.
-- [Mapping native parameters to interpretable
-  coordinates](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html)
-  — the midpoint of the two expected counts, congruence and source bias,
-  with shrinkage priors.
-- [Migration and
-  errata](https://anhsmith.github.io/bicountbrms/articles/migration-and-errata.html)
-  — what each release changed, and two corrected results.
+  describes one
+  [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
+  analysis from start to finish: simulating data from known parameters,
+  fitting the model in the congruence–bias parameterisation, checking
+  recovery of the generating values, predicting both counts, and
+  comparing the fit with a Poisson model.
+- [Partially paired
+  designs](https://anhsmith.github.io/bicountbrms/articles/partially-paired-designs.html)
+  fits a model in the congruence–bias parameterisation to simulated data
+  in which source 1 has missing values, and compares the imputed values
+  of y_1, given y_2 and marginal, with values withheld from the model.
+- [Prediction and
+  imputation](https://anhsmith.github.io/bicountbrms/articles/prediction.html)
+  describes the prediction functions and the imputation of y_1 on
+  unpaired rows.
+- [The congruence–bias
+  parameterisation](https://anhsmith.github.io/bicountbrms/articles/reparameterisation.html)
+  has an interactive widget that simulates pairs of counts from one
+  model and shows the congruence–bias and native parameterisations side
+  by side, and gives the formulas that convert between the coordinates
+  and the native parameters.
+- The
+  [changelog](https://anhsmith.github.io/bicountbrms/news/index.html)
+  records what each release changed.
 
-**Modelling the differences directly.** Where only the disagreement
-$`d = y_1 - y_2 \in \mathbb{Z}`$ is of interest, with optional
-truncation via
-[`resp_trunc()`](https://paulbuerkner.com/brms/reference/addition-terms.html),
-the companion package
-[`skellambrms`](https://github.com/anhsmith/skellambrms) supplies
-Skellam, discrete Laplace and discrete normal families that model $`d`$
-directly. Both packages were formerly distributed together as
-`pairedcountbrms`; see [Migration and
-errata](https://anhsmith.github.io/bicountbrms/articles/migration-and-errata.html).
-
-## Citation
-
-``` r
-
-citation("bicountbrms")
-```
-
-The package is archived on Zenodo under the concept DOI
-[10.5281/zenodo.22239120](https://doi.org/10.5281/zenodo.22239120),
-which resolves to the current version. To cite the exact version an
-analysis used, take the version-specific DOI from the Zenodo record for
-that release.
-
-Holgate (1964) states the trivariate-reduction representation and gives
-maximum-likelihood estimation for it; the regression form is due to
-Karlis and Ntzoufras (2003). Kirkpatrick and Neale (2016) and
-Kirkpatrick (2022) use the same construction with negative-binomial
-components.
+A companion package,
+[`skellambrms`](https://github.com/anhsmith/skellambrms), supplies
+Skellam, discrete Laplace, and discrete normal families that model d =
+y_1 - y_2 directly, with optional truncation via
+[`resp_trunc()`](https://paulbuerkner.com/brms/reference/addition-terms.html).
 
 ## Funding
 
 This package was developed by Sea Through Science for a fisheries
 electronic-monitoring project led by Johanna Pierre of JPEC Consulting,
 with support from The Nature Conservancy, the Belize Blue Bonds for
-Ocean Conservation and the Belize Fund for a Sustainable Future.
+Ocean Conservation, and the Belize Fund for a Sustainable Future.
 
 ## References
 
@@ -222,6 +203,3 @@ Kirkpatrick, R. M. and Neale, M. C. (2016). Applying multivariate
 discrete distributions to genetically informative count data. *Behavior
 Genetics* **46**(2), 252–268.
 <https://doi.org/10.1007/s10519-015-9757-z>
-
-Each article listed under [Documentation](#documentation) ends with its
-own reference list.

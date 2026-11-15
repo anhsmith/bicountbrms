@@ -6,7 +6,13 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Getting started with bicountbrms • bicountbrms</title>
-<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
+<!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
@@ -20,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bicountbrms</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,13 +40,9 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/families-and-parameters.html">The families and their parameters</a></li>
-    <li><a class="dropdown-item" href="../articles/choosing-priors.html">Choosing priors</a></li>
-    <li><a class="dropdown-item" href="../articles/partially-observed-fit.html">A worked partially observed fit</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Interpretation and history</h6></li>
-    <li><a class="dropdown-item" href="../articles/paired-count-anatomy.html">Mapping native parameters to interpretable coordinates</a></li>
-    <li><a class="dropdown-item" href="../articles/migration-and-errata.html">Migration and errata</a></li>
+<li><a class="dropdown-item" href="../articles/reparameterisation.html">The congruence–bias parameterisation</a></li>
+    <li><a class="dropdown-item" href="../articles/partially-paired-designs.html">Partially paired designs</a></li>
+    <li><a class="dropdown-item" href="../articles/prediction.html">Prediction and imputation</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -73,29 +75,36 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paul-buerkner/brms" class="external-link">brms</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/anhsmith/bicountbrms" class="external-link">bicountbrms</a></span><span class="op">)</span></span></code></pre></div>
-<p>This vignette demonstrates how to use one family,
-<code><a href="../reference/binegbin.html">binegbin()</a></code>, from simulation to prediction: counts are
-simulated from known parameters, fitted, and the credible intervals
-checked against the values that generated them. The other joint families
-(<code><a href="../reference/bipois.html">bipois()</a></code>, and the partially observed
-<code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code> and <code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code>)
-follow the same pattern; the README compares them.</p>
-<p>Everything here is a brms custom family <span class="citation">(<a href="#ref-burkner2017">Bürkner 2017</a>)</span>, so the fitting,
-prediction and model-comparison interfaces are those of brms. The
-non-linear formula syntax used further down is documented in <span class="citation">Bürkner (<a href="#ref-burkner2018">2018</a>)</span>.</p>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/anhsmith/bicountbrms" class="external-link">bicountbrms</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://mc-stan.org/posterior/" class="external-link">posterior</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span></code></pre></div>
+<p>bicountbrms models pairs of counts of the same events recorded by two
+sources, such as two observers or two survey methods. The quantities
+usually of interest are the amount recorded by the two sources, the
+extent to which their records agree, and the direction and size of any
+imbalance between them. This vignette simulates paired counts with known
+values of these quantities, fits a model that estimates them, and checks
+the estimates against the true values.</p>
+<p>The package has two brms custom families <span class="citation">(<a href="#ref-burkner2017">Bürkner 2017</a>)</span>, <code>binegbin</code>,
+with negative-binomial components, and <code>bipois</code>, with Poisson
+components, so models are fitted, used for prediction, and compared with
+the usual brms functions. Each family has two constructors:
+<code><a href="../reference/binegbin.html">binegbin()</a></code> and <code><a href="../reference/bipois.html">bipois()</a></code> for data in which both
+counts were recorded on every row, and
+<code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code> and <code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code>
+for partially paired data, in which source 1 has missing values. This
+vignette uses <code><a href="../reference/binegbin.html">binegbin()</a></code>.</p>
 <div class="section level2">
 <h2 id="the-generative-model">The generative model<a class="anchor" aria-label="anchor" href="#the-generative-model"></a>
 </h2>
-<p>Each observed count is the sum of a latent count that both sources
-recorded and one that only that source recorded. This construction is
-<strong>trivariate reduction</strong>: <span class="citation">Holgate
-(<a href="#ref-holgate1964">1964</a>)</span> and <span class="citation">Karlis and Ntzoufras (<a href="#ref-karlis2003">2003</a>)</span> use it with Poisson components,
-<span class="citation">Kirkpatrick and Neale (<a href="#ref-kirkpatrickApplyingMultivariateDiscrete2016">2016</a>)</span>
+<p>Each observed count is the sum of a latent count recorded by both
+sources and a latent count recorded by that source alone, a construction
+known as ‘trivariate reduction’. <span class="citation">Holgate (<a href="#ref-holgate1964">1964</a>)</span> and <span class="citation">Karlis and Ntzoufras (<a href="#ref-karlis2003">2003</a>)</span> use this construction with
+Poisson components, <span class="citation">Kirkpatrick and Neale (<a href="#ref-kirkpatrickApplyingMultivariateDiscrete2016">2016</a>)</span>
 and <span class="citation">Kirkpatrick (<a href="#ref-kirkpatrickRMKdiscreteSundryDiscrete2022">2022</a>)</span>
 with negative-binomial components. <code><a href="../reference/binegbin.html">binegbin()</a></code> takes all
 three latent counts to be independent and negative binomial:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>N</mi><mi>s</mi></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mi>s</mi></msub><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>N</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo><mspace width="2.0em"></mspace><msub><mi>N</mi><mn>2</mn></msub><mo>∼</mo><mrow><mi mathvariant="normal">N</mi><mi mathvariant="normal">B</mi><mn mathvariant="normal">2</mn></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>λ</mi><mn>2</mn></msub><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>y</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mo>=</mo><msub><mi>N</mi><mi>s</mi></msub><mo>+</mo><msub><mi>N</mi><mn>1</mn></msub><mspace width="2.0em"></mspace><msub><mi>y</mi><mn>2</mn></msub><mo>=</mo><msub><mi>N</mi><mi>s</mi></msub><mo>+</mo><msub><mi>N</mi><mn>2</mn></msub></mtd></mtr></mtable><annotation encoding="application/x-tex">
+<p><span class="math display">
 \begin{aligned}
 N_s &amp;\sim \mathrm{NB2}(\mu,\ \phi_s) \\
 N_1 &amp;\sim \mathrm{NB2}(\lambda_1,\ \phi_{x1}) \qquad
@@ -103,467 +112,663 @@ N_2 \sim \mathrm{NB2}(\lambda_2,\ \phi_{x2}) \\[4pt]
 y_1 &amp;= N_s + N_1 \qquad
 y_2 = N_s + N_2
 \end{aligned}
-</annotation></semantics></math></p>
-<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>s</mi></msub><annotation encoding="application/x-tex">N_s</annotation></semantics></math>
-is the latent count recorded by both sources;
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mn>1</mn></msub><annotation encoding="application/x-tex">N_1</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mn>2</mn></msub><annotation encoding="application/x-tex">N_2</annotation></semantics></math>
-are the two source-exclusive components, the counts recorded by one
-source only.
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>s</mi></msub><annotation encoding="application/x-tex">N_s</annotation></semantics></math>
-induces the correlation between the pair. It is never observed, and is
-marginalised out analytically in the likelihood.</p>
+</span></p>
+<p><span class="math inline">N_s</span>, the shared component, is the
+latent count recorded by both sources. <span class="math inline">N_1</span> and <span class="math inline">N_2</span>,
+the source-exclusive components, are the latent counts recorded by one
+source only. The shared component induces the positive correlation
+between <span class="math inline">y_1</span> and <span class="math inline">y_2</span>. <span class="math inline">N_s</span> is
+never observed, and the likelihood sums over its possible values <span class="math inline">k = 0, \dots, \min(y_1, y_2)</span>.</p>
 <p><code>NB2(m, phi)</code> is <code>neg_binomial_2</code> in Stan and
 <code>dnbinom(size = phi, mu = m)</code> in R: mean <code>m</code>,
 variance <code>m + m^2/phi</code>. Larger <code>phi</code> means
 <em>less</em> overdispersion.</p>
-<p>Six dpars, all with a log link:</p>
+<p>In the native parameterisation, <code><a href="../reference/binegbin.html">binegbin()</a></code> has six
+distributional parameters (dpars), all with a log link:</p>
 <table class="table">
 <colgroup>
-<col width="50%">
-<col width="50%">
+<col width="33%">
+<col width="33%">
+<col width="33%">
 </colgroup>
 <thead><tr class="header">
-<th>dpar</th>
-<th>role</th>
+<th>Parameter</th>
+<th>Meaning</th>
+<th>Name in brms</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
+<td><span class="math inline">\mu</span></td>
+<td>rate of the shared component</td>
 <td><code>mu</code></td>
-<td>rate of the shared component,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>
-</td>
 </tr>
 <tr class="even">
-<td><code>lambdaone</code></td>
-<td>rate of the exclusive component of the first source,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>
+<td>
+<span class="math inline">\lambda_1</span>, <span class="math inline">\lambda_2</span>
+</td>
+<td>rates of the two source-exclusive components</td>
+<td>
+<code>lambdaone</code>, <code>lambdatwo</code>
 </td>
 </tr>
 <tr class="odd">
-<td><code>lambdatwo</code></td>
-<td>rate of the exclusive component of the second source,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>
-</td>
-</tr>
-<tr class="even">
+<td><span class="math inline">\phi_s</span></td>
+<td>NB2 dispersion of the shared component</td>
 <td><code>shapes</code></td>
-<td>dispersion
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>s</mi></msub><annotation encoding="application/x-tex">\phi_s</annotation></semantics></math>
-of the shared component</td>
-</tr>
-<tr class="odd">
-<td><code>shapexone</code></td>
-<td>dispersion
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>
-of the exclusive component of the first source</td>
 </tr>
 <tr class="even">
-<td><code>shapextwo</code></td>
-<td>dispersion
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x2}</annotation></semantics></math>
-of the exclusive component of the second source</td>
+<td>
+<span class="math inline">\phi_{x1}</span>, <span class="math inline">\phi_{x2}</span>
+</td>
+<td>NB2 dispersions of the two exclusive components</td>
+<td>
+<code>shapexone</code>, <code>shapextwo</code>
+</td>
 </tr>
 </tbody>
 </table>
-<p><code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">brms::custom_family()</a></code> rejects any family whose dpars do
-not include one named literally <code>mu</code>. The requirement is on
-the name, not on the position: <code>mu</code> may appear anywhere in
-the vector. Here it is bound to the <em>rate</em> of the shared
-component, so it is not the mean of either response, nor the mean of
-their difference. <code>E[y1] = mu + lambdaone</code>.</p>
-<p>The two rates are spelled
-<code>lambdaone</code>/<code>lambdatwo</code> rather than
-<code>lambda1</code>/<code>lambda2</code> because
-<code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">custom_family()</a></code> rejects dpar names ending in a digit. The
-maths below writes them
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>.</p>
-<p>All six use a log link, the conventional log-linear rate
-parameterisation for this construction <span class="citation">(<a href="#ref-karlis2003">Karlis and Ntzoufras 2003</a>)</span>.</p>
+<p>The dpar <code>mu</code> is the rate of the shared component rather
+than the mean of either count, so that <span class="math inline">E[y_1]
+= \mu + \lambda_1</span>. brms requires every custom family to have a
+dpar named <code>mu</code>.</p>
 </div>
 <div class="section level2">
-<h2 id="simulate-from-known-parameters">Simulate from known parameters<a class="anchor" aria-label="anchor" href="#simulate-from-known-parameters"></a>
+<h2 id="the-congruencebias-parameterisation">The congruence–bias parameterisation<a class="anchor" aria-label="anchor" href="#the-congruencebias-parameterisation"></a>
 </h2>
+<p>bicountbrms provides an interpretable reparameterisation of the
+model, the congruence–bias parameterisation, in which the coordinates
+directly represent the quantities usually of interest in a comparison of
+two sources: the midpoint <span class="math inline">M</span>, the
+average amount recorded by the two sources; the congruence <span class="math inline">f</span>, the extent to which their records agree;
+and the source bias <span class="math inline">\beta</span>, the
+direction and size of any imbalance between them. The three dispersions
+are replaced by overdispersions <span class="math inline">\kappa</span>,
+for which <span class="math inline">\kappa = 0</span> is a Poisson
+component. The helper function <code><a href="../reference/bf_mfd.html">bf_mfd()</a></code> returns the brms
+formula for this model, and takes one argument for each coordinate in
+the table below.</p>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="25%">
+<col width="25%">
+</colgroup>
+<thead><tr class="header">
+<th>Coordinate</th>
+<th>Meaning</th>
+<th>Definition</th>
+<th>Name in brms</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">M</span></td>
+<td>midpoint of the expected counts of the two sources</td>
+<td><span class="math inline">M = \mu + (\lambda_1 +
+\lambda_2)/2</span></td>
+<td>
+<code>logM</code>, for <span class="math inline">\log M</span>
+</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">f</span></td>
+<td>congruence, the proportion of <span class="math inline">M</span>
+recorded by both sources</td>
+<td><span class="math inline">f = \mu / M</span></td>
+<td>
+<code>logitf</code>, for <span class="math inline">\operatorname{logit} f</span>
+</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\beta</span></td>
+<td>source bias, zero when the two exclusive rates are equal</td>
+<td><span class="math inline">\beta = (\lambda_1 - \lambda_2)/(\lambda_1
++ \lambda_2)</span></td>
+<td>
+<code>delta</code>, for <span class="math inline">\operatorname{artanh}\beta</span>
+</td>
+</tr>
+<tr class="even">
+<td>
+<span class="math inline">\kappa_s</span>, <span class="math inline">\kappa_{x1}</span>, <span class="math inline">\kappa_{x2}</span>
+</td>
+<td>overdispersions</td>
+<td><span class="math inline">\kappa = 1/\sqrt{\phi}</span></td>
+<td>
+<code>kappas</code>, <code>kappaxone</code>,
+<code>kappaxtwo</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The interactive widget in the article <a href="https://anhsmith.github.io/bicountbrms/articles/reparameterisation.html"><em>The
+congruence–bias parameterisation</em></a> simulates pairs of counts from
+one model and shows both parameterisations side by side: moving a slider
+for one parameterisation moves the sliders for the other, and the plot
+shows the expected decomposition of each count and the simulated
+pairs.</p>
+<p>We generally recommend the congruence–bias parameterisation. The
+native parameterisation might be useful when a predictor is expected to
+affect one latent component only, such as a change in the equipment used
+by one source (see <a href="#models-with-predictors">Models with
+predictors</a>).</p>
+</div>
+<div class="section level2">
+<h2 id="a-worked-example">A worked example<a class="anchor" aria-label="anchor" href="#a-worked-example"></a>
+</h2>
+<div class="section level3">
+<h3 id="simulate-data-from-known-parameters">Simulate data from known parameters<a class="anchor" aria-label="anchor" href="#simulate-data-from-known-parameters"></a>
+</h3>
+<p>The true values are set as midpoint, congruence, source bias, and
+overdispersions. <code><a href="../reference/mfd_to_dpars.html">mfd_to_dpars()</a></code> converts them to the six
+native dpars, and <code><a href="../reference/rbicount.html">rbicount()</a></code> draws the three latent counts
+and returns them with the two observed counts.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">20260724</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">400</span></span>
 <span><span class="va">truth</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  mu        <span class="op">=</span> <span class="fl">8</span>,</span>
-<span>  lambdaone <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  lambdatwo <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  shapes    <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  shapexone <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>  shapextwo <span class="op">=</span> <span class="fl">2</span></span>
+<span>  M         <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  f         <span class="op">=</span> <span class="fl">0.75</span>,</span>
+<span>  beta      <span class="op">=</span> <span class="fl">0.2</span>,</span>
+<span>  kappas    <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  kappaxone <span class="op">=</span> <span class="fl">0.4</span>,</span>
+<span>  kappaxtwo <span class="op">=</span> <span class="fl">0.7</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">n_shared</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="va">n</span>, size <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">shapes</span>, mu <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">mu</span><span class="op">)</span></span>
-<span><span class="va">n1</span>       <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="va">n</span>, size <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">shapexone</span>, mu <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">lambdaone</span><span class="op">)</span></span>
-<span><span class="va">n2</span>       <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="va">n</span>, size <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">shapextwo</span>, mu <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">lambdatwo</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  y1 <span class="op">=</span> <span class="va">n_shared</span> <span class="op">+</span> <span class="va">n1</span>,</span>
-<span>  y2 <span class="op">=</span> <span class="va">n_shared</span> <span class="op">+</span> <span class="va">n2</span></span>
+<span><span class="va">dpars</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mfd_to_dpars.html">mfd_to_dpars</a></span><span class="op">(</span></span>
+<span>  M         <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">M</span>,</span>
+<span>  f         <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">f</span>,</span>
+<span>  delta     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Hyperbolic.html" class="external-link">atanh</a></span><span class="op">(</span><span class="va">truth</span><span class="op">$</span><span class="va">beta</span><span class="op">)</span>,</span>
+<span>  kappas    <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">kappas</span>,</span>
+<span>  kappaxone <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">kappaxone</span>,</span>
+<span>  kappaxtwo <span class="op">=</span> <span class="va">truth</span><span class="op">$</span><span class="va">kappaxtwo</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 'data.frame':    400 obs. of  2 variables:</span></span>
-<span><span class="co">#&gt;  $ y1: num  11 8 7 15 5 13 9 15 13 8 ...</span></span>
-<span><span class="co">#&gt;  $ y2: num  11 7 5 16 6 11 9 16 9 7 ...</span></span>
+<span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbicount</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">400</span><span class="op">)</span>, <span class="va">dpars</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   y1 y2 Ns N1 N2</span></span>
+<span><span class="co">#&gt; 1 17 12 11  6  1</span></span>
+<span><span class="co">#&gt; 2 10 10  7  3  3</span></span>
+<span><span class="co">#&gt; 3  5  4  2  3  2</span></span>
+<span><span class="co">#&gt; 4 13 13 10  3  3</span></span>
+<span><span class="co">#&gt; 5  7 10  5  2  5</span></span>
+<span><span class="co">#&gt; 6 11 11  9  2  2</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">y1</span>, <span class="va">dat</span><span class="op">$</span><span class="va">y2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.8518386</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.8470486</span></span></code></pre></div>
 <p>The correlation is positive and substantial because both counts
-include the same <code>n_shared</code>.</p>
+include the same <code>Ns</code>.</p>
 </div>
-<div class="section level2">
-<h2 id="fit">Fit<a class="anchor" aria-label="anchor" href="#fit"></a>
-</h2>
-<p>Two things are specific to this package.</p>
-<p><strong>The second count is supplied through
-<code>vint()</code>.</strong> <code><a href="https://paulbuerkner.com/brms/reference/custom_family.html" class="external-link">brms::custom_family()</a></code>
-declares a single response column, so only <code>y1</code> can be the
-response. <code>y2</code> is passed alongside as supplementary integer
-data, and the Stan signature of the family reads it from there.</p>
-<p><strong><code>stanvars</code> is not optional.</strong>
-<code><a href="../reference/binegbin.html">binegbin_stanvars()</a></code> injects the <code>binegbin_lpmf</code>
-Stan function into the <code>functions</code> block of the model.
-Without it, the generated model will not compile.</p>
+<div class="section level3">
+<h3 id="a-model-with-intercepts-only">A model with intercepts only<a class="anchor" aria-label="anchor" href="#a-model-with-intercepts-only"></a>
+</h3>
+<p>A model in the congruence–bias parameterisation is fitted by
+specifying its formula with the helper function <code><a href="../reference/bf_mfd.html">bf_mfd()</a></code>.
+The first argument of <code><a href="../reference/bf_mfd.html">bf_mfd()</a></code> is the response,
+<code>y1 | vint(y2)</code>: a brms custom family has one response, so
+<code>y1</code> is the response and <code>y2</code> is passed to the
+family as supplementary integer data through <code>vint()</code>. Each
+further argument is the formula of one parameter in the table above,
+here <code>~ 1</code> for all six, so that each coordinate is the same
+on every row. The argument <code>stanvars = binegbin_stanvars()</code>
+adds the Stan function <code>binegbin_lpmf</code> to the
+<code>functions</code> block of the model; without it, the model does
+not compile.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brm.html" class="external-link">brm</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula.html" class="external-link">bf</a></span><span class="op">(</span></span>
-<span>    <span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>,</span>
-<span>    <span class="va">lambdaone</span>     <span class="op">~</span> <span class="fl">1</span>,</span>
-<span>    <span class="va">lambdatwo</span>     <span class="op">~</span> <span class="fl">1</span>,</span>
-<span>    <span class="va">shapes</span>        <span class="op">~</span> <span class="fl">1</span>,</span>
-<span>    <span class="va">shapexone</span>     <span class="op">~</span> <span class="fl">1</span>,</span>
-<span>    <span class="va">shapextwo</span>     <span class="op">~</span> <span class="fl">1</span></span>
+<span>  <span class="fu"><a href="../reference/bf_mfd.html">bf_mfd</a></span><span class="op">(</span></span>
+<span>    <span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span><span class="op">)</span>,</span>
+<span>    <span class="va">logM</span>      <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">logitf</span>    <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">delta</span>     <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">kappas</span>    <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">kappaxone</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">kappaxtwo</span> <span class="op">~</span> <span class="fl">1</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  family   <span class="op">=</span> <span class="fu"><a href="../reference/binegbin.html">binegbin</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  stanvars <span class="op">=</span> <span class="fu"><a href="../reference/binegbin.html">binegbin_stanvars</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  data     <span class="op">=</span> <span class="va">dat</span>,</span>
 <span>  prior    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span>, dpar <span class="op">=</span> <span class="st">"lambdaone"</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span>, dpar <span class="op">=</span> <span class="st">"lambdatwo"</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span>, dpar <span class="op">=</span> <span class="st">"shapes"</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span>, dpar <span class="op">=</span> <span class="st">"shapexone"</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"Intercept"</span>, dpar <span class="op">=</span> <span class="st">"shapextwo"</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>,   class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"logM"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"logitf"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"delta"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,   class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"kappas"</span>,    lb <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,   class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"kappaxone"</span>, lb <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,   class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"kappaxtwo"</span>, lb <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  chains  <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  iter    <span class="op">=</span> <span class="fl">1500</span>,</span>
 <span>  refresh <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  backend <span class="op">=</span> <span class="va">backend</span>,</span>
+<span>  backend <span class="op">=</span> <span class="st">"cmdstanr"</span>,  <span class="co"># or "rstan"</span></span>
 <span>  seed    <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>One weakly-informative prior serves all six, since <strong>every dpar
-here is a log-linked positive quantity</strong> of similar magnitude. On
-the natural scale <code>normal(2, 1)</code> is lognormal, with 95% of
-its mass between 1 and 52.</p>
-<p>The six truths span 0.69 to 2.08 on the log scale, so no single prior
-sits away from all of them: the true shared rate falls near the prior
-mean, the true second exclusive rate 1.3 prior SDs below it. Recovery
-here is therefore not on its own evidence that the prior is
-uninfluential. The article <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html"><em>Mapping
-native parameters to interpretable coordinates</em></a> tests that
-directly, shifting a prior median sevenfold and moving the corresponding
-posterior median by 0.005.</p>
-<p>To adapt these priors, shift the <strong>mean</strong> to the scale
-of the counts rather than increasing the SD. All six dpars are
-log-linked, so a normal prior is lognormal on the natural scale, and
-increasing its SD moves mass to implausible values rather than making
-the prior neutral <span class="citation">(<a href="#ref-smithInstantaneousVsNoninstantaneous2020">Smith et al.
-2020</a>, supplement 3, Fig. S3-1)</span>.</p>
+<p>Unless a prior is specified, brms gives each non-linear parameter a
+flat, improper prior, so we recommend setting a prior on every
+coordinate. Each prior has <code>class = "b"</code> and the name of its
+parameter. The prior <code>normal(2, 1)</code> on <code>logM</code>
+places 95% of its mass between 1 and 52 on the scale of <span class="math inline">M</span>, which suits these simulated counts. For
+other data, we suggest centring it on the log of a plausible midpoint
+rather than widening its SD, because a wider normal prior on the log
+scale places more mass on implausibly small and large values <span class="citation">(<a href="#ref-smithInstantaneousVsNoninstantaneous2020">Smith et al.
+2020</a>, supplement 3, Fig. S3-1)</span>. With an intercept alone in
+the formula for <code>logitf</code>, the prior
+<code>normal(0, 1.5)</code> gives a density for <span class="math inline">f</span> within 10% of uniform between 0.1 and 0.9
+<span class="citation">(<a href="#ref-mcelreath2020">McElreath
+2020</a>)</span>. The source bias and the overdispersions each have a
+finite null, <span class="math inline">\delta = 0</span> for no source
+bias and <span class="math inline">\kappa = 0</span> for a Poisson
+component, so their priors have their mode at zero and shrink the
+estimates towards the simpler model unless the data support otherwise
+<span class="citation">(<a href="#ref-simpsonPenalisingModelComponent2017">Simpson et al.
+2017</a>)</span>. In the native parameterisation, a Poisson component is
+the limit <span class="math inline">\phi \to \infty</span>, which no
+prior on <span class="math inline">\phi</span> can have as its mode. The
+bound <code>lb = 0</code> makes each prior on an overdispersion
+half-normal.</p>
 </div>
-<div class="section level2">
-<h2 id="recovery-of-the-generating-values">Recovery of the generating values<a class="anchor" aria-label="anchor" href="#recovery-of-the-generating-values"></a>
-</h2>
-<p>All six dpars are log-linked, so each posterior intercept
-exponentiates back onto the natural scale.</p>
+<div class="section level3">
+<h3 id="convergence">Convergence<a class="anchor" aria-label="anchor" href="#convergence"></a>
+</h3>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">draws</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/posterior/reference/draws_df.html" class="external-link">as_draws_df</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">pars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  mu        <span class="op">=</span> <span class="st">"b_Intercept"</span>,</span>
-<span>  lambdaone <span class="op">=</span> <span class="st">"b_lambdaone_Intercept"</span>,</span>
-<span>  lambdatwo <span class="op">=</span> <span class="st">"b_lambdatwo_Intercept"</span>,</span>
-<span>  shapes    <span class="op">=</span> <span class="st">"b_shapes_Intercept"</span>,</span>
-<span>  shapexone <span class="op">=</span> <span class="st">"b_shapexone_Intercept"</span>,</span>
-<span>  shapextwo <span class="op">=</span> <span class="st">"b_shapextwo_Intercept"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">recovery</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">pars</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">draws</span><span class="op">[[</span><span class="va">pars</span><span class="op">[[</span><span class="va">p</span><span class="op">]</span><span class="op">]</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>    dpar  <span class="op">=</span> <span class="va">p</span>,</span>
-<span>    truth <span class="op">=</span> <span class="va">truth</span><span class="op">[[</span><span class="va">p</span><span class="op">]</span><span class="op">]</span>,</span>
-<span>    est   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>,</span>
-<span>    lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">0.025</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>    upper <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  Family: binegbin </span></span>
+<span><span class="co">#&gt;   Links: mu = log; lambdaone = log; lambdatwo = log; shapes = log; shapexone = log; shapextwo = log </span></span>
+<span><span class="co">#&gt; Formula: y1 | vint(y2) ~ 1 </span></span>
+<span><span class="co">#&gt;          mu ~ logM + log_inv_logit(logitf)</span></span>
+<span><span class="co">#&gt;          lambdaone ~ log(2) + logM + log1m_inv_logit(logitf) + log_inv_logit(2 * delta)</span></span>
+<span><span class="co">#&gt;          lambdatwo ~ log(2) + logM + log1m_inv_logit(logitf) + log_inv_logit(-2 * delta)</span></span>
+<span><span class="co">#&gt;          shapes ~ -2 * log(kappas)</span></span>
+<span><span class="co">#&gt;          shapexone ~ -2 * log(kappaxone)</span></span>
+<span><span class="co">#&gt;          shapextwo ~ -2 * log(kappaxtwo)</span></span>
+<span><span class="co">#&gt;          logM ~ 1</span></span>
+<span><span class="co">#&gt;          logitf ~ 1</span></span>
+<span><span class="co">#&gt;          delta ~ 1</span></span>
+<span><span class="co">#&gt;          kappas ~ 1</span></span>
+<span><span class="co">#&gt;          kappaxone ~ 1</span></span>
+<span><span class="co">#&gt;          kappaxtwo ~ 1</span></span>
+<span><span class="co">#&gt;    Data: dat (Number of observations: 400) </span></span>
+<span><span class="co">#&gt;   Draws: 2 chains, each with iter = 1500; warmup = 750; thin = 1;</span></span>
+<span><span class="co">#&gt;          total post-warmup draws = 1500</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Regression Coefficients:</span></span>
+<span><span class="co">#&gt;                     Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS</span></span>
+<span><span class="co">#&gt; logM_Intercept          2.32      0.03     2.27     2.37 1.00      935      726</span></span>
+<span><span class="co">#&gt; logitf_Intercept        1.01      0.17     0.67     1.31 1.00      368      560</span></span>
+<span><span class="co">#&gt; delta_Intercept         0.18      0.03     0.12     0.25 1.00      515      776</span></span>
+<span><span class="co">#&gt; kappas_Intercept        0.53      0.04     0.46     0.63 1.00      457      729</span></span>
+<span><span class="co">#&gt; kappaxone_Intercept     0.44      0.10     0.23     0.62 1.00      459      628</span></span>
+<span><span class="co">#&gt; kappaxtwo_Intercept     0.48      0.17     0.10     0.81 1.00      360      217</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Draws were sampled using sample(hmc). For each parameter, Bulk_ESS</span></span>
+<span><span class="co">#&gt; and Tail_ESS are effective sample size measures, and Rhat is the potential</span></span>
+<span><span class="co">#&gt; scale reduction factor on split chains (at convergence, Rhat = 1).</span></span></code></pre></div>
+<p><code>summary(fit)</code> reports, for each parameter, the potential
+scale reduction factor <span class="math inline">\hat{R}</span> and the
+bulk and tail effective sample sizes, and brms warns after sampling if
+any transitions diverged. A value of <span class="math inline">\hat{R}</span> above 1.01 indicates that the chains
+have not converged to the same distribution, and an effective sample
+size below about 100 per chain indicates too few effectively independent
+draws for reliable estimates of the posterior quantiles <span class="citation">(<a href="#ref-vehtari2021">Vehtari et al.
+2021</a>)</span>. The summary gives each parameter on the scale of its
+formula: <span class="math inline">\log M</span>, <span class="math inline">\operatorname{logit} f</span>, <span class="math inline">\operatorname{artanh}\beta</span>, and <span class="math inline">\kappa</span>.</p>
+</div>
+<div class="section level3">
+<h3 id="recovery-of-the-generating-values">Recovery of the generating values<a class="anchor" aria-label="anchor" href="#recovery-of-the-generating-values"></a>
+</h3>
+<p>The table gives the posterior median (<code>est</code>) and the 95%
+credible interval (<code>q2.5</code> to <code>q97.5</code>) of each
+parameter on its natural scale, with the true value that generated the
+counts.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">recovery</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/posterior/reference/draws_df.html" class="external-link">as_draws_df</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://mc-stan.org/posterior/reference/mutate_variables.html" class="external-link">mutate_variables</a></span><span class="op">(</span></span>
+<span>    M         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">b_logM_Intercept</span><span class="op">)</span>,</span>
+<span>    f         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">b_logitf_Intercept</span><span class="op">)</span>,</span>
+<span>    beta      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Hyperbolic.html" class="external-link">tanh</a></span><span class="op">(</span><span class="va">b_delta_Intercept</span><span class="op">)</span>,</span>
+<span>    kappas    <span class="op">=</span> <span class="va">b_kappas_Intercept</span>,</span>
+<span>    kappaxone <span class="op">=</span> <span class="va">b_kappaxone_Intercept</span>,</span>
+<span>    kappaxtwo <span class="op">=</span> <span class="va">b_kappaxtwo_Intercept</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://mc-stan.org/posterior/reference/subset_draws.html" class="external-link">subset_draws</a></span><span class="op">(</span>variable <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">truth</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://mc-stan.org/posterior/reference/draws_summary.html" class="external-link">summarise_draws</a></span><span class="op">(</span></span>
+<span>    est <span class="op">=</span> <span class="va">median</span>,</span>
+<span>    <span class="op">~</span> <span class="fu"><a href="https://mc-stan.org/posterior/reference/quantile2.html" class="external-link">quantile2</a></span><span class="op">(</span><span class="va">.x</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
+<span>    truth   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">truth</span><span class="op">)</span><span class="op">[</span><span class="va">variable</span><span class="op">]</span>,</span>
+<span>    covered <span class="op">=</span> <span class="va">truth</span> <span class="op">&gt;=</span> <span class="va">q2.5</span> <span class="op">&amp;</span> <span class="va">truth</span> <span class="op">&lt;=</span> <span class="va">q97.5</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">recovery</span><span class="op">$</span><span class="va">covered</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">recovery</span>, <span class="va">truth</span> <span class="op">&gt;=</span> <span class="va">lower</span> <span class="op">&amp;</span> <span class="va">truth</span> <span class="op">&lt;=</span> <span class="va">upper</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">recovery</span>, digits <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
-<th align="left">dpar</th>
-<th align="right">truth</th>
+<th align="left">variable</th>
 <th align="right">est</th>
-<th align="right">lower</th>
-<th align="right">upper</th>
+<th align="right">q2.5</th>
+<th align="right">q97.5</th>
+<th align="right">truth</th>
 <th align="left">covered</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">mu</td>
-<td align="right">8</td>
-<td align="right">7.91</td>
-<td align="right">7.14</td>
-<td align="right">8.61</td>
+<td align="left">M</td>
+<td align="right">10.22</td>
+<td align="right">9.71</td>
+<td align="right">10.72</td>
+<td align="right">10.00</td>
 <td align="left">TRUE</td>
 </tr>
 <tr class="even">
-<td align="left">lambdaone</td>
-<td align="right">3</td>
-<td align="right">3.33</td>
-<td align="right">2.81</td>
-<td align="right">3.97</td>
+<td align="left">f</td>
+<td align="right">0.73</td>
+<td align="right">0.66</td>
+<td align="right">0.79</td>
+<td align="right">0.75</td>
 <td align="left">TRUE</td>
 </tr>
 <tr class="odd">
-<td align="left">lambdatwo</td>
-<td align="right">2</td>
-<td align="right">2.29</td>
-<td align="right">1.77</td>
-<td align="right">2.94</td>
+<td align="left">beta</td>
+<td align="right">0.18</td>
+<td align="right">0.12</td>
+<td align="right">0.25</td>
+<td align="right">0.20</td>
 <td align="left">TRUE</td>
 </tr>
 <tr class="even">
-<td align="left">shapes</td>
-<td align="right">4</td>
-<td align="right">3.58</td>
-<td align="right">2.68</td>
-<td align="right">4.73</td>
+<td align="left">kappas</td>
+<td align="right">0.53</td>
+<td align="right">0.46</td>
+<td align="right">0.63</td>
+<td align="right">0.50</td>
 <td align="left">TRUE</td>
 </tr>
 <tr class="odd">
-<td align="left">shapexone</td>
-<td align="right">6</td>
-<td align="right">7.16</td>
-<td align="right">3.31</td>
-<td align="right">21.90</td>
+<td align="left">kappaxone</td>
+<td align="right">0.44</td>
+<td align="right">0.23</td>
+<td align="right">0.62</td>
+<td align="right">0.40</td>
 <td align="left">TRUE</td>
 </tr>
 <tr class="even">
-<td align="left">shapextwo</td>
-<td align="right">2</td>
-<td align="right">3.13</td>
-<td align="right">1.44</td>
-<td align="right">10.05</td>
+<td align="left">kappaxtwo</td>
+<td align="right">0.48</td>
+<td align="right">0.10</td>
+<td align="right">0.81</td>
+<td align="right">0.70</td>
 <td align="left">TRUE</td>
 </tr>
 </tbody>
 </table>
-<p>The three rates should land tightly on their true values. The three
-dispersions are estimated from an aggregate mean–variance mismatch
-rather than from any directly observed quantity, so their intervals are
-wider; the dispersions of the two exclusive components especially, since
-they are identified only through the part of the spread in the pair that
-the shared component cannot explain. Wide but covering is the expected
-result here, not a warning sign.</p>
+<p>All six 95% intervals contain the true value. The intervals for
+<code>kappaxone</code> and <code>kappaxtwo</code> are the widest,
+because the overdispersion of each exclusive component is identified
+only by the variance of each count beyond that of the shared
+component.</p>
 </div>
-<div class="section level2">
-<h2 id="predict-and-score">Predict and score<a class="anchor" aria-label="anchor" href="#predict-and-score"></a>
-</h2>
-<p><code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> draws new <code>y1</code>
-<strong>conditional on the observed <code>y2</code> in each
-row</strong>. It samples the discrete conditional distribution of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>N</mi><mi>s</mi></msub><annotation encoding="application/x-tex">N_s</annotation></semantics></math>
-given <code>y2</code>, then adds a fresh draw of the exclusive component
-— the exact conditional, not an approximation.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">yrep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict</a></span><span class="op">(</span><span class="va">fit</span>, ndraws <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
+<div class="section level3">
+<h3 id="prediction">Prediction<a class="anchor" aria-label="anchor" href="#prediction"></a>
+</h3>
+<p><code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> and <code><a href="https://mc-stan.org/rstantools/reference/posterior_epred.html" class="external-link">posterior_epred()</a></code>
+predict the response <span class="math inline">y_1</span> only, as for
+any brms family: <code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> draws <span class="math inline">y_1</span> from its marginal distribution, and
+<code><a href="https://mc-stan.org/rstantools/reference/posterior_epred.html" class="external-link">posterior_epred()</a></code> returns <span class="math inline">E[y_1]
+= \mu + \lambda_1</span>. <span class="math inline">y_2</span> is passed
+to the model as data through <code>vint()</code>, so neither function
+returns draws of <span class="math inline">y_2</span>, and
+<code><a href="https://mc-stan.org/bayesplot/reference/pp_check.html" class="external-link">pp_check()</a></code>, <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code>, and
+<code><a href="https://paulbuerkner.com/brms/reference/conditional_effects.brmsfit.html" class="external-link">conditional_effects()</a></code>, which call these two functions, show
+<span class="math inline">y_1</span> alone.</p>
+<p><code><a href="../reference/posterior_predict_y1_and_y2.html">posterior_predict_y1_and_y2()</a></code> draws both counts, and
+returns an array with one row per draw, one column per row of the data,
+and one slice for each count. Within each drawn pair, <span class="math inline">y_1</span> and <span class="math inline">y_2</span>
+have the same value of <span class="math inline">N_s</span>, so the
+correlation between the drawn counts is the correlation under the model.
+<code><a href="../reference/posterior_predict_y1_and_y2.html">posterior_epred_y1_and_y2()</a></code> returns the expectations of
+both counts, <span class="math inline">\mu + \lambda_1</span> and <span class="math inline">\mu + \lambda_2</span>. The table compares the mean,
+standard deviation, and maximum of each count, and the correlation
+between the two counts, with the averages of the same quantities over
+200 drawn datasets.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">yrep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/posterior_predict_y1_and_y2.html">posterior_predict_y1_and_y2</a></span><span class="op">(</span><span class="va">fit</span>, ndraws <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">yrep</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 200 400</span></span>
+<span><span class="co">#&gt; [1] 200 400   2</span></span>
+<span></span>
+<span><span class="va">pair_stats</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">y1</span>, <span class="va">y2</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    mean_y1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">y1</span><span class="op">)</span>,</span>
+<span>    mean_y2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">y2</span><span class="op">)</span>,</span>
+<span>    sd_y1   <span class="op">=</span> <span class="fu">sd</span><span class="op">(</span><span class="va">y1</span><span class="op">)</span>,</span>
+<span>    sd_y2   <span class="op">=</span> <span class="fu">sd</span><span class="op">(</span><span class="va">y2</span><span class="op">)</span>,</span>
+<span>    max_y1  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">y1</span><span class="op">)</span>,</span>
+<span>    max_y2  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">y2</span><span class="op">)</span>,</span>
+<span>    cor     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">y1</span>, <span class="va">y2</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">stats_observed</span> <span class="op">&lt;-</span> <span class="fu">pair_stats</span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">y1</span>, <span class="va">dat</span><span class="op">$</span><span class="va">y2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">stats_predicted</span> <span class="op">&lt;-</span> <span class="va">yrep</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="fl">1</span>, \<span class="op">(</span><span class="va">draw</span><span class="op">)</span> <span class="fu">pair_stats</span><span class="op">(</span><span class="va">draw</span><span class="op">[</span>, <span class="st">"y1"</span><span class="op">]</span>, <span class="va">draw</span><span class="op">[</span>, <span class="st">"y2"</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowMeans</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  quantity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mean"</span>, <span class="st">"sd"</span>, <span class="st">"max"</span><span class="op">)</span>,</span>
-<span>  observed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">y1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">y1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">y1</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  predicted <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">yrep</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">yrep</span>, <span class="fl">1</span>, <span class="va">sd</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">yrep</span>, <span class="fl">1</span>, <span class="va">max</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  observed  <span class="op">=</span> <span class="va">stats_observed</span>,</span>
+<span>  predicted <span class="op">=</span> <span class="va">stats_predicted</span></span>
 <span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
-<th align="left">quantity</th>
+<th align="left"></th>
 <th align="right">observed</th>
 <th align="right">predicted</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">mean</td>
-<td align="right">11.25</td>
-<td align="right">11.24</td>
+<td align="left">mean_y1</td>
+<td align="right">10.70</td>
+<td align="right">10.70</td>
 </tr>
 <tr class="even">
-<td align="left">sd</td>
-<td align="right">5.59</td>
-<td align="right">5.43</td>
+<td align="left">mean_y2</td>
+<td align="right">9.73</td>
+<td align="right">9.74</td>
 </tr>
 <tr class="odd">
-<td align="left">max</td>
-<td align="right">37.00</td>
-<td align="right">33.23</td>
+<td align="left">sd_y1</td>
+<td align="right">5.44</td>
+<td align="right">5.36</td>
+</tr>
+<tr class="even">
+<td align="left">sd_y2</td>
+<td align="right">5.02</td>
+<td align="right">5.18</td>
+</tr>
+<tr class="odd">
+<td align="left">max_y1</td>
+<td align="right">36.00</td>
+<td align="right">33.29</td>
+</tr>
+<tr class="even">
+<td align="left">max_y2</td>
+<td align="right">33.00</td>
+<td align="right">31.89</td>
+</tr>
+<tr class="odd">
+<td align="left">cor</td>
+<td align="right">0.85</td>
+<td align="right">0.84</td>
 </tr>
 </tbody>
 </table>
-<p><code><a href="https://mc-stan.org/rstantools/reference/log_lik.html" class="external-link">log_lik()</a></code> gives the pointwise log-likelihood of the
-<em>joint</em> pair, evaluated by an independent R implementation of the
-same marginalisation sum that the Stan function computes. It feeds
-<code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code> and <code><a href="https://mc-stan.org/loo/reference/waic.html" class="external-link">waic()</a></code> in the usual way <span class="citation">(<a href="#ref-vehtari2017">Vehtari et al.
-2017</a>)</span>. The Pareto
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
-diagnostic reported alongside the estimate flags observations whose
-importance weights are unreliable <span class="citation">(<a href="#ref-vehtari2024">Vehtari et al. 2024</a>)</span>.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ll</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/rstantools/reference/log_lik.html" class="external-link">log_lik</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">ll</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 1500  400</span></span>
-<span></span>
+<p><a href="https://anhsmith.github.io/bicountbrms/articles/prediction.html"><em>Prediction
+and imputation</em></a> describes the other prediction functions,
+including <code><a href="../reference/posterior_predict_y1_given_y2.html">posterior_predict_y1_given_y2()</a></code>, which draws
+<span class="math inline">y_1</span> conditional on the recorded <span class="math inline">y_2</span>, and so imputes <span class="math inline">y_1</span> on rows where <span class="math inline">y_1</span> was not recorded.</p>
+</div>
+<div class="section level3">
+<h3 id="model-comparison">Model comparison<a class="anchor" aria-label="anchor" href="#model-comparison"></a>
+</h3>
+<p><code><a href="https://mc-stan.org/rstantools/reference/log_lik.html" class="external-link">log_lik()</a></code> returns, for each row, the log of the joint
+probability of <span class="math inline">(y_1, y_2)</span>, so
+<code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code> estimates the expected log predictive density (elpd)
+of the pair <span class="citation">(<a href="#ref-vehtari2017">Vehtari
+et al. 2017</a>)</span>, and models of the same pair can be compared by
+their elpd. To compare negative-binomial with Poisson components, we fit
+<code><a href="../reference/bipois.html">bipois()</a></code>, which has the same construction as
+<code><a href="../reference/binegbin.html">binegbin()</a></code> but with Poisson components (and therefore no
+overdispersions), to the same data and compare the two fits with
+<code><a href="https://mc-stan.org/loo/reference/loo_compare.html" class="external-link">loo_compare()</a></code>. Without the three overdispersions,
+<code><a href="../reference/bf_mfd.html">bf_mfd()</a></code> returns the formula for <code><a href="../reference/bipois.html">bipois()</a></code>.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit_pois</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brm.html" class="external-link">brm</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/bf_mfd.html">bf_mfd</a></span><span class="op">(</span></span>
+<span>    <span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span><span class="op">)</span>,</span>
+<span>    <span class="va">logM</span>   <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">logitf</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">delta</span>  <span class="op">~</span> <span class="fl">1</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  family   <span class="op">=</span> <span class="fu"><a href="../reference/bipois.html">bipois</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  stanvars <span class="op">=</span> <span class="fu"><a href="../reference/bipois.html">bipois_stanvars</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  data     <span class="op">=</span> <span class="va">dat</span>,</span>
+<span>  prior    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>,   class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"logM"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"logitf"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"b"</span>, nlpar <span class="op">=</span> <span class="st">"delta"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  chains  <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  iter    <span class="op">=</span> <span class="fl">1500</span>,</span>
+<span>  refresh <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  backend <span class="op">=</span> <span class="st">"cmdstanr"</span>,  <span class="co"># or "rstan"</span></span>
+<span>  seed    <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit</span>      <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/add_criterion.html" class="external-link">add_criterion</a></span><span class="op">(</span><span class="va">fit</span>, <span class="st">"loo"</span><span class="op">)</span></span>
+<span><span class="va">fit_pois</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/add_criterion.html" class="external-link">add_criterion</a></span><span class="op">(</span><span class="va">fit_pois</span>, <span class="st">"loo"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Computed from 1500 by 400 log-likelihood matrix.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;          Estimate   SE</span></span>
-<span><span class="co">#&gt; elpd_loo  -2202.8 22.6</span></span>
-<span><span class="co">#&gt; p_loo         5.8  0.6</span></span>
-<span><span class="co">#&gt; looic      4405.7 45.2</span></span>
+<span><span class="co">#&gt; elpd_loo  -2176.1 22.5</span></span>
+<span><span class="co">#&gt; p_loo         6.2  0.6</span></span>
+<span><span class="co">#&gt; looic      4352.1 45.1</span></span>
 <span><span class="co">#&gt; ------</span></span>
 <span><span class="co">#&gt; MCSE of elpd_loo is 0.1.</span></span>
-<span><span class="co">#&gt; MCSE and ESS estimates assume MCMC draws (r_eff in [0.3, 1.5]).</span></span>
+<span><span class="co">#&gt; MCSE and ESS estimates assume MCMC draws (r_eff in [0.3, 1.2]).</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; All Pareto k estimates are good (k &lt; 0.69).</span></span>
-<span><span class="co">#&gt; See help('pareto-k-diagnostic') for details.</span></span></code></pre></div>
+<span><span class="co">#&gt; See help('pareto-k-diagnostic') for details.</span></span>
+<span></span>
+<span><span class="va">comparison</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/loo/reference/loo_compare.html" class="external-link">loo_compare</a></span><span class="op">(</span><span class="va">fit</span>, <span class="va">fit_pois</span><span class="op">)</span></span>
+<span><span class="va">comparison</span></span>
+<span><span class="co">#&gt;     model elpd_diff se_diff p_worse diag_diff diag_elpd</span></span>
+<span><span class="co">#&gt;       fit       0.0     0.0      NA                    </span></span>
+<span><span class="co">#&gt;  fit_pois    -169.1    30.2    1.00</span></span></code></pre></div>
+<p><code>loo(fit)</code> prints the elpd estimate of the
+negative-binomial model and a table of Pareto <span class="math inline">k</span> estimates. A row with a Pareto <span class="math inline">k</span> estimate above about 0.7 has an unreliable
+estimate of its elpd <span class="citation">(<a href="#ref-vehtari2024">Vehtari et al. 2024</a>)</span>.
+<code><a href="https://mc-stan.org/loo/reference/loo_compare.html" class="external-link">loo_compare()</a></code> lists the model with the higher elpd first.
+<code>elpd_diff</code> is the difference in elpd between each model and
+the first model, and <code>se_diff</code> is the standard error of that
+difference. The elpd of the Poisson model is lower by 169 (SE 30), so
+negative-binomial components describe these counts much better than
+Poisson components, as expected from counts simulated with
+overdispersions between 0.4 and 0.7.</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="quantities-returned-by-posterior_epred">Quantities returned by <code>posterior_epred()</code><a class="anchor" aria-label="anchor" href="#quantities-returned-by-posterior_epred"></a>
+<h2 id="models-with-predictors">Models with predictors<a class="anchor" aria-label="anchor" href="#models-with-predictors"></a>
 </h2>
-<p>Both families return the same quantity:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>y</mi><mn>1</mn></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>N</mi><mi>s</mi></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo><mo>+</mo><msub><mi>λ</mi><mn>1</mn></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\mathrm{E}[y_1 \mid y_2] = \mathrm{E}[N_s \mid y_2] + \lambda_1,
-</annotation></semantics></math></p>
-<p>the expected first count conditional on the observed second count,
-not the marginal expectation
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>y</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\mathrm{E}[y_1]</annotation></semantics></math>.</p>
-<p>For <code><a href="../reference/bipois.html">bipois()</a></code>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>N</mi><mi>s</mi></msub><mo>∣</mo><msub><mi>y</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">\mathrm{E}[N_s \mid y_2]</annotation></semantics></math>
-is closed form, because conditioning a sum of independent Poissons on
-its total gives a Binomial split. For <code><a href="../reference/binegbin.html">binegbin()</a></code> there is
-no such shortcut, so the conditional is evaluated over its support
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>k</mi><mo>=</mo><mn>0</mn><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">k = 0, \ldots, y_2</annotation></semantics></math>
-and summed. Both are exact, and each agrees with the mean of its own
-<code><a href="https://mc-stan.org/rstantools/reference/posterior_predict.html" class="external-link">posterior_predict()</a></code> draws to within Monte Carlo error.</p>
-<p>The conditional expectation is returned for every row, including —
-under <code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code> and
-<code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code> — those where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math>
-was never observed. Those two constructors exist so that the fitted
-model can impute
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math>
-on those rows.</p>
-<p><code>posterior_epred(fit)</code> needs no special handling: it
-dispatches to the family method, as do <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code> and
-<code><a href="https://paulbuerkner.com/brms/reference/conditional_effects.brmsfit.html" class="external-link">conditional_effects()</a></code>.</p>
+<p>Each coordinate has its own formula. A predictor in the formula for
+<code>logM</code> multiplies all three rates by the same factor, and a
+predictor in the formula for <code>logitf</code> or <code>delta</code>
+changes the congruence or the source bias. The formulas below are for
+data with a factor <code>source1_type</code>, such as the type of
+equipment used by source 1, and a grouping factor <code>group</code>
+with many levels; the simulated data above have neither.</p>
+<p>In the model below, the formula for <code>logM</code> alone includes
+a group-level effect of <code>group</code>, so the groups differ in how
+much the two sources record but not in the extent to which their records
+agree. The formula for <code>delta</code> includes
+<code>source1_type</code>, so <code>source1_type</code> changes the
+balance of exclusive records between the two sources with <span class="math inline">M</span> and <span class="math inline">f</span> held
+fixed. Each coefficient has a prior with <code>class = "b"</code>, as in
+the model with intercepts only, and the SD of the group-level effect on
+<code>logM</code> has a prior with <code>class = "sd"</code>.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit_groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brm.html" class="external-link">brm</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/bf_mfd.html">bf_mfd</a></span><span class="op">(</span></span>
+<span>    <span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span><span class="op">)</span>,</span>
+<span>    <span class="va">logM</span>      <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">group</span><span class="op">)</span>,</span>
+<span>    <span class="va">logitf</span>    <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">delta</span>     <span class="op">~</span> <span class="va">source1_type</span>,</span>
+<span>    <span class="va">kappas</span>    <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">kappaxone</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="va">kappaxtwo</span> <span class="op">~</span> <span class="fl">1</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  family   <span class="op">=</span> <span class="fu"><a href="../reference/binegbin.html">binegbin</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  stanvars <span class="op">=</span> <span class="fu"><a href="../reference/binegbin.html">binegbin_stanvars</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  data     <span class="op">=</span> <span class="va">my_data</span>,</span>
+<span>  prior    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>,   class <span class="op">=</span> <span class="st">"b"</span>,  nlpar <span class="op">=</span> <span class="st">"logM"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,   class <span class="op">=</span> <span class="st">"sd"</span>, nlpar <span class="op">=</span> <span class="st">"logM"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"b"</span>,  nlpar <span class="op">=</span> <span class="st">"logitf"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span><span class="op">)</span>, class <span class="op">=</span> <span class="st">"b"</span>,  nlpar <span class="op">=</span> <span class="st">"delta"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,   class <span class="op">=</span> <span class="st">"b"</span>,  nlpar <span class="op">=</span> <span class="st">"kappas"</span>,    lb <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,   class <span class="op">=</span> <span class="st">"b"</span>,  nlpar <span class="op">=</span> <span class="st">"kappaxone"</span>, lb <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://paulbuerkner.com/brms/reference/set_prior.html" class="external-link">prior</a></span><span class="op">(</span><span class="fu">normal</span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,   class <span class="op">=</span> <span class="st">"b"</span>,  nlpar <span class="op">=</span> <span class="st">"kappaxtwo"</span>, lb <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  backend <span class="op">=</span> <span class="st">"cmdstanr"</span>,  <span class="co"># or "rstan"</span></span>
+<span>  seed    <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_groups</span><span class="op">)</span></span></code></pre></div>
+<p>In <code>summary(fit_groups)</code>, the row
+<code>delta_source1_typeB</code> is the difference in <span class="math inline">\operatorname{artanh}\beta</span> between level
+<code>B</code> of <code>source1_type</code> and the reference level, and
+the row <code>sd(logM_Intercept)</code>, under <code>~group</code>, is
+the SD of the group-level effects on <span class="math inline">\log
+M</span>.</p>
+<div class="section level3">
+<h3 id="native-parameterisation">Native parameterisation<a class="anchor" aria-label="anchor" href="#native-parameterisation"></a>
+</h3>
+<p>Where a predictor changes one latent component alone, the native
+parameterisation describes it more simply. In the formula below, only
+the formula for <code>lambdaone</code> includes
+<code>source1_type</code>, so <code>source1_type</code> changes the
+exclusive rate of source 1 and no other rate, and so changes <span class="math inline">M</span>, <span class="math inline">f</span>, and
+<span class="math inline">\beta</span> together. In this
+parameterisation, the three rates can be linked across groups only
+through a group-level effect with a shared ID in each rate formula,
+<code>(1 | s | group)</code>, under which the three effects of a group
+are correlated rather than equal <span class="citation">(<a href="#ref-burkner2018">Bürkner 2018</a>)</span>.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula.html" class="external-link">bf</a></span><span class="op">(</span></span>
+<span>  <span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">s</span> <span class="op">|</span> <span class="va">group</span><span class="op">)</span>,</span>
+<span>  <span class="va">lambdaone</span>     <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">s</span> <span class="op">|</span> <span class="va">group</span><span class="op">)</span> <span class="op">+</span> <span class="va">source1_type</span>,</span>
+<span>  <span class="va">lambdatwo</span>     <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">s</span> <span class="op">|</span> <span class="va">group</span><span class="op">)</span>,</span>
+<span>  <span class="va">shapes</span>        <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>  <span class="va">shapexone</span>     <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>  <span class="va">shapextwo</span>     <span class="op">~</span> <span class="fl">1</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
-<h2 id="related-families-and-further-reading">Related families and further reading<a class="anchor" aria-label="anchor" href="#related-families-and-further-reading"></a>
+<h2 id="further-reading">Further reading<a class="anchor" aria-label="anchor" href="#further-reading"></a>
 </h2>
-<ul>
-<li>
-<code><a href="../reference/bipois.html">bipois()</a></code> — the non-overdispersed Poisson sibling. Same
-construction, three dpars instead of six. Use it when the margins are
-not overdispersed; compare the two with <code><a href="https://mc-stan.org/loo/reference/loo.html" class="external-link">loo()</a></code>.</li>
-<li>
-<strong>The symmetric model.</strong> The fit above let the
-dispersions of the two exclusive components differ. To impose
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub></mrow><annotation encoding="application/x-tex">\phi_{x1} = \phi_{x2}</annotation></semantics></math>
-instead, route both through one non-linear parameter —
-<code>nlf(shapexone ~ shapexx)</code>,
-<code>nlf(shapextwo ~ shapexx)</code>, <code>shapexx ~ 1</code>, with
-<code>nl = TRUE</code> — and set its prior with
-<code>nlpar = "shapexx"</code>. That is the model this package fitted
-under a single <code>shapex</code> dpar before 0.10.0, term for
-term.</li>
-<li>
-<code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code> — for data where the first count
-is missing on some rows. It is the same family: same name, same six
-dpars, same likelihood and the same post-processing. What it adds is a
-second <code>vint()</code> integer, a 0/1 flag saying whether
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mn>1</mn></msub><annotation encoding="application/x-tex">y_1</annotation></semantics></math>
-was recorded. Rows where it was not are scored by the integrated-out
-marginal of this same joint rather than dropped, so they still inform
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mi>s</mi></msub><annotation encoding="application/x-tex">\phi_s</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\lambda_2</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x2}</annotation></semantics></math>
-and any group-level effects; afterwards the fit imputes the missing
-count conditional on the observed one. Note that
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\lambda_1</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϕ</mi><mrow><mi>x</mi><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\phi_{x1}</annotation></semantics></math>
-are then identified by the paired rows alone. Despite its former name,
-this is unrelated to the brms <code>cens()</code> addition term, which
-means a value known to lie in a set.</li>
-<li>The
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>M</mi><mo>,</mo><mi>f</mi><mo>,</mo><mi>δ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(M, f, \delta)</annotation></semantics></math><strong>reparameterisation</strong> — the midpoint
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
-of the two expected counts, congruence
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>f</mi><annotation encoding="application/x-tex">f</annotation></semantics></math>,
-and source bias
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>δ</mi><annotation encoding="application/x-tex">\delta</annotation></semantics></math>,
-with the inverse dispersions converted to overdispersions
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>1</mn><mi>/</mi><msqrt><mi>ϕ</mi></msqrt></mrow><annotation encoding="application/x-tex">\kappa = 1/\sqrt{\phi}</annotation></semantics></math>,
-where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\kappa = 0</annotation></semantics></math>
-is the Poisson limit. It is fitted through <code><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf()</a></code> rather
-than a separate family, and <a href="../reference/binegbin_mfd_to_dpars.html"><code>binegbin_mfd_to_dpars()</code></a>
-converts between the two. Because
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>δ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\delta = 0</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>κ</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\kappa = 0</annotation></semantics></math>
-are finite, interpretable nulls, these coordinates admit shrinkage
-priors towards the simpler model unless the data support otherwise <span class="citation">(<a href="#ref-simpsonPenalisingModelComponent2017">Simpson et al.
-2017</a>)</span>. The rate parameterisation has no such nulls. Worked
-end to end in the article <a href="https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.html"><em>Mapping
-native parameters to interpretable coordinates</em></a>.</li>
-<li>
-<code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code> — the same partial observation,
-equidispersed: the Poisson special case of
-<code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code>. Its integrated-out marginal is
-closed form,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mn>2</mn></msub><mo>∼</mo><mrow><mi mathvariant="normal">P</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">s</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">n</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>μ</mi><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">y_2 \sim \mathrm{Poisson}(\mu + \lambda_2)</annotation></semantics></math>,
-since a sum of independent Poissons is Poisson. Use it when the margins
-are not overdispersed, rather than fitting
-<code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code> with its dispersions pressed against
-the Poisson boundary.</li>
-<li>
-<strong>Modelling the difference instead.</strong> Where only the
-disagreement
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>=</mo><msub><mi>y</mi><mn>1</mn></msub><mo>−</mo><msub><mi>y</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">d = y_1 - y_2</annotation></semantics></math>
-is of interest, or where truncation via <code><a href="https://paulbuerkner.com/brms/reference/addition-terms.html" class="external-link">resp_trunc()</a></code> is
-required, the Skellam and discrete Laplace/normal families in the
-companion package <code>skellambrms</code> <span class="citation">(<a href="#ref-smithSkellambrmsSkellamDiscreteDifference2026">Smith
-2026</a>)</span> model
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
-directly. The difference of two independent Poisson counts is
-Skellam-distributed <span class="citation">(<a href="#ref-skellam1946">Skellam 1946</a>)</span>; for the Bayesian
-treatment of count differences generally, see <span class="citation">Karlis and Ntzoufras (<a href="#ref-karlis2006">2006</a>)</span>. Note what that reduction
-discards: the shared component cancels out of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>,
-so the midpoint and the congruence are no longer estimable.</li>
-</ul>
+<p><code><a href="../reference/binegbin_partialobs.html">binegbin_partialobs()</a></code> and
+<code><a href="../reference/bipois_partialobs.html">bipois_partialobs()</a></code> fit partially paired designs, in which
+<span class="math inline">y_1</span> was not recorded on some rows, with
+the response <code>y1 | vint(y2, y1_obs)</code>. A partially paired
+design is fitted in the article <a href="https://anhsmith.github.io/bicountbrms/articles/partially-paired-designs.html"><em>Partially
+paired designs</em></a>, and <a href="https://anhsmith.github.io/bicountbrms/articles/prediction.html"><em>Prediction
+and imputation</em></a> describes the imputation of the unrecorded
+values of <span class="math inline">y_1</span>.</p>
+<p>The package <code>skellambrms</code> <span class="citation">(<a href="#ref-smithSkellambrmsSkellamDiscreteDifference2026">Smith
+2026</a>)</span> models the difference <span class="math inline">d = y_1
+- y_2</span> directly. The shared component cancels from <span class="math inline">d</span>, so a model of <span class="math inline">d</span> cannot estimate the midpoint or the
+congruence.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
@@ -591,11 +796,6 @@ Data by Using Bivariate <span>Poisson</span> Models.”</span> <em>Journal
 of the Royal Statistical Society: Series D (The Statistician)</em> 52
 (3): 381–93. <a href="https://doi.org/10.1111/1467-9884.00366" class="external-link">https://doi.org/10.1111/1467-9884.00366</a>.
 </div>
-<div id="ref-karlis2006" class="csl-entry">
-Karlis, Dimitris, and Ioannis Ntzoufras. 2006. <span>“Bayesian Analysis
-of the Differences of Count Data.”</span> <em>Statistics in
-Medicine</em> 25 (11): 1885–905. <a href="https://doi.org/10.1002/sim.2382" class="external-link">https://doi.org/10.1002/sim.2382</a>.
-</div>
 <div id="ref-kirkpatrickRMKdiscreteSundryDiscrete2022" class="csl-entry">
 Kirkpatrick, Robert M. 2022. <em><span>RMKdiscrete</span>: Sundry
 Discrete Probability Distributions</em>. <a href="https://CRAN.R-project.org/package=RMKdiscrete" class="external-link">https://CRAN.R-project.org/package=RMKdiscrete</a>.
@@ -605,17 +805,16 @@ Kirkpatrick, Robert M., and Michael C. Neale. 2016. <span>“Applying
 Multivariate Discrete Distributions to Genetically Informative Count
 Data.”</span> <em>Behavior Genetics</em> 46 (2): 252–68. <a href="https://doi.org/10.1007/s10519-015-9757-z" class="external-link">https://doi.org/10.1007/s10519-015-9757-z</a>.
 </div>
+<div id="ref-mcelreath2020" class="csl-entry">
+McElreath, Richard. 2020. <em>Statistical Rethinking: A
+<span>Bayesian</span> Course with Examples in <span>R</span> and
+<span>Stan</span></em>. 2nd ed. Chapman; Hall/CRC. <a href="https://doi.org/10.1201/9780429029608" class="external-link">https://doi.org/10.1201/9780429029608</a>.
+</div>
 <div id="ref-simpsonPenalisingModelComponent2017" class="csl-entry">
 Simpson, Daniel, Håvard Rue, Andrea Riebler, Thiago G. Martins, and
 Sigrunn H. Sørbye. 2017. <span>“Penalising Model Component Complexity: A
 Principled, Practical Approach to Constructing Priors.”</span>
 <em>Statistical Science</em> 32 (1): 1–28. <a href="https://doi.org/10.1214/16-STS576" class="external-link">https://doi.org/10.1214/16-STS576</a>.
-</div>
-<div id="ref-skellam1946" class="csl-entry">
-Skellam, J. G. 1946. <span>“The Frequency Distribution of the Difference
-Between Two <span>Poisson</span> Variates Belonging to Different
-Populations.”</span> <em>Journal of the Royal Statistical Society</em>
-109 (3): 296. <a href="https://doi.org/10.2307/2981372" class="external-link">https://doi.org/10.2307/2981372</a>.
 </div>
 <div id="ref-smithInstantaneousVsNoninstantaneous2020" class="csl-entry">
 Smith, A. N. H., D. Acuña-Marrero, P. Salinas-de-León, E. S. Harvey, M.
@@ -635,6 +834,13 @@ Vehtari, Aki, Andrew Gelman, and Jonah Gabry. 2017. <span>“Practical
 Cross-Validation and <span>WAIC</span>.”</span> <em>Statistics and
 Computing</em> 27 (5): 1413–32. <a href="https://doi.org/10.1007/s11222-016-9696-4" class="external-link">https://doi.org/10.1007/s11222-016-9696-4</a>.
 </div>
+<div id="ref-vehtari2021" class="csl-entry">
+Vehtari, Aki, Andrew Gelman, Daniel Simpson, Bob Carpenter, and
+Paul-Christian Bürkner. 2021. <span>“Rank-Normalization, Folding, and
+Localization: An Improved <span><span class="math inline">\widehat{R}</span></span> for Assessing Convergence
+of <span>MCMC</span> (with Discussion).”</span> <em>Bayesian
+Analysis</em> 16 (2): 667–718. <a href="https://doi.org/10.1214/20-BA1221" class="external-link">https://doi.org/10.1214/20-BA1221</a>.
+</div>
 <div id="ref-vehtari2024" class="csl-entry">
 Vehtari, Aki, Daniel Simpson, Andrew Gelman, Yuling Yao, and Jonah
 Gabry. 2024. <span>“Pareto Smoothed Importance Sampling.”</span>
@@ -649,7 +855,7 @@ Gabry. 2024. <span>“Pareto Smoothed Importance Sampling.”</span>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Adam N. H. Smith, The Nature Conservancy, Belize Blue Bonds for Ocean Conservation, Belize Fund for a Sustainable Future.</p>
+  <p>Developed by Adam N. H. Smith.</p>
 </div>
 
 <div class="pkgdown-footer-right">

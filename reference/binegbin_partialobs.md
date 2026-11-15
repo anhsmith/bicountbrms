@@ -1,59 +1,38 @@
 # Joint bivariate family with negative-binomial components for partially observed pairs
 
+Returns a version of
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-for a design in which the first count is missing on some rows. Same
-generative model, same `name`, same six dpars, same likelihood and the
-same post-processing methods – the only difference is that each row
-supplies a second supplementary integer, an observation flag, through
-`vint()`:
+for partially paired designs, in which source 1 has missing values. The
+generative model, family name, dpars, and post-processing methods are
+the same as for
+[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md).
+Each row also supplies an observation indicator as the second argument
+of `vint()`, after `y2`:
 
-    bf(y1 | vint(y2, y1_obs) ~ ...)
+    brm(
+      bf(y1 | vint(y2, y1_obs) ~ ...),
+      family   = binegbin_partialobs(),
+      stanvars = binegbin_partialobs_stanvars(),
+      data     = dat
+    )
 
-`y1_obs` is a 0/1 integer column: `1` where both counts were recorded,
-`0` where the first was not. `y1` may hold any non-negative integer on
-those rows – `0` is the conventional placeholder – because the
-likelihood does not read it. Do not use `NA`, which brms drops before
-fitting, taking the observed `y2` on that row with it.
+This template is for the native parameterisation. To fit the model in
+the congruence–bias parameterisation, which we recommend, write the
+formula with
+[`bf_mfd()`](https://anhsmith.github.io/bicountbrms/reference/bf_mfd.md).
 
-**Contribution of a paired row and of an unpaired row.** A paired row
-(`y1_obs == 1`) uses the full joint lpmf on `(y1, y2)`. A row whose
-first count was never recorded (`y1_obs == 0`) contributes the marginal
-of the second count *from the same model*,
-`P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo)` –
-the joint with the `y1` term integrated out over its whole support. It
-is not dropped, and it is not given a different model: it still informs
-the shared component (`mu`, `shapes`), the rate and dispersion of the
-second source (`lambdatwo`, `shapextwo`), and any group-level effects.
+`y1_obs` is `1` on rows where both counts were recorded and `0` on rows
+where only `y2` was recorded. An indicator other than `0` or `1` makes
+the sampler fail at initialisation, with a message in the chain output
+that names the cause. The check also catches the two `vint()` arguments
+written in reverse order.
 
-**Imputation after fitting.** The fitted model can impute the unobserved
-first count conditional on the observed second count.
-[`posterior_predict()`](https://mc-stan.org/rstantools/reference/posterior_predict.html)
-and
-[`posterior_epred()`](https://mc-stan.org/rstantools/reference/posterior_epred.html)
-return a `y1` draw and `E[y1 | y2]` for *every* row, paired and unpaired
-alike – `y1_obs` selects a likelihood branch, not a prediction.
+**Do not use `NA` for missing `y1` values.** brms drops any row with a
+missing response with only a warning. On a row with `y1_obs == 0`, the
+likelihood term does not depend on `y1`, so `y1` can be any integer. We
+suggest `-1`, because it cannot be confused with a recorded count:
 
-**Parameters identified only by the paired rows.** The rate `lambdaone`
-and dispersion `shapexone` of the first source appear only on the paired
-branch, so `lambdaone` and `shapexone` are identified by the paired rows
-alone. With 20 paired rows in 500, the posteriors of `lambdaone` and
-`shapexone` are wide and depend strongly on their priors. `mu`,
-`shapes`, `lambdatwo` and `shapextwo` appear on both branches and are
-informed by every row.
-
-**Relation to censoring in brms.** brms uses the `cens()` addition term
-for a value known to lie in a set (`left`, `right` or `interval`). On an
-unpaired row, the first count is not observed at all, and the likelihood
-marginalises over its whole support. `binegbin_partialobs()` was called
-`binegbin_cens()` up to 0.9.1. Do not combine `binegbin_partialobs()`
-with `cens()`.
-
-Use in a brm() call as: brm( bf(y1 \| vint(y2, y1_obs) ~ 1, mu ~ 1 + (1
-\| vessel) + (1 \| vessel:trip_id), nlf(lambdaone ~ lamx + delta),
-nlf(lambdatwo ~ lamx - delta), lamx ~ 1, delta ~ 1, shapes ~ 1,
-shapexone ~ 1, shapextwo ~ 1, nl = TRUE), family =
-binegbin_partialobs(), stanvars = binegbin_partialobs_stanvars(), data =
-dat )
+    dat$y1[dat$y1_obs == 0] <- -1L
 
 ## Usage
 
@@ -75,43 +54,28 @@ either constructor.
 
 ## Details
 
-**Shared Stan function and post-processing methods.**
-`binegbin_partialobs()` returns the same `custom_family` `name` as
-[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md),
-so brms resolves both constructors to one `binegbin_lpmf` and one set of
-[`log_lik_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-/
-[`posterior_predict_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-/
-[`posterior_epred_binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-methods. The paired branch of `binegbin_partialobs()` therefore runs the
-same code as
+On a paired row, the likelihood term is the joint probability of
+`(y1, y2)` under
 [`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md).
+On an unpaired row, the likelihood term is the marginal probability of
+`y2`, the joint probability summed over every possible value of the
+unrecorded `y1`:
+`P(y2) = sum_k NB2(k | mu, shapes) NB2(y2 - k | lambdatwo, shapextwo)`
+over `k = 0, ..., y2`.
 
-What differs is `vars`.
-[`binegbin()`](https://anhsmith.github.io/bicountbrms/reference/binegbin.md)
-declares `c("vint1[n]", "1")` and `binegbin_partialobs()` declares
-`c("vint1[n]", "vint2[n]")`. brms pastes those entries into the
-generated call, so the fully paired model reaches the same Stan function
-with the flag fixed at `1`. The alternative – two Stan functions of the
-same name and different arity – would need user-defined function
-overloading, which arrived in Stan 2.29 (February 2022) and would oblige
-this package to declare a minimum Stan version. `DESCRIPTION` sets no
-minimum version of rstan or cmdstanr.
+To impute `y1` on the unpaired rows, use
+[`posterior_predict_y1_given_y2()`](https://anhsmith.github.io/bicountbrms/reference/posterior_predict_y1_given_y2.md)
+or
+[`posterior_epred_y1_given_y2()`](https://anhsmith.github.io/bicountbrms/reference/posterior_predict_y1_given_y2.md);
+see
+[`vignette("prediction")`](https://anhsmith.github.io/bicountbrms/articles/prediction.md).
 
-**Two `vint()` arguments, in declared order.** brms appends `vint()`
-integers to the generated lpmf call in the order they are listed in the
-`vint()` term of the formula, matching the `vars` declared here: so
-`vint(y2, y1_obs)` binds `vint1 = y2` and `vint2 = y1_obs`. Reordering
-the two `vint()` terms without matching the Stan signature silently
-swaps the second count with the branch flag.
-
-**Distinguishing the two constructors in a stored fit.** `family$name`
-is `"binegbin"` either way. What distinguishes them is the presence of
-the second supplementary integer:
-
-    "vint2" %in% names(brms::standata(fit))   # TRUE for a partially observed fit
-    fit$family$vars     # c("vint1[n]", "vint2[n]") or c("vint1[n]", "1")
+`lambdaone` and `shapexone` do not appear in the likelihood term for an
+unpaired row, so `lambdaone` and `shapexone` are estimated from the
+paired rows alone. With few paired rows, the posteriors of `lambdaone`
+and `shapexone` are wide and depend strongly on their priors. `mu`,
+`shapes`, `lambdatwo`, and `shapextwo` appear in both likelihood terms
+and are informed by every row.
 
 ## See also
 

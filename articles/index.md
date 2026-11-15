@@ -5,40 +5,19 @@
 - [Getting started with
   bicountbrms](https://anhsmith.github.io/bicountbrms/articles/bicountbrms.md):
 
-- [The families and their
-  parameters](https://anhsmith.github.io/bicountbrms/articles/families-and-parameters.md):
+- [The congruence–bias
+  parameterisation](https://anhsmith.github.io/bicountbrms/articles/reparameterisation.md):
 
-  How the two families are constructed, what each distributional
-  parameter means, how to constrain the dispersions of the two exclusive
-  components to be equal, and a fit to simulated data in which two
-  unequal dispersions are recovered separately.
+  The congruence–bias coordinates, an interactive widget showing one
+  model in the congruence–bias and native parameterisations, and the map
+  between the coordinates and the native parameters.
 
-- [Choosing
-  priors](https://anhsmith.github.io/bicountbrms/articles/choosing-priors.md):
+- [Partially paired
+  designs](https://anhsmith.github.io/bicountbrms/articles/partially-paired-designs.md):
 
-  brms leaves every distributional parameter of a custom family except
-  mu without a prior. What to set instead, in both parameterisations,
-  and where each prior belongs in the class/dpar/nlpar slots.
+  Fitting a partially paired design in the congruence–bias
+  parameterisation, and imputing the counts that the partially observed
+  source did not record.
 
-- [A worked partially observed
-  fit](https://anhsmith.github.io/bicountbrms/articles/partially-observed-fit.md):
-
-  Simulating a design in which the first count is recorded on only some
-  rows, fitting it, and scoring the imputed first count against values
-  withheld from the model.
-
-### Interpretation and history
-
-- [Mapping native parameters to interpretable
-  coordinates](https://anhsmith.github.io/bicountbrms/articles/paired-count-anatomy.md):
-
-  What a pair of counts is made of, and the two coordinate systems you
-  can describe it in. Interactive, with every knob linked to every
-  other.
-
-- [Migration and
-  errata](https://anhsmith.github.io/bicountbrms/articles/migration-and-errata.md):
-
-  What each release changed, what to substitute in existing code, what
-  to do with a fit stored under a name that no longer exists, and one
-  numerical result that was wrong before 0.9.0.
+- [Prediction and
+  imputation](https://anhsmith.github.io/bicountbrms/articles/prediction.md):
