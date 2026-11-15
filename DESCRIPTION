@@ -1,6 +1,6 @@
 Package: bicountbrms
 Title: Custom 'brms' Families for Paired Counts
-Version: 1.0.0
+Version: 1.0.1
 Date: 2026-11-15
 Authors@R: c(
     person("Adam N. H.", "Smith", , "anhsmith@gmail.com",
