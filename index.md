@@ -166,7 +166,7 @@ imputation](https://anhsmith.github.io/bicountbrms/articles/prediction.html).
   parameterisation](https://anhsmith.github.io/bicountbrms/articles/reparameterisation.html)
   has an interactive widget that simulates pairs of counts from one
   model and shows the congruence–bias and native parameterisations side
-  by side, and gives the formulas that convert between the coordinates
+  by side, and gives the equations that convert between the coordinates
   and the native parameters.
 - The
   [changelog](https://anhsmith.github.io/bicountbrms/news/index.html)

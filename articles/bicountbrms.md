@@ -482,7 +482,7 @@ simulated with overdispersions between 0.4 and 0.7.
 Each coordinate has its own formula. A predictor in the formula for
 `logM` multiplies all three rates by the same factor, and a predictor in
 the formula for `logitf` or `delta` changes the congruence or the source
-bias. The formulas below are for data with a factor `source1_type`, such
+bias. The formulae below are for data with a factor `source1_type`, such
 as the type of equipment used by source 1, and a grouping factor `group`
 with many levels; the simulated data above have neither.
 

@@ -38,7 +38,7 @@ bf_mfd(formula, ...)
 
 - ...:
 
-  Two-sided formulas, one for each coordinate, in any order. The
+  Two-sided formulae, one for each coordinate, in any order. The
   left-hand side names the coordinate and the right-hand side gives its
   linear predictor, as in `logM ~ 0 + site` or `delta ~ 1`. Every
   coordinate of the chosen set is required, including those with an
@@ -68,7 +68,7 @@ must be positive (see Priors).
 [`mfd_to_dpars()`](https://anhsmith.github.io/bicountbrms/reference/mfd_to_dpars.md)
 computes the native parameters from the same identities.
 
-**Sets of coordinates.** The set of coordinate formulas supplied
+**Sets of coordinates.** The set of coordinate formulae supplied
 determines the dispersion structure. `logM`, `logitf`, and `delta` are
 always required. The three valid sets are:
 

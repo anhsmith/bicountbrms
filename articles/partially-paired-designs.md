@@ -153,7 +153,7 @@ Stan code are
 and
 [`binegbin_partialobs_stanvars()`](https://anhsmith.github.io/bicountbrms/reference/binegbin_partialobs.md).
 The formula for `logM` includes a group-level effect of `group`, and the
-formulas for `logitf` and `delta` include `treatment`, with one
+formulae for `logitf` and `delta` include `treatment`, with one
 coefficient for each treatment.
 
 ``` r
