@@ -162,14 +162,24 @@ documentation.</p>
 written on the log scale, without <code><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp()</a></code>: <code>nlf(lambdaone ~ lamx)</code> gives
 <code>lambdaone = exp(lamx)</code>.</p>
 <p><code>shapexone</code> and <code>shapextwo</code> are estimated separately. To constrain them to
-be equal, route both through one non-linear parameter, and set its prior
-with <code>nlpar = "shapexx"</code>:</p>
+be equal in the congruence–bias parameterisation, give <code><a href="bf_mfd.html">bf_mfd()</a></code> the
+single formula <code>kappax ~ 1</code> in place of <code>kappaxone ~ 1</code> and
+<code>kappaxtwo ~ 1</code>:</p>
+<p></p><div class="sourceCode r"><pre><code><span><span class="fu"><a href="../reference/bf_mfd.html">bf_mfd</a></span><span class="op">(</span></span>
+<span>  <span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span><span class="op">)</span>,</span>
+<span>  <span class="va">logM</span>   <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>  <span class="va">logitf</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>  <span class="va">delta</span>  <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>  <span class="va">kappas</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>  <span class="va">kappax</span> <span class="op">~</span> <span class="fl">1</span></span>
+<span><span class="op">)</span></span></code></pre><p></p></div>
+<p>In the native parameterisation, route both dispersions through one
+non-linear parameter, and set the prior on <code>shapexx</code> with
+<code>nlpar = "shapexx"</code>:</p>
 <p></p><div class="sourceCode r"><pre><code><span><span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula.html" class="external-link">bf</a></span><span class="op">(</span><span class="va">y1</span> <span class="op">|</span> <span class="fu">vint</span><span class="op">(</span><span class="va">y2</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>,</span>
 <span>   <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapexone</span> <span class="op">~</span> <span class="va">shapexx</span><span class="op">)</span>,</span>
 <span>   <span class="fu"><a href="https://paulbuerkner.com/brms/reference/brmsformula-helpers.html" class="external-link">nlf</a></span><span class="op">(</span><span class="va">shapextwo</span> <span class="op">~</span> <span class="va">shapexx</span><span class="op">)</span>,</span>
-<span>   <span class="va">shapexx</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">...</span>, nl <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre><p></p></div>
-<p>In the congruence–bias parameterisation, the single formula <code>kappax ~ 1</code> in
-<code><a href="bf_mfd.html">bf_mfd()</a></code> imposes the same constraint.</p>
+<span>   <span class="va">shapexx</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">lambdaone</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">lambdatwo</span> <span class="op">~</span> <span class="fl">1</span>, <span class="va">shapes</span> <span class="op">~</span> <span class="fl">1</span><span class="op">)</span></span></code></pre><p></p></div>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
