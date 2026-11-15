@@ -21,8 +21,10 @@ Description: Provides custom 'brms' families for pairs of counts that two
     source 1 only a subset of units; the missing counts of source 1 can then
     be imputed conditional on the counts recorded by source 2.
     mfd_to_dpars() and dpars_to_mfd() convert the native parameters to and from
-    the midpoint of the two expected counts, the congruence, and the source
-    bias.
+    the congruence–bias coordinates: the midpoint of the two expected counts,
+    the congruence, and the source bias. bf_mfd() writes the 'brms' formula in
+    the congruence–bias coordinates, and rbicount() simulates pairs of counts
+    from the model.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Language: en-GB
